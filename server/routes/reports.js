@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Sale, Book } = require('../db/models');
+const { Sale, Book, sequelize } = require('../db/models');
 const { Op } = require('sequelize');
 
 // Get sales report
