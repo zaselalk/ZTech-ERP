@@ -23,10 +23,22 @@ const Dashboard = () => {
     recentSales: [],
     totalConsignment: 0,
   });
+  const [lowStockItems, setLowStockItems] = useState([]);
 
   useEffect(() => {
     fetchStats();
+    fetchLowStockItems();
   }, []); // Refetch when refreshKey changes
+
+  const fetchLowStockItems = async () => {
+    try {
+      const response = await fetch(`${API_URL}/books/low-stock`);
+      const data = await response.json();
+      setLowStockItems(data);
+    } catch (error) {
+      message.error("Failed to fetch low stock items");
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -53,6 +65,12 @@ const Dashboard = () => {
       key: "createdAt",
       render: (val) => new Date(val).toLocaleDateString(),
     },
+  ];
+
+  const lowStockColumns = [
+    { title: "Book Name", dataIndex: "name", key: "name" },
+    { title: "Author", dataIndex: "author", key: "author" },
+    { title: "Quantity", dataIndex: "quantity", key: "quantity" },
   ];
 
   return (
@@ -350,55 +368,58 @@ const Dashboard = () => {
             }}
             bodyStyle={{ padding: "24px" }}
           >
-            <Text style={{ color: "#666", fontSize: "14px" }}>
-              Current stock status
-            </Text>
-            <div style={{ marginTop: "16px" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "12px",
-                }}
-              >
-                <Text strong style={{ fontSize: "16px" }}>
-                  Total Books
-                </Text>
-                <Title level={3} style={{ margin: 0, color: "#2c3e50" }}>
-                  {stats.totalBooks}
-                </Title>
-              </div>
-              <Divider style={{ margin: "16px 0" }} />
-              <div
-                style={{
-                  padding: "16px",
-                  background: "#fff3cd",
-                  borderRadius: "8px",
-                  border: "1px solid #ffeaa7",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <WarningOutlined
-                    style={{ color: "#f39c12", marginRight: "8px" }}
-                  />
-                  <Text strong style={{ color: "#f39c12" }}>
-                    Low Stock Alert
-                  </Text>
-                </div>
-                <Text
-                  style={{
-                    color: "#e17055",
-                    fontSize: "24px",
-                    fontWeight: "bold",
-                    display: "block",
-                    marginTop: "4px",
-                  }}
-                >
-                  {stats.lowStockCount}
-                </Text>
-              </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "12px",
+              }}
+            >
+              <Text strong style={{ fontSize: "16px" }}>
+                Total Books
+              </Text>
+              <Title level={3} style={{ margin: 0, color: "#2c3e50" }}>
+                {stats.totalBooks}
+              </Title>
             </div>
+            <Divider style={{ margin: "16px 0" }} />
+            <div
+              style={{
+                padding: "16px",
+                background: "#fff3cd",
+                borderRadius: "8px",
+                border: "1px solid #ffeaa7",
+                marginBottom: "16px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <WarningOutlined
+                  style={{ color: "#f39c12", marginRight: "8px" }}
+                />
+                <Text strong style={{ color: "#f39c12" }}>
+                  Low Stock Alert
+                </Text>
+              </div>
+              <Text
+                style={{
+                  color: "#e17055",
+                  fontSize: "24px",
+                  fontWeight: "bold",
+                  display: "block",
+                  marginTop: "4px",
+                }}
+              >
+                {stats.lowStockCount}
+              </Text>
+            </div>
+            <Table
+              columns={lowStockColumns}
+              dataSource={lowStockItems}
+              rowKey="id"
+              pagination={false}
+              size="small"
+            />
           </Card>
         </Col>
 

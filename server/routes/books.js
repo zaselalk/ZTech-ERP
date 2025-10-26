@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Book } = require('../db/models');
+const { Sequelize } = require('sequelize');
 
 // Get all books
 router.get('/', async (req, res) => {
@@ -16,6 +17,22 @@ router.get('/', async (req, res) => {
 router.get('/top-sellers', async (req, res) => {
   try {
     const books = await Book.findAll({ limit: 12 });
+    res.json(books);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get low stock books
+router.get('/low-stock', async (req, res) => {
+  try {
+    const books = await Book.findAll({
+      where: {
+        quantity: {
+          [Sequelize.Op.lte]: Sequelize.col('reorder_threshold'),
+        },
+      },
+    });
     res.json(books);
   } catch (err) {
     res.status(500).json({ message: err.message });
