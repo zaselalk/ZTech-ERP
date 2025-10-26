@@ -6,14 +6,12 @@ const API_URL = 'http://localhost:5001/api';
 
 const Books = () => {
   const [books, setBooks] = useState([]);
-  const [bookshops, setBookshops] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
     fetchBooks();
-    fetchBookshops();
   }, []);
 
   const fetchBooks = async () => {
@@ -26,15 +24,7 @@ const Books = () => {
     }
   };
 
-  const fetchBookshops = async () => {
-    try {
-      const response = await fetch(`${API_URL}/bookshops`);
-      const data = await response.json();
-      setBookshops(data);
-    } catch (error) {
-      message.error('Failed to fetch bookshops');
-    }
-  };
+  
 
   const showModal = (book = null) => {
     setEditingBook(book);
@@ -92,7 +82,6 @@ const Books = () => {
     { title: 'Genre', dataIndex: 'genre', key: 'genre' },
     { title: 'Price', dataIndex: 'price', key: 'price', render: (price) => `LKR ${price}` },
     { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
-    { title: 'Bookshop', dataIndex: ['bookshop', 'name'], key: 'bookshop' },
     {
       title: 'Action',
       key: 'action',
@@ -142,15 +131,7 @@ const Books = () => {
           <Form.Item name="reorder_threshold" label="Reorder Threshold" rules={[{ required: true, type: 'integer' }]}>
             <InputNumber style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="BookshopId" label="Bookshop" rules={[{ required: true }]}>
-            <Select placeholder="Select a bookshop">
-              {bookshops.map((shop) => (
-                <Option key={shop.id} value={shop.id}>
-                  {shop.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+          
         </Form>
       </Modal>
     </div>

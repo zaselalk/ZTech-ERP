@@ -29,7 +29,6 @@ router.get('/low-stock', async (req, res) => {
           [Op.lte]: sequelize.col('reorder_threshold'),
         },
       },
-      include: ['bookshop'],
     });
     res.json(lowStockBooks);
   } catch (err) {
