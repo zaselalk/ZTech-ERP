@@ -25,7 +25,9 @@ module.exports = (sequelize, DataTypes) => {
     SaleId: DataTypes.INTEGER,
     BookId: DataTypes.INTEGER,
     quantity: DataTypes.INTEGER,
-    price: DataTypes.DECIMAL
+    price: DataTypes.DECIMAL,
+    discount: DataTypes.DECIMAL,
+    discount_type: DataTypes.ENUM('Fixed', 'Percentage')
   }, {
     sequelize,
     modelName: 'SaleItem',
