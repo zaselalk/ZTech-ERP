@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { sequelize, Sale, SaleItem, Book, Bookshop } = require('../db/models');
+const nodemailer = require('nodemailer');
 
 // Get all sales
 router.get('/', async (req, res) => {
@@ -120,6 +121,86 @@ router.post('/', async (req, res) => {
   } catch (err) {
     await t.rollback();
     res.status(400).json({ message: err.message });
+  }
+});
+
+// TODO: Configure transporter in a separate config file and use environment variables
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+// Send receipt email
+router.post('/:id/email', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const sale = await Sale.findByPk(req.params.id, {
+      include: ['bookshop', { model: Book, as: 'books' }],
+    });
+
+    if (!sale) {
+      return res.status(404).json({ message: 'Sale not found' });
+    }
+
+    // Generate HTML for the receipt
+    const subtotal = sale.books.reduce((acc, book) => acc + (book.SaleItem.price * book.SaleItem.quantity), 0);
+    const receiptHtml = `
+      <h1>Receipt - Sale #${sale.id}</h1>
+      ${sale.bookshop ? `<p><strong>Bookshop:</strong> ${sale.bookshop.name}</p>` : ''}
+      <p><strong>Date:</strong> ${new Date(sale.createdAt).toLocaleString()}</p>
+      <p><strong>Payment Method:</strong> ${sale.payment_method}</p>
+      <hr />
+      <table border="1" cellpadding="5" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Discount</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sale.books.map(book => `
+            <tr>
+              <td>${book.name}</td>
+              <td>${book.SaleItem.quantity}</td>
+              <td>LKR ${parseFloat(book.SaleItem.price).toFixed(2)}</td>
+              <td>${book.SaleItem.discount > 0 ? `${book.SaleItem.discount} ${book.SaleItem.discount_type === 'Fixed' ? 'LKR' : '%'}` : '-'}</td>
+              <td>LKR ${(book.SaleItem.price * book.SaleItem.quantity).toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      <div style="text-align: right; margin-top: 16px;">
+        <p>Subtotal: LKR ${subtotal.toFixed(2)}</p>
+        <p>Cart Discount: LKR ${parseFloat(sale.discount).toFixed(2)}</p>
+        <h3>Total: LKR ${parseFloat(sale.total_amount).toFixed(2)}</h3>
+      </div>
+    `;
+
+    const mailOptions = {
+      from: process.env.EMAIL_FROM, // sender address
+      to: email, // list of receivers
+      subject: `Your receipt for Sale #${sale.id}`, // Subject line
+      html: receiptHtml, // html body
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: 'Email sent successfully' });
+  } catch (err) {
+    console.error('Failed to send email:', err);
+    res.status(500).json({ message: 'Failed to send email' });
   }
 });
 

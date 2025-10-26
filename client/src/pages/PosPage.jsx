@@ -30,7 +30,7 @@ const API_URL = "http://localhost:5001/api";
 
 // --- Re-usable sub-components ---
 
-const Receipt = ({ sale, onDone, visible }) => {
+const Receipt = ({ sale, onDone, onEmail, visible }) => {
   const componentRef = useRef();
   const handlePrint = useReactToPrint({ content: () => componentRef.current });
   if (!sale) return null;
@@ -51,6 +51,9 @@ const Receipt = ({ sale, onDone, visible }) => {
         </Button>,
         <Button key="submit" type="primary" onClick={handlePrint}>
           Print Receipt
+        </Button>,
+        <Button key="email" onClick={onEmail}>
+          Email Receipt
         </Button>,
       ]}
     >
@@ -161,6 +164,26 @@ const ItemDiscountModal = ({ item, visible, onApply, onCancel }) => {
   );
 };
 
+const EmailReceiptModal = ({ visible, onSend, onCancel }) => {
+    const [form] = Form.useForm();
+
+    const handleSend = () => {
+        form.validateFields().then(values => {
+            onSend(values.email);
+        });
+    }
+
+    return (
+        <Modal title="Email Receipt" visible={visible} onOk={handleSend} onCancel={onCancel}>
+            <Form form={form} layout="vertical">
+                <Form.Item label="Recipient Email" name="email" rules={[{ required: true, type: 'email' }]}>
+                    <Input />
+                </Form.Item>
+            </Form>
+        </Modal>
+    )
+}
+
 const PosPage = () => {
   // --- State Management ---
   const [topSellers, setTopSellers] = useState([]);
@@ -171,6 +194,7 @@ const PosPage = () => {
   const [completedSale, setCompletedSale] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
+  const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
   const navigate = useNavigate();
   const searchTimeout = useRef(null);
 
@@ -207,6 +231,24 @@ const PosPage = () => {
     searchTimeout.current = setTimeout(() => {
         handleSearch(query);
     }, 300);
+  };
+
+  const handleSendEmail = async (email) => {
+    try {
+      const response = await fetch(`${API_URL}/sales/${completedSale.id}/email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (response.ok) {
+        message.success('Receipt sent successfully');
+        setIsEmailModalVisible(false);
+      } else {
+        throw new Error((await response.json()).message || 'Failed to send receipt');
+      }
+    } catch (error) {
+      message.error(error.message);
+    }
   };
 
   // --- Cart & Discount Logic ---
@@ -517,6 +559,14 @@ const PosPage = () => {
           sale={completedSale}
           visible={!!completedSale}
           onDone={resetSale}
+          onEmail={() => setIsEmailModalVisible(true)}
+        />
+      )}
+      {isEmailModalVisible && (
+        <EmailReceiptModal
+          visible={isEmailModalVisible}
+          onSend={handleSendEmail}
+          onCancel={() => setIsEmailModalVisible(false)}
         />
       )}
     </Layout>
