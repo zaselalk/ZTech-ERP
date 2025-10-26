@@ -13,13 +13,23 @@ router.get('/stats', async (req, res) => {
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
 
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
     const totalSalesToday = await Sale.sum('total_amount', {
       where: { createdAt: { [Op.gte]: today } },
     });
 
     const totalSalesWeek = await Sale.sum('total_amount', {
-        where: { createdAt: { [Op.gte]: startOfWeek } },
+      where: { createdAt: { [Op.gte]: startOfWeek } },
     });
+
+    const totalSalesMonth = await Sale.sum('total_amount', {
+      where: { createdAt: { [Op.gte]: startOfMonth } },
+    });
+
+    const totalBooks = await Book.sum('quantity');
 
     const lowStockCount = await Book.count({
       where: {
@@ -38,6 +48,8 @@ router.get('/stats', async (req, res) => {
     res.json({
       totalSalesToday: totalSalesToday || 0,
       totalSalesWeek: totalSalesWeek || 0,
+      totalSalesMonth: totalSalesMonth || 0,
+      totalBooks: totalBooks || 0,
       lowStockCount: lowStockCount || 0,
       recentSales,
     });
