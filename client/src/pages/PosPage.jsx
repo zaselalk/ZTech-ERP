@@ -90,6 +90,7 @@ const PosPage = () => {
     const [isCheckoutVisible, setIsCheckoutVisible] = useState(false);
     const [completedSale, setCompletedSale] = useState(null);
     const [editingItem, setEditingItem] = useState(null);
+    const [searchResults, setSearchResults] = useState(null);
     const navigate = useNavigate();
 
     // --- Data Fetching ---
@@ -100,6 +101,17 @@ const PosPage = () => {
             setTopSellers(await res.json());
         } catch (e) { message.error("Failed to load top sellers"); }
     }
+
+    const handleSearch = async (query) => {
+        if (query) {
+            try {
+                const res = await fetch(`${API_URL}/books?search=${query}`);
+                setSearchResults(await res.json());
+            } catch (e) { message.error("Failed to search for books"); }
+        } else {
+            setSearchResults(null);
+        }
+    };
 
     // --- Cart & Discount Logic ---
     const handleAddToCart = (book) => {
@@ -165,7 +177,7 @@ const PosPage = () => {
         <Layout style={{ minHeight: '100vh' }}>
             <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><Title level={3} style={{ color: 'white', margin: 0 }}>Point of Sale</Title><Button onClick={() => navigate('/')}>Back to Dashboard</Button></Header>
             <Layout>
-                <Content style={{ padding: '24px' }}><Search placeholder="Search for books..." style={{ marginBottom: 24 }} /><Row gutter={[16, 16]}>{topSellers.map(book => (<Col key={book.id} span={6}><Card hoverable onClick={() => handleAddToCart(book)}><Card.Meta title={book.name} description={`LKR ${book.price}`} /></Card></Col>))}</Row></Content>
+                <Content style={{ padding: '24px' }}><Search placeholder="Search for books..." onSearch={handleSearch} style={{ marginBottom: 24 }} /><Row gutter={[16, 16]}>{(searchResults !== null ? searchResults : topSellers).map(book => (<Col key={book.id} span={6}><Card hoverable onClick={() => handleAddToCart(book)}><Card.Meta title={book.name} description={`LKR ${book.price}`} /></Card></Col>))}</Row></Content>
                 <Sider width={450} theme="light" style={{ padding: '24px', borderLeft: '1px solid #f0f0f0' }}>
                     <Title level={4}>Cart</Title>
                     <Table columns={cartColumns} dataSource={cart} rowKey="id" pagination={false} size="small" />

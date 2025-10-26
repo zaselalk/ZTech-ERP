@@ -6,7 +6,17 @@ const { Sequelize } = require('sequelize');
 // Get all books
 router.get('/', async (req, res) => {
   try {
-    const books = await Book.findAll();
+    const { search } = req.query;
+    let where = {};
+    if (search) {
+      where = {
+        [Sequelize.Op.or]: [
+          { name: { [Sequelize.Op.like]: `%${search}%` } },
+          { author: { [Sequelize.Op.like]: `%${search}%` } },
+        ],
+      };
+    }
+    const books = await Book.findAll({ where });
     res.json(books);
   } catch (err) {
     res.status(500).json({ message: err.message });
