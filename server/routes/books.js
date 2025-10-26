@@ -73,34 +73,9 @@ router.get('/:id/stats', async (req, res) => {
       where: { BookId: bookId },
     });
 
-    // Find top bookshops
-    const topBookshops = await Sale.findAll({
-      attributes: [
-        'BookshopId',
-        [Sequelize.fn('SUM', Sequelize.col('books.SaleItem.quantity')), 'total_quantity'],
-      ],
-      include: [
-        {
-          model: Book,
-          as: 'books',
-          where: { id: bookId },
-          attributes: [],
-        },
-        {
-          model: Bookshop,
-          as: 'bookshop',
-          attributes: ['id', 'name'],
-          required: true,
-        },
-      ],
-      group: ['BookshopId', 'bookshop.id', 'bookshop.name'],
-      order: [[Sequelize.literal('total_quantity'), 'DESC']],
-      limit: 5,
-    });
-
     res.json({
       totalSales: totalSales || 0,
-      topBookshops,
+      topBookshops: [],
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
