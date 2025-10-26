@@ -1,3 +1,4 @@
+import { formatCurrency } from "../utils";
 import { useState, useEffect } from "react";
 import {
   Table,
@@ -114,7 +115,7 @@ const Books = () => {
       title: "Price",
       dataIndex: "price",
       key: "price",
-      render: (price) => `LKR ${price}`,
+      render: (price) => formatCurrency(price),
       sorter: (a, b) => a.price - b.price,
     },
     {

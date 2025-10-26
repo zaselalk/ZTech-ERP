@@ -1,3 +1,4 @@
+import { formatCurrency } from "../utils";
 import { useState, useEffect } from "react";
 import { Row, Col, Card, Table, Typography, message, Divider } from "antd";
 import {
@@ -57,7 +58,7 @@ const Dashboard = () => {
       title: "Amount",
       dataIndex: "total_amount",
       key: "total_amount",
-      render: (val) => `LKR ${val}`,
+      render: (val) => formatCurrency(val),
     },
     {
       title: "Date",
@@ -142,7 +143,7 @@ const Dashboard = () => {
                     fontWeight: "700",
                   }}
                 >
-                  {stats.totalSalesToday.toFixed(2)} LKR
+                  {formatCurrency(stats.totalSalesToday)}
                 </Title>
               </div>
               <CalendarOutlined
@@ -191,7 +192,7 @@ const Dashboard = () => {
                     fontWeight: "700",
                   }}
                 >
-                  {stats.totalSalesWeek.toFixed(2)} LKR
+                  {formatCurrency(stats.totalSalesWeek)}
                 </Title>
               </div>
               <RiseOutlined
@@ -239,7 +240,7 @@ const Dashboard = () => {
                     fontWeight: "700",
                   }}
                 >
-                  {stats.totalSalesMonth.toFixed(2)} LKR
+                  {formatCurrency(stats.totalSalesMonth)}
                 </Title>
               </div>
               <ShoppingOutlined
@@ -335,7 +336,7 @@ const Dashboard = () => {
                     fontWeight: "700",
                   }}
                 >
-                  {stats.totalConsignment.toFixed(2)} LKR
+                  {formatCurrency(stats.totalConsignment)}
                 </Title>
               </div>
               <DollarCircleOutlined

@@ -1,4 +1,6 @@
+import { formatCurrency } from "../utils";
 import { useState, useEffect } from 'react';
+
 import { useParams } from 'react-router-dom';
 import { Card, Spin, message, Table, Typography } from 'antd';
 
@@ -49,7 +51,7 @@ const BookDetails = () => {
       <Card title={`Book: ${book.name}`}>
         <p><strong>Author:</strong> {book.author}</p>
         <p><strong>Genre:</strong> {book.genre}</p>
-        <p><strong>Price:</strong> {book.price}</p>
+        <p><strong>Price:</strong> {formatCurrency(book.price)}</p>
         <p><strong>Quantity:</strong> {book.quantity}</p>
         <p><strong>Total Sales:</strong> {stats.totalSales}</p>
       </Card>

@@ -1,3 +1,4 @@
+import { formatCurrency } from "../utils";
 import { useState, useEffect, useRef } from "react";
 import {
   Layout,
@@ -84,7 +85,7 @@ const Receipt = ({ sale, onDone, visible }) => {
               title: "Price",
               dataIndex: ["SaleItem", "price"],
               key: "price",
-              render: (val) => `LKR ${parseFloat(val).toFixed(2)}`,
+              render: (val) => formatCurrency(val),
             },
             {
               title: "Discount",
@@ -101,21 +102,19 @@ const Receipt = ({ sale, onDone, visible }) => {
               title: "Total",
               key: "total",
               render: (_, record) =>
-                `LKR ${(
-                  record.SaleItem.price * record.SaleItem.quantity
-                ).toFixed(2)}`,
+                formatCurrency(record.SaleItem.price * record.SaleItem.quantity),
             },
           ]}
           pagination={false}
           size="small"
         />
         <div style={{ textAlign: "right", marginTop: 16 }}>
-          <Text>Subtotal: LKR {subtotal.toFixed(2)}</Text>
+          <Text>Subtotal: {formatCurrency(subtotal)}</Text>
           <br />
-          <Text>Cart Discount: LKR {parseFloat(sale.discount).toFixed(2)}</Text>
+          <Text>Cart Discount: {formatCurrency(sale.discount)}</Text>
           <br />
           <Title level={5}>
-            Total: LKR {parseFloat(sale.total_amount).toFixed(2)}
+            Total: {formatCurrency(sale.total_amount)}
           </Title>
         </div>
       </div>
@@ -282,7 +281,7 @@ const PosPage = () => {
       title: "Price",
       dataIndex: "price",
       key: "price",
-      render: (val) => `LKR ${val}`,
+      render: (val) => formatCurrency(val),
     },
     {
       title: "Qty",
@@ -318,7 +317,7 @@ const PosPage = () => {
     {
       title: "Subtotal",
       key: "subtotal",
-      render: (_, record) => `LKR ${calculateItemTotal(record).toFixed(2)}`,
+      render: (_, record) => formatCurrency(calculateItemTotal(record)),
     },
   ];
 
@@ -394,7 +393,7 @@ const PosPage = () => {
                           strong
                           style={{ fontSize: "14px", color: "#52c41a" }}
                         >
-                          LKR {book.price}
+                          {formatCurrency(book.price)}
                         </Text>
                         {book.author && (
                           <div style={{ marginTop: "4px" }}>
@@ -450,11 +449,11 @@ const PosPage = () => {
               }}
             >
               <div style={{ textAlign: "right" }}>
-                <Text strong>Subtotal: LKR {subtotal.toFixed(2)}</Text>
+                <Text strong>Subtotal: {formatCurrency(subtotal)}</Text>
                 <br />
                 <Text type="secondary">
-                  Subtotal (after item discounts): LKR{" "}
-                  {subtotalAfterItemDiscounts.toFixed(2)}
+                  Subtotal (after item discounts):{" "}
+                  {formatCurrency(subtotalAfterItemDiscounts)}
                 </Text>
                 <div
                   style={{
@@ -475,7 +474,7 @@ const PosPage = () => {
                   />
                 </div>
                 <Title level={4} style={{ marginTop: 8 }}>
-                  Total: LKR {total.toFixed(2)}
+                  Total: {formatCurrency(total)}
                 </Title>
               </div>
               <Button
@@ -597,7 +596,7 @@ const PaymentForm = ({ form, total, bookshops }) => {
 
   return (
     <>
-      <Title level={4}>Total Due: LKR {total.toFixed(2)}</Title>
+      <Title level={4}>Total Due: {formatCurrency(total)}</Title>
       <Form.Item
         name="BookshopId"
         label="Bookshop"
@@ -636,7 +635,7 @@ const PaymentForm = ({ form, total, bookshops }) => {
           </Col>
           <Col span={12}>
             <Title level={5} style={{ paddingTop: 30 }}>
-              Change: LKR {change > 0 ? change.toFixed(2) : "0.00"}
+              Change: {formatCurrency(change > 0 ? change : 0)}
             </Title>
           </Col>
         </Row>
