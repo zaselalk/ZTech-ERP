@@ -89,7 +89,7 @@ const Dashboard = () => {
         <Col xs={24} sm={12} md={12} lg={6}>
           <Card
             style={{
-              background: "linear-gradient(135deg, #4285f4 0%, #34a853 100%)",
+              background: "linear-gradient(135deg, #4285f4 0%, #346ecbff 100%)",
               border: "none",
               borderRadius: "16px",
               boxShadow: "0 8px 24px rgba(66, 133, 244, 0.3)",
@@ -109,7 +109,7 @@ const Dashboard = () => {
                 <Text
                   style={{
                     color: "rgba(255,255,255,0.8)",
-                    fontSize: "14px",
+                    fontSize: "12px",
                     display: "block",
                   }}
                 >
@@ -120,15 +120,15 @@ const Dashboard = () => {
                   style={{
                     color: "white",
                     margin: "8px 0",
-                    fontSize: "32px",
+                    fontSize: "30px",
                     fontWeight: "700",
                   }}
                 >
-                  ${stats.totalSalesToday.toFixed(2)}
+                  {stats.totalSalesToday.toFixed(2)} LKR
                 </Title>
               </div>
               <CalendarOutlined
-                style={{ fontSize: "32px", color: "rgba(255,255,255,0.7)" }}
+                style={{ fontSize: "32px", color: "rgba(255, 255, 255, 0.7)" }}
               />
             </div>
           </Card>
@@ -137,7 +137,8 @@ const Dashboard = () => {
         <Col xs={24} sm={12} md={12} lg={6}>
           <Card
             style={{
-              background: "linear-gradient(135deg, #06d6a0 0%, #118ab2 100%)",
+              background:
+                "linear-gradient(135deg, #0f6f56ff 0%, #1a9977ff 100%)",
               border: "none",
               borderRadius: "16px",
               boxShadow: "0 8px 24px rgba(6, 214, 160, 0.3)",
@@ -168,11 +169,11 @@ const Dashboard = () => {
                   style={{
                     color: "white",
                     margin: "8px 0",
-                    fontSize: "32px",
+                    fontSize: "30px",
                     fontWeight: "700",
                   }}
                 >
-                  ${stats.totalSalesWeek.toFixed(2)}
+                  {stats.totalSalesWeek.toFixed(2)} LKR
                 </Title>
               </div>
               <RiseOutlined
@@ -216,11 +217,11 @@ const Dashboard = () => {
                   style={{
                     color: "white",
                     margin: "8px 0",
-                    fontSize: "32px",
+                    fontSize: "30px",
                     fontWeight: "700",
                   }}
                 >
-                  ${stats.totalSalesMonth.toFixed(2)}
+                  {stats.totalSalesMonth.toFixed(2)} LKR
                 </Title>
               </div>
               <ShoppingOutlined
@@ -229,7 +230,7 @@ const Dashboard = () => {
             </div>
           </Card>
         </Col>
-
+        {/* 
         <Col xs={24} sm={12} md={12} lg={6}>
           <Card
             style={{
@@ -276,7 +277,7 @@ const Dashboard = () => {
               />
             </div>
           </Card>
-        </Col>
+        </Col> */}
 
         <Col xs={24} sm={12} md={12} lg={6}>
           <Card
@@ -316,7 +317,7 @@ const Dashboard = () => {
                     fontWeight: "700",
                   }}
                 >
-                  ${stats.totalConsignment.toFixed(2)}
+                  {stats.totalConsignment.toFixed(2)} LKR
                 </Title>
               </div>
               <DollarCircleOutlined

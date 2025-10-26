@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, message } from 'antd';
+import { Link } from 'react-router-dom';
 
 const API_URL = 'http://localhost:5001/api';
 
@@ -87,6 +88,9 @@ const Bookshops = () => {
         <span>
           <Button type="link" onClick={() => showModal(record)}>Edit</Button>
           <Button type="link" danger onClick={() => handleDelete(record.id)}>Delete</Button>
+          <Link to={`/bookshops/${record.id}`}>
+            <Button type="link">View Details</Button>
+          </Link>
         </span>
       ),
     },

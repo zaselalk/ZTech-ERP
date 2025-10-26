@@ -21,6 +21,7 @@ import Reports from "./components/Reports";
 import Dashboard from "./components/Dashboard";
 import PosPage from "./pages/PosPage";
 import Consignments from "./components/Consignments";
+import BookshopDetails from "./components/BookshopDetails";
 
 const { Header, Content, Sider } = Layout;
 
@@ -169,6 +170,7 @@ const MainLayout = () => {
             <Route path="/sales" element={<Sales />} />
             <Route path="/inventory" element={<Books />} />
             <Route path="/bookshops" element={<Bookshops />} />
+            <Route path="/bookshops/:id" element={<BookshopDetails />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/consignments" element={<Consignments />} />
           </Routes>
