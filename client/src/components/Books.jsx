@@ -7,6 +7,7 @@ const API_URL = 'http://localhost:5001/api';
 
 const Books = () => {
   const [books, setBooks] = useState([]);
+  const [searchText, setSearchText] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
   const [form] = Form.useForm();
@@ -78,11 +79,11 @@ const Books = () => {
   };
 
   const columns = [
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'Author', dataIndex: 'author', key: 'author' },
-    { title: 'Genre', dataIndex: 'genre', key: 'genre' },
-    { title: 'Price', dataIndex: 'price', key: 'price', render: (price) => `LKR ${price}` },
-    { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
+    { title: 'Name', dataIndex: 'name', key: 'name', sorter: (a, b) => a.name.localeCompare(b.name) },
+    { title: 'Author', dataIndex: 'author', key: 'author', sorter: (a, b) => a.author.localeCompare(b.author) },
+    { title: 'Genre', dataIndex: 'genre', key: 'genre', sorter: (a, b) => a.genre.localeCompare(b.genre) },
+    { title: 'Price', dataIndex: 'price', key: 'price', render: (price) => `LKR ${price}`, sorter: (a, b) => a.price - b.price },
+    { title: 'Quantity', dataIndex: 'quantity', key: 'quantity', sorter: (a, b) => a.quantity - b.quantity },
     {
       title: 'Action',
       key: 'action',
@@ -98,12 +99,25 @@ const Books = () => {
     },
   ];
 
+  const filteredBooks = books.filter(book =>
+    Object.values(book).some(value =>
+      String(value).toLowerCase().includes(searchText.toLowerCase())
+    )
+  );
+
   return (
     <div>
-      <Button type="primary" onClick={() => showModal()} style={{ marginBottom: 16 }}>
-        Add Book
-      </Button>
-      <Table columns={columns} dataSource={books} rowKey="id" />
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
+        <Input
+          placeholder="Search books..."
+          onChange={e => setSearchText(e.target.value)}
+          style={{ width: 300 }}
+        />
+        <Button type="primary" onClick={() => showModal()}>
+          Add Book
+        </Button>
+      </div>
+      <Table columns={columns} dataSource={filteredBooks} rowKey="id" />
       <Modal
         title={editingBook ? 'Edit Book' : 'Add Book'}
         visible={isModalVisible}
