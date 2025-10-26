@@ -22,6 +22,7 @@ import Dashboard from "./components/Dashboard";
 import PosPage from "./pages/PosPage";
 import Consignments from "./components/Consignments";
 import BookshopDetails from "./components/BookshopDetails";
+import BookDetails from "./components/BookDetails";
 
 const { Header, Content, Sider } = Layout;
 
@@ -169,6 +170,7 @@ const MainLayout = () => {
             <Route path="/" element={<Dashboard />} />
             <Route path="/sales" element={<Sales />} />
             <Route path="/inventory" element={<Books />} />
+            <Route path="/books/:id" element={<BookDetails />} />
             <Route path="/bookshops" element={<Bookshops />} />
             <Route path="/bookshops/:id" element={<BookshopDetails />} />
             <Route path="/reports" element={<Reports />} />
