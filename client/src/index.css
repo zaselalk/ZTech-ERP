@@ -43,24 +43,64 @@ body {
 
 /* Sidebar Menu Styles */
 .ant-menu-inline .ant-menu-item {
-  margin: 4px 8px;
-  border-radius: 8px;
+  margin: 8px 12px 12px 12px !important;
+  padding: 12px 16px !important;
+  border-radius: 12px;
   transition: all 0.3s ease;
+  height: auto !important;
+  line-height: 1.4 !important;
+  min-height: 48px;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.ant-menu-inline .ant-menu-item .anticon {
+  font-size: 18px;
+  margin-right: 12px;
 }
 
 .ant-menu-inline .ant-menu-item:hover {
   background: rgba(255, 255, 255, 0.15) !important;
   color: white !important;
+  transform: translateX(4px);
 }
 
 .ant-menu-inline .ant-menu-item-selected {
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.25) !important;
   color: white !important;
   border-right: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .ant-menu-inline .ant-menu-item-selected::after {
   display: none;
+}
+
+/* Sidebar Menu Container */
+.ant-menu-inline {
+  padding: 16px 0 !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.ant-menu-inline .ant-menu-item:first-child {
+  margin-top: 12px !important;
+}
+
+.ant-menu-inline .ant-menu-item:last-child {
+  margin-bottom: 16px !important;
+}
+
+/* Collapsed menu items */
+.ant-menu-inline-collapsed .ant-menu-item {
+  padding: 12px !important;
+  text-align: center;
+  margin: 8px 8px 12px 8px !important;
+}
+
+.ant-menu-inline-collapsed .ant-menu-item .anticon {
+  margin-right: 0 !important;
+  font-size: 20px;
 }
 
 /* Sidebar collapse trigger */
