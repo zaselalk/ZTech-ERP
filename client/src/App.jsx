@@ -1,7 +1,17 @@
 import { Layout, Menu, FloatButton } from "antd";
 import { useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { PlusOutlined, BookOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  BookOutlined,
+  DashboardOutlined,
+  ShoppingCartOutlined,
+  AppstoreOutlined,
+  ShopOutlined,
+  BarChartOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+} from "@ant-design/icons";
 
 import Bookshops from "./components/Bookshops";
 import Books from "./components/Books";
@@ -10,7 +20,7 @@ import Reports from "./components/Reports";
 import Dashboard from "./components/Dashboard";
 import PosPage from "./pages/PosPage";
 
-const { Header, Content, Footer } = Layout;
+const { Header, Content, Sider } = Layout;
 
 // The main layout for the dashboard, reports, etc.
 const MainLayout = () => {
@@ -28,6 +38,7 @@ const MainLayout = () => {
   const [selectedKey, setSelectedKey] = useState(
     pathMap[location.pathname] || "1"
   );
+  const [collapsed, setCollapsed] = useState(false);
 
   const handleMenuClick = (e) => {
     setSelectedKey(e.key);
@@ -36,58 +47,113 @@ const MainLayout = () => {
   };
 
   const items = [
-    { key: "1", label: "Dashboard" },
-    { key: "2", label: "Sales History" },
-    { key: "3", label: "Inventory" },
-    { key: "4", label: "Bookshops" },
-    { key: "5", label: "Reports" },
+    {
+      key: "1",
+      icon: <DashboardOutlined />,
+      label: "Dashboard",
+    },
+    {
+      key: "2",
+      icon: <ShoppingCartOutlined />,
+      label: "Sales History",
+    },
+    {
+      key: "3",
+      icon: <AppstoreOutlined />,
+      label: "Inventory",
+    },
+    {
+      key: "4",
+      icon: <ShopOutlined />,
+      label: "Bookshops",
+    },
+    {
+      key: "5",
+      icon: <BarChartOutlined />,
+      label: "Reports",
+    },
   ];
 
   return (
-    <Layout style={{ minHeight: "100vh", background: "#f5f6fa" }}>
-      <Header
+    <Layout style={{ minHeight: "100vh" }}>
+      <Sider
+        collapsible
+        collapsed={collapsed}
+        onCollapse={setCollapsed}
         style={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          padding: "0 24px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          background: "linear-gradient(180deg, #667eea 0%, #764ba2 100%)",
+          boxShadow: "2px 0 8px rgba(0,0,0,0.1)",
         }}
+        width={250}
+        collapsedWidth={80}
       >
         <div
           style={{
+            height: "64px",
             display: "flex",
             alignItems: "center",
-            float: "left",
+            justifyContent: collapsed ? "center" : "flex-start",
+            padding: collapsed ? "0" : "0 24px",
             color: "white",
             fontSize: "20px",
             fontWeight: "600",
+            borderBottom: "1px solid rgba(255,255,255,0.1)",
+            marginBottom: "8px",
           }}
         >
-          <BookOutlined style={{ fontSize: "24px", marginRight: "12px" }} />
-          Bookshop Manager
+          <BookOutlined
+            style={{
+              fontSize: "24px",
+              marginRight: collapsed ? "0" : "12px",
+            }}
+          />
+          {!collapsed && "Bookshop Manager"}
         </div>
         <Menu
           theme="dark"
-          mode="horizontal"
+          mode="inline"
           selectedKeys={[selectedKey]}
           onClick={handleMenuClick}
           items={items}
           style={{
             background: "transparent",
-            borderBottom: "none",
-            marginLeft: "200px",
+            border: "none",
+            color: "white",
           }}
         />
-      </Header>
-      <Content
-        style={{
-          padding: "32px",
-          background: "#f5f6fa",
-        }}
-      >
-        <div
+      </Sider>
+      <Layout>
+        <Header
           style={{
-            background: "transparent",
-            minHeight: 280,
+            background: "#fff",
+            padding: "0 24px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center" }}>
+            {collapsed ? (
+              <MenuUnfoldOutlined
+                style={{ fontSize: "18px", cursor: "pointer", color: "#666" }}
+                onClick={() => setCollapsed(false)}
+              />
+            ) : (
+              <MenuFoldOutlined
+                style={{ fontSize: "18px", cursor: "pointer", color: "#666" }}
+                onClick={() => setCollapsed(true)}
+              />
+            )}
+          </div>
+          <div style={{ color: "#666", fontSize: "14px" }}>Welcome back!</div>
+        </Header>
+        <Content
+          style={{
+            margin: "24px",
+            padding: "24px",
+            background: "#f5f6fa",
+            borderRadius: "8px",
           }}
         >
           <Routes>
@@ -97,18 +163,18 @@ const MainLayout = () => {
             <Route path="/bookshops" element={<Bookshops />} />
             <Route path="/reports" element={<Reports />} />
           </Routes>
-        </div>
-        <FloatButton
-          icon={<PlusOutlined />}
-          type="primary"
-          tooltip="New Sale"
-          onClick={() => navigate("/pos")}
-          style={{
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            border: "none",
-          }}
-        />
-      </Content>
+          <FloatButton
+            icon={<PlusOutlined />}
+            type="primary"
+            tooltip="New Sale"
+            onClick={() => navigate("/pos")}
+            style={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              border: "none",
+            }}
+          />
+        </Content>
+      </Layout>
     </Layout>
   );
 };

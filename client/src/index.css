@@ -41,18 +41,37 @@ body {
   background: #a8a8a8;
 }
 
-/* Menu hover effects */
-.ant-menu-horizontal .ant-menu-item:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-radius: 6px;
-  margin: 0 4px;
+/* Sidebar Menu Styles */
+.ant-menu-inline .ant-menu-item {
+  margin: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
-.ant-menu-horizontal .ant-menu-item-selected {
+.ant-menu-inline .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+}
+
+.ant-menu-inline .ant-menu-item-selected {
   background: rgba(255, 255, 255, 0.2) !important;
-  border-radius: 6px;
-  margin: 0 4px;
-  border-bottom: none !important;
+  color: white !important;
+  border-right: none !important;
+}
+
+.ant-menu-inline .ant-menu-item-selected::after {
+  display: none;
+}
+
+/* Sidebar collapse trigger */
+.ant-layout-sider-trigger {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ant-layout-sider-trigger:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Table styling */
