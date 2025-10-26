@@ -1,4 +1,4 @@
-import { Layout, Menu, FloatButton } from "antd";
+import { Layout, Menu, Button } from "antd";
 import { useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -156,7 +156,10 @@ const MainLayout = () => {
               />
             )}
           </div>
-          <div style={{ color: "#666", fontSize: "14px" }}>Welcome back!</div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <div style={{ color: "#666", fontSize: "14px", marginRight: '16px' }}>Welcome back!</div>
+            <Button type="primary" onClick={() => navigate("/pos")}>New Sale</Button>
+          </div>
         </Header>
         <Content
           style={{
@@ -176,16 +179,7 @@ const MainLayout = () => {
             <Route path="/reports" element={<Reports />} />
             <Route path="/consignments" element={<Consignments />} />
           </Routes>
-          <FloatButton
-            icon={<PlusOutlined />}
-            type="primary"
-            tooltip="New Sale"
-            onClick={() => navigate("/pos")}
-            style={{
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              border: "none",
-            }}
-          />
+          
         </Content>
       </Layout>
     </Layout>
