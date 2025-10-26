@@ -15,10 +15,11 @@ import {
   InputNumber,
   Divider,
   Popover,
+  List,
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 
 const { Header, Content, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -333,26 +334,55 @@ const PosPage = () => {
         <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
       </Header>
       <Layout style={{ height: "calc(100vh - 64px)" }}>
-        <Content style={{ padding: "24px", flex: 1 }}>
+        <Content style={{ padding: "24px", flex: 1, display: "flex", flexDirection: "column" }}>
           <Search
             placeholder="Search for books..."
             onSearch={handleSearch}
-            style={{ marginBottom: 24 }}
+            style={{ marginBottom: 24, flexShrink: 0 }}
           />
-          <Row gutter={[16, 16]}>
-            {(searchResults !== null ? searchResults : topSellers).map(
-              (book) => (
-                <Col key={book.id} span={6}>
-                  <Card hoverable onClick={() => handleAddToCart(book)}>
-                    <Card.Meta
-                      title={book.name}
-                      description={`LKR ${book.price}`}
-                    />
-                  </Card>
-                </Col>
-              )
-            )}
-          </Row>
+          <div style={{ 
+            flex: 1, 
+            overflowY: 'auto', 
+            background: 'white', 
+            borderRadius: '8px', 
+            padding: '16px'
+          }}>
+            <List
+              dataSource={searchResults !== null ? searchResults : topSellers}
+              renderItem={(book) => (
+                <List.Item
+                  actions={[
+                    <Button
+                      key="add"
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={() => handleAddToCart(book)}
+                      size="large"
+                    >
+                      Add to Cart
+                    </Button>
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={<span style={{ fontSize: '16px', fontWeight: 'bold' }}>{book.name}</span>}
+                    description={
+                      <div>
+                        <Text strong style={{ fontSize: '14px', color: '#52c41a' }}>
+                          LKR {book.price}
+                        </Text>
+                        {book.author && (
+                          <div style={{ marginTop: '4px' }}>
+                            <Text type="secondary">by {book.author}</Text>
+                          </div>
+                        )}
+                      </div>
+                    }
+                  />
+                </List.Item>
+              )}
+              pagination={false}
+            />
+          </div>
         </Content>
         <Sider
           width="50%"
