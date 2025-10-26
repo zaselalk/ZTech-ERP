@@ -32,8 +32,8 @@ router.get('/:id', async (req, res) => {
 
 // Create a new sale
 router.post('/', async (req, res) => {
-  const { BookshopId, payment_method, items } = req.body; // items = [{ BookId, quantity }]
-  let total_amount = 0;
+  const { BookshopId, payment_method, items, discount = 0 } = req.body; // items = [{ BookId, quantity }]
+  let subtotal = 0;
 
   if (!BookshopId || !payment_method || !items || items.length === 0) {
     return res.status(400).json({ message: 'Missing required fields' });
@@ -43,7 +43,7 @@ router.post('/', async (req, res) => {
 
   try {
     const sale = await Sale.create(
-      { BookshopId, payment_method, total_amount: 0 },
+      { BookshopId, payment_method, total_amount: 0, discount },
       { transaction: t }
     );
 
@@ -67,7 +67,7 @@ router.post('/', async (req, res) => {
         { transaction: t }
       );
 
-      total_amount += book.price * item.quantity;
+      subtotal += book.price * item.quantity;
 
       await book.update(
         { quantity: book.quantity - item.quantity },
@@ -75,6 +75,7 @@ router.post('/', async (req, res) => {
       );
     }
 
+    const total_amount = Math.max(0, subtotal - discount);
     await sale.update({ total_amount }, { transaction: t });
 
     await t.commit();

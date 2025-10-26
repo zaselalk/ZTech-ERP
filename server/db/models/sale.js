@@ -25,7 +25,8 @@ module.exports = (sequelize, DataTypes) => {
   Sale.init({
     total_amount: DataTypes.DECIMAL,
     payment_method: DataTypes.ENUM('Cash', 'Card', 'Consignment'),
-    BookshopId: DataTypes.INTEGER
+    BookshopId: DataTypes.INTEGER,
+    discount: DataTypes.DECIMAL
   }, {
     sequelize,
     modelName: 'Sale',

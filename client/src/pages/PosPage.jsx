@@ -9,12 +9,13 @@ const { Search } = Input;
 const { Option } = Select;
 const API_URL = 'http://localhost:5001/api';
 
-// Re-purposed Receipt component
 const Receipt = ({ sale, onDone, visible }) => {
     const componentRef = useRef();
     const handlePrint = useReactToPrint({ content: () => componentRef.current });
   
     if (!sale) return null;
+
+    const subtotal = sale.books.reduce((acc, book) => acc + (book.SaleItem.price * book.SaleItem.quantity), 0);
   
     return (
       <Modal title="Sale Successful" visible={visible} onCancel={onDone} footer={[
@@ -38,7 +39,11 @@ const Receipt = ({ sale, onDone, visible }) => {
                   pagination={false}
                   size="small"
               />
-              <Title level={5} style={{textAlign: 'right', marginTop: 16}}>Total: LKR {parseFloat(sale.total_amount).toFixed(2)}</Title>
+              <div style={{textAlign: 'right', marginTop: 16}}>
+                  <Text>Subtotal: LKR {subtotal.toFixed(2)}</Text><br/>
+                  <Text>Discount: LKR {parseFloat(sale.discount).toFixed(2)}</Text><br/>
+                  <Title level={5}>Total: LKR {parseFloat(sale.total_amount).toFixed(2)}</Title>
+              </div>
           </div>
       </Modal>
     );
@@ -47,21 +52,18 @@ const Receipt = ({ sale, onDone, visible }) => {
 const PosPage = () => {
     const [topSellers, setTopSellers] = useState([]);
     const [cart, setCart] = useState([]);
+    const [discount, setDiscount] = useState(0);
     const [isCheckoutVisible, setIsCheckoutVisible] = useState(false);
     const [completedSale, setCompletedSale] = useState(null);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchTopSellers();
-    }, []);
+    useEffect(() => { fetchTopSellers(); }, []);
 
     const fetchTopSellers = async () => {
         try {
             const res = await fetch(`${API_URL}/books/top-sellers`);
             setTopSellers(await res.json());
-        } catch (e) {
-            message.error("Failed to load top sellers");
-        }
+        } catch (e) { message.error("Failed to load top sellers"); }
     }
 
     const handleAddToCart = (book) => {
@@ -77,7 +79,8 @@ const PosPage = () => {
         setCart(cart.map(item => item.id === bookId ? { ...item, quantity } : item).filter(item => item.quantity > 0));
     }
 
-    const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const total = Math.max(0, subtotal - discount);
 
     const cartColumns = [
         { title: 'Book', dataIndex: 'name', key: 'name' },
@@ -90,6 +93,7 @@ const PosPage = () => {
 
     const resetSale = () => {
         setCart([]);
+        setDiscount(0);
         setIsCheckoutVisible(false);
         setCompletedSale(null);
     }
@@ -116,33 +120,37 @@ const PosPage = () => {
                 <Sider width={400} theme="light" style={{ padding: '24px', borderLeft: '1px solid #f0f0f0' }}>
                     <Title level={4}>Cart</Title>
                     <Table columns={cartColumns} dataSource={cart} rowKey="id" pagination={false} size="small" />
-                    <Title level={4} style={{textAlign: 'right', marginTop: 24}}>Total: LKR {total.toFixed(2)}</Title>
+                    <div style={{textAlign: 'right', marginTop: 24}}>
+                        <Text strong>Subtotal: LKR {subtotal.toFixed(2)}</Text>
+                        <div style={{display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: 8}}>
+                            <Text strong style={{marginRight: 8}}>Discount:</Text>
+                            <InputNumber value={discount} onChange={setDiscount} min={0} max={subtotal} />
+                        </div>
+                        <Title level={4} style={{marginTop: 8}}>Total: LKR {total.toFixed(2)}</Title>
+                    </div>
                     <Button type="primary" block size="large" disabled={cart.length === 0} onClick={() => setIsCheckoutVisible(true)} style={{ marginTop: 24 }}>
                         Checkout
                     </Button>
                 </Sider>
             </Layout>
-            {isCheckoutVisible && <CheckoutModal visible={isCheckoutVisible} onClose={() => setIsCheckoutVisible(false)} cart={cart} total={total} onSaleComplete={(sale) => { setIsCheckoutVisible(false); setCompletedSale(sale); }} />}
+            {isCheckoutVisible && <CheckoutModal visible={isCheckoutVisible} onClose={() => setIsCheckoutVisible(false)} cart={cart} total={total} discount={discount} onSaleComplete={(sale) => { setIsCheckoutVisible(false); setCompletedSale(sale); }} />}
             {completedSale && <Receipt sale={completedSale} visible={!!completedSale} onDone={resetSale} />}
         </Layout>
     );
 }
 
-// This is the checkout modal, adapted from the old PosModal
-const CheckoutModal = ({ visible, onClose, cart, total, onSaleComplete }) => {
+const CheckoutModal = ({ visible, onClose, cart, total, discount, onSaleComplete }) => {
     const [form] = Form.useForm();
     const [bookshops, setBookshops] = useState([]);
 
-    useEffect(() => {
-        if(visible) fetchBookshops();
-    }, [visible]);
+    useEffect(() => { if(visible) fetchBookshops(); }, [visible]);
 
     const fetchBookshops = async () => { try { const res = await fetch(`${API_URL}/bookshops`); setBookshops(await res.json()); } catch (e) { message.error('Failed to fetch bookshops'); } };
 
     const handleFinalizeSale = async () => {
         try {
           const values = await form.validateFields();
-          const saleData = { ...values, items: cart.map(({ id, quantity }) => ({ BookId: id, quantity })) };
+          const saleData = { ...values, items: cart.map(({ id, quantity }) => ({ BookId: id, quantity })), discount };
     
           const response = await fetch(`${API_URL}/sales`, {
             method: 'POST',
@@ -170,7 +178,6 @@ const CheckoutModal = ({ visible, onClose, cart, total, onSaleComplete }) => {
     )
 }
 
-// This component was part of the old Sales.jsx, needed for the checkout modal
 const PaymentForm = ({ form, total, bookshops }) => {
     const paymentMethod = Form.useWatch('payment_method', form);
     const [amountTendered, setAmountTendered] = useState(0);
@@ -178,7 +185,7 @@ const PaymentForm = ({ form, total, bookshops }) => {
 
     return (
         <>
-            <Title level={4}>Total: LKR {total.toFixed(2)}</Title>
+            <Title level={4}>Total Due: LKR {total.toFixed(2)}</Title>
             <Form.Item name="BookshopId" label="Bookshop" rules={[{ required: true }]}>
                 <Select placeholder="Select a bookshop">
                     {bookshops.map(shop => (
