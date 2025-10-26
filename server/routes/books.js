@@ -12,6 +12,16 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get top seller books
+router.get('/top-sellers', async (req, res) => {
+  try {
+    const books = await Book.findAll({ limit: 12 });
+    res.json(books);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Get a single book
 router.get('/:id', async (req, res) => {
   try {
