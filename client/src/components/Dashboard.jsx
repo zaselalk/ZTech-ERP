@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Table, Typography, message } from 'antd';
-import { DollarCircleOutlined, ShoppingCartOutlined, WarningOutlined } from '@ant-design/icons';
+import { Row, Col, Card, Table, Typography, message, FloatButton } from 'antd';
+import { DollarCircleOutlined, ShoppingCartOutlined, WarningOutlined, PlusOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 const API_URL = 'http://localhost:5001/api';
 
-const Dashboard = () => {
+const Dashboard = ({ openPosModal, refreshKey }) => {
   const [stats, setStats] = useState({
     totalSalesToday: 0,
     totalSalesWeek: 0,
@@ -15,7 +15,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [refreshKey]); // Refetch when refreshKey changes
 
   const fetchStats = async () => {
     try {
@@ -68,8 +68,15 @@ const Dashboard = () => {
         rowKey="id"
         pagination={false}
       />
+      <FloatButton 
+        icon={<PlusOutlined />} 
+        type="primary" 
+        tooltip="New Sale"
+        onClick={openPosModal}
+      />
     </div>
   );
 };
 
 export default Dashboard;
+

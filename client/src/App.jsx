@@ -5,11 +5,22 @@ import Books from './components/Books';
 import Sales from './components/Sales';
 import Reports from './components/Reports';
 import Dashboard from './components/Dashboard';
+import { PosModal } from './components/PosModal';
 
 const { Header, Content, Footer } = Layout;
 
 const App = () => {
   const [selectedKey, setSelectedKey] = useState('1');
+  const [isPosModalVisible, setIsPosModalVisible] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // Key to trigger data refresh
+
+  const openPosModal = () => setIsPosModalVisible(true);
+  const closePosModal = () => setIsPosModalVisible(false);
+
+  const handleSaleComplete = () => {
+    closePosModal();
+    setRefreshKey(k => k + 1); // Increment key to force refresh
+  };
 
   const items = [
     { key: '1', label: 'Dashboard' },
@@ -22,9 +33,9 @@ const App = () => {
   const renderContent = () => {
     switch (selectedKey) {
       case '1':
-        return <Dashboard />;
+        return <Dashboard openPosModal={openPosModal} refreshKey={refreshKey} />;
       case '2':
-        return <Sales />;
+        return <Sales refreshKey={refreshKey} />;
       case '3':
         return <Books />;
       case '4':
@@ -32,7 +43,7 @@ const App = () => {
       case '5':
         return <Reports />;
       default:
-        return <Dashboard />;
+        return <Dashboard openPosModal={openPosModal} refreshKey={refreshKey} />;
     }
   };
 
@@ -52,6 +63,11 @@ const App = () => {
         <div style={{ background: '#fff', padding: 24, minHeight: 280 }}>
           {renderContent()}
         </div>
+        <PosModal 
+            visible={isPosModalVisible} 
+            onClose={closePosModal} 
+            onSaleComplete={handleSaleComplete} 
+        />
       </Content>
       <Footer style={{ textAlign: 'center' }}>
         Bookshop Management System ©2025 Created by Gemini
