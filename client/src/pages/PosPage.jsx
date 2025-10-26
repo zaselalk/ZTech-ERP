@@ -334,19 +334,28 @@ const PosPage = () => {
         <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
       </Header>
       <Layout style={{ height: "calc(100vh - 64px)" }}>
-        <Content style={{ padding: "24px", flex: 1, display: "flex", flexDirection: "column" }}>
+        <Content
+          style={{
+            padding: "24px",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <Search
             placeholder="Search for books..."
             onSearch={handleSearch}
             style={{ marginBottom: 24, flexShrink: 0 }}
           />
-          <div style={{ 
-            flex: 1, 
-            overflowY: 'auto', 
-            background: 'white', 
-            borderRadius: '8px', 
-            padding: '16px'
-          }}>
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              background: "white",
+              borderRadius: "8px",
+              padding: "16px",
+            }}
+          >
             <List
               dataSource={searchResults !== null ? searchResults : topSellers}
               renderItem={(book) => (
@@ -360,18 +369,25 @@ const PosPage = () => {
                       size="large"
                     >
                       Add to Cart
-                    </Button>
+                    </Button>,
                   ]}
                 >
                   <List.Item.Meta
-                    title={<span style={{ fontSize: '16px', fontWeight: 'bold' }}>{book.name}</span>}
+                    title={
+                      <span style={{ fontSize: "16px", fontWeight: "bold" }}>
+                        {book.name}
+                      </span>
+                    }
                     description={
                       <div>
-                        <Text strong style={{ fontSize: '14px', color: '#52c41a' }}>
+                        <Text
+                          strong
+                          style={{ fontSize: "14px", color: "#52c41a" }}
+                        >
                           LKR {book.price}
                         </Text>
                         {book.author && (
-                          <div style={{ marginTop: '4px' }}>
+                          <div style={{ marginTop: "4px" }}>
                             <Text type="secondary">by {book.author}</Text>
                           </div>
                         )}
