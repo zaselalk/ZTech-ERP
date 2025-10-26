@@ -173,6 +173,7 @@ const PosPage = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
   const navigate = useNavigate();
+  const searchTimeout = useRef(null);
 
   // --- Data Fetching ---
   useEffect(() => {
@@ -198,6 +199,15 @@ const PosPage = () => {
     } else {
       setSearchResults(null);
     }
+  };
+
+  const debouncedSearch = (query) => {
+    if (searchTimeout.current) {
+        clearTimeout(searchTimeout.current);
+    }
+    searchTimeout.current = setTimeout(() => {
+        handleSearch(query);
+    }, 300);
   };
 
   // --- Cart & Discount Logic ---
@@ -344,7 +354,7 @@ const PosPage = () => {
         >
           <Search
             placeholder="Search for books..."
-            onSearch={handleSearch}
+            onChange={(e) => debouncedSearch(e.target.value)}
             style={{ marginBottom: 24, flexShrink: 0 }}
           />
           <div
