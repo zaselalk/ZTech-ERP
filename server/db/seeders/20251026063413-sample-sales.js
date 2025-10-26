@@ -11,68 +11,66 @@ module.exports = {
     await queryInterface.sequelize.query('ALTER TABLE SaleItems AUTO_INCREMENT = 1;');
 
     const bookshops = await queryInterface.sequelize.query(`SELECT id from Bookshops;`, { type: queryInterface.sequelize.QueryTypes.SELECT });
-    const books = await queryInterface.sequelize.query(`SELECT id, price from Books LIMIT 10;`, { type: queryInterface.sequelize.QueryTypes.SELECT });
+    const books = await queryInterface.sequelize.query(`SELECT id, price from Books;`, { type: queryInterface.sequelize.QueryTypes.SELECT });
 
     if (bookshops.length === 0 || books.length < 3) {
       console.log("Not enough bookshops or books to create sample sales.");
       return;
     }
 
-    const t = await queryInterface.sequelize.transaction();
-    try {
-      // --- Create Sale 1 ---
-      const sale1Items = [books[0], books[1]];
-      const sale1Subtotal = sale1Items.reduce((acc, item) => acc + parseFloat(item.price), 0);
-      const sale1CartDiscount = Math.round(sale1Subtotal * 0.1); // 10% discount
-      const sale1Total = sale1Subtotal - sale1CartDiscount;
+    const sales = [];
+    const saleItems = [];
+    const bookUpdates = {};
 
-      await queryInterface.bulkInsert('Sales', [{
-        id: 1,
-        BookshopId: getRandom(bookshops).id,
-        payment_method: 'Card',
-        total_amount: sale1Total,
-        discount: sale1CartDiscount,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }], { transaction: t });
+    for (let i = 0; i < 50; i++) {
+      const saleDate = new Date();
+      saleDate.setDate(saleDate.getDate() - Math.floor(Math.random() * 90)); // Random date in the last 90 days
 
-      const sale1ItemData = sale1Items.map(item => ({
-        SaleId: 1, // Assumes Sale ID is 1
-        BookId: item.id,
-        quantity: 1,
-        price: item.price,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }));
-      await queryInterface.bulkInsert('SaleItems', sale1ItemData, { transaction: t });
-      for (const item of sale1Items) {
-        await queryInterface.bulkUpdate('Books', { quantity: Sequelize.literal('quantity - 1') }, { id: item.id }, { transaction: t });
+      const bookshop = getRandom(bookshops);
+      const numItems = Math.floor(Math.random() * 3) + 1;
+      const saleBooks = [];
+      for (let j = 0; j < numItems; j++) {
+        saleBooks.push(getRandom(books));
       }
 
-      // --- Create Sale 2 ---
-      const sale2Item = books[2];
-      const sale2Subtotal = parseFloat(sale2Item.price) * 2;
-      const sale2Total = sale2Subtotal;
+      const total_amount = saleBooks.reduce((acc, book) => acc + parseFloat(book.price), 0);
+      const saleId = i + 1;
 
-      await queryInterface.bulkInsert('Sales', [{
-        id: 2,
-        BookshopId: getRandom(bookshops).id,
-        payment_method: 'Cash',
-        total_amount: sale2Total,
+      sales.push({
+        id: saleId,
+        BookshopId: bookshop.id,
+        payment_method: getRandom(['Cash', 'Card', 'Consignment']),
+        total_amount,
         discount: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }], { transaction: t });
+        createdAt: saleDate,
+        updatedAt: saleDate,
+      });
 
-      await queryInterface.bulkInsert('SaleItems', [{
-        SaleId: 2, // Assumes Sale ID is 2
-        BookId: sale2Item.id,
-        quantity: 2,
-        price: sale2Item.price,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }], { transaction: t });
-      await queryInterface.bulkUpdate('Books', { quantity: Sequelize.literal('quantity - 2') }, { id: sale2Item.id }, { transaction: t });
+      for (const book of saleBooks) {
+        saleItems.push({
+          SaleId: saleId,
+          BookId: book.id,
+          quantity: 1,
+          price: book.price,
+          createdAt: saleDate,
+          updatedAt: saleDate,
+        });
+
+        if (!bookUpdates[book.id]) {
+          bookUpdates[book.id] = 0;
+        }
+        bookUpdates[book.id]++;
+      }
+    }
+
+    const t = await queryInterface.sequelize.transaction();
+    try {
+      await queryInterface.bulkInsert('Sales', sales, { transaction: t });
+      await queryInterface.bulkInsert('SaleItems', saleItems, { transaction: t });
+
+      for (const bookId in bookUpdates) {
+        await queryInterface.bulkUpdate('Books', { quantity: Sequelize.literal(`quantity - ${bookUpdates[bookId]}`) }, { id: bookId }, { transaction: t });
+      }
 
       await t.commit();
     } catch (error) {
