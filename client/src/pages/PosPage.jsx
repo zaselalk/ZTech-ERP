@@ -333,7 +333,7 @@ const PosPage = () => {
         <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
       </Header>
       <Layout style={{ height: "calc(100vh - 64px)" }}>
-        <Content style={{ padding: "24px" }}>
+        <Content style={{ padding: "24px", flex: 1 }}>
           <Search
             placeholder="Search for books..."
             onSearch={handleSearch}
@@ -355,9 +355,9 @@ const PosPage = () => {
           </Row>
         </Content>
         <Sider
-          width={450}
+          width="50%"
           theme="light"
-          style={{ padding: 0, borderLeft: "1px solid #f0f0f0" }}
+          style={{ padding: 0, borderLeft: "1px solid #f0f0f0", flex: 1 }}
         >
           <div
             style={{
