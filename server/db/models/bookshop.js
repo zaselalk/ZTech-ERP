@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   Bookshop.init({
     name: DataTypes.STRING,
+    consignment: DataTypes.DECIMAL,
     location: DataTypes.STRING,
     contact: DataTypes.STRING
   }, {

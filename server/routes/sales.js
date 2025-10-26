@@ -103,6 +103,13 @@ router.post('/', async (req, res) => {
         discount: finalCartDiscountAmount, // Store the calculated cart discount amount
     }, { transaction: t });
 
+    if (payment_method === 'Consignment') {
+      const bookshop = await Bookshop.findByPk(BookshopId, { transaction: t });
+      if (bookshop) {
+        await bookshop.increment('consignment', { by: finalTotalAmount, transaction: t });
+      }
+    }
+
     await t.commit();
 
     const finalSale = await Sale.findByPk(sale.id, {

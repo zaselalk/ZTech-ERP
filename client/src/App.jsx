@@ -11,6 +11,7 @@ import {
   BarChartOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  DollarCircleOutlined,
 } from "@ant-design/icons";
 
 import Bookshops from "./components/Bookshops";
@@ -19,6 +20,7 @@ import Sales from "./components/Sales";
 import Reports from "./components/Reports";
 import Dashboard from "./components/Dashboard";
 import PosPage from "./pages/PosPage";
+import Consignments from "./components/Consignments";
 
 const { Header, Content, Sider } = Layout;
 
@@ -34,6 +36,7 @@ const MainLayout = () => {
     "/inventory": "3",
     "/bookshops": "4",
     "/reports": "5",
+    "/consignments": "6",
   };
   const [selectedKey, setSelectedKey] = useState(
     pathMap[location.pathname] || "1"
@@ -71,6 +74,11 @@ const MainLayout = () => {
       key: "5",
       icon: <BarChartOutlined />,
       label: "Reports",
+    },
+    {
+      key: "6",
+      icon: <DollarCircleOutlined />,
+      label: "Consignments",
     },
   ];
 
@@ -162,6 +170,7 @@ const MainLayout = () => {
             <Route path="/inventory" element={<Books />} />
             <Route path="/bookshops" element={<Bookshops />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/consignments" element={<Consignments />} />
           </Routes>
           <FloatButton
             icon={<PlusOutlined />}

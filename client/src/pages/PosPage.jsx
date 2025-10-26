@@ -223,7 +223,7 @@ const PaymentForm = ({ form, total, bookshops }) => {
         <>
             <Title level={4}>Total Due: LKR {total.toFixed(2)}</Title>
             <Form.Item name="BookshopId" label="Bookshop" rules={[{ required: true }]}><Select placeholder="Select a bookshop">{bookshops.map(shop => (<Option key={shop.id} value={shop.id}>{shop.name}</Option>))}</Select></Form.Item>
-            <Form.Item name="payment_method" label="Payment Method" rules={[{ required: true }]}><Select placeholder="Select a payment method"><Option value="Cash">Cash</Option><Option value="Card">Card</Option></Select></Form.Item>
+            <Form.Item name="payment_method" label="Payment Method" rules={[{ required: true }]}><Select placeholder="Select a payment method"><Option value="Cash">Cash</Option><Option value="Card">Card</Option><Option value="Consignment">Consignment</Option></Select></Form.Item>
             {paymentMethod === 'Cash' && (
                 <Row gutter={16}>
                     <Col span={12}><Form.Item label="Amount Tendered"><InputNumber min={total} style={{width: '100%'}} value={amountTendered} onChange={setAmountTendered} /></Form.Item></Col>

@@ -21,6 +21,7 @@ const Dashboard = () => {
     lowStockCount: 0,
     totalBooks: 0,
     recentSales: [],
+    totalConsignment: 0,
   });
 
   useEffect(() => {
@@ -271,6 +272,54 @@ const Dashboard = () => {
                 </Title>
               </div>
               <WarningOutlined
+                style={{ fontSize: "32px", color: "rgba(255,255,255,0.7)" }}
+              />
+            </div>
+          </Card>
+        </Col>
+
+        <Col xs={24} sm={12} md={12} lg={6}>
+          <Card
+            style={{
+              background: "linear-gradient(135deg, #f54ea2 0%, #ff7676 100%)",
+              border: "none",
+              borderRadius: "16px",
+              boxShadow: "0 8px 24px rgba(245, 78, 162, 0.3)",
+              color: "white",
+              height: "160px",
+            }}
+            bodyStyle={{ padding: "24px" }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+              }}
+            >
+              <div>
+                <Text
+                  style={{
+                    color: "rgba(255,255,255,0.8)",
+                    fontSize: "14px",
+                    display: "block",
+                  }}
+                >
+                  Total Consignment
+                </Text>
+                <Title
+                  level={2}
+                  style={{
+                    color: "white",
+                    margin: "8px 0",
+                    fontSize: "32px",
+                    fontWeight: "700",
+                  }}
+                >
+                  ${stats.totalConsignment.toFixed(2)}
+                </Title>
+              </div>
+              <DollarCircleOutlined
                 style={{ fontSize: "32px", color: "rgba(255,255,255,0.7)" }}
               />
             </div>

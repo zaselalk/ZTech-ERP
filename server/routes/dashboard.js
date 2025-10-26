@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Sale, Book } = require('../db/models');
+const { Sale, Book, Bookshop } = require('../db/models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
 
@@ -45,6 +45,8 @@ router.get('/stats', async (req, res) => {
       include: ['bookshop'],
     });
 
+    const totalConsignment = await Bookshop.sum('consignment');
+
     res.json({
       totalSalesToday: totalSalesToday || 0,
       totalSalesWeek: totalSalesWeek || 0,
@@ -52,6 +54,7 @@ router.get('/stats', async (req, res) => {
       totalBooks: totalBooks || 0,
       lowStockCount: lowStockCount || 0,
       recentSales,
+      totalConsignment: totalConsignment || 0,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
