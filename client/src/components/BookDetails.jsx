@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 
 import { useParams } from "react-router-dom";
 import { Card, Spin, message, Table, Typography } from "antd";
-
 import api from "../utils/api";
 
 const { Title } = Typography;

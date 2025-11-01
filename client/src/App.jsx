@@ -39,6 +39,7 @@ const PrivateRoute = ({ children }) => {
 
 // The main layout for the dashboard, reports, etc.
 const MainLayout = () => {
+  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 

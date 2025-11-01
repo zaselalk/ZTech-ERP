@@ -1,6 +1,18 @@
 import { useState, useEffect } from "react";
-import { Table, Typography, message } from "antd";
+import { Table, Typography, message, DatePicker, Select } from "antd";
 
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title as ChartTitle,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from "chart.js";
 import api from "../utils/api";
 
 // Register Chart.js components
