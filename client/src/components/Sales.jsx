@@ -1,8 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Table, Typography, message } from 'antd';
+import { useState, useEffect } from "react";
+import { Table, Typography, message } from "antd";
 
-const { Title } = Typography;
-const API_URL = 'http://localhost:5001/api';
+import api from "../utils/api";
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  ChartTitle,
+  Tooltip,
+  Legend,
+  ArcElement
+);
+
+const { Title, Text } = Typography;
+const { RangePicker } = DatePicker;
+const { Option } = Select;
+const API_URL = "http://localhost:5001/api";
 
 const Sales = ({ refreshKey }) => {
   const [sales, setSales] = useState([]);
@@ -13,19 +30,31 @@ const Sales = ({ refreshKey }) => {
 
   const fetchSales = async () => {
     try {
-      const response = await fetch(`${API_URL}/sales`);
-      setSales(await response.json());
+      const response = await api.fetch(`${API_URL}/sales`);
+      const salesData = await response.json();
+      setSales(salesData);
+      processChartData(salesData);
     } catch (e) {
-      message.error('Failed to fetch sales');
+      message.error("Failed to fetch sales");
     }
   };
 
   const salesColumns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
-    { title: 'Bookshop', dataIndex: ['bookshop', 'name'], key: 'bookshop' },
-    { title: 'Total Amount', dataIndex: 'total_amount', key: 'total_amount', render: (val) => `LKR ${parseFloat(val).toFixed(2)}` },
-    { title: 'Payment', dataIndex: 'payment_method', key: 'payment_method' },
-    { title: 'Date', dataIndex: 'createdAt', key: 'createdAt', render: (val) => new Date(val).toLocaleDateString() },
+    { title: "ID", dataIndex: "id", key: "id" },
+    { title: "Bookshop", dataIndex: ["bookshop", "name"], key: "bookshop" },
+    {
+      title: "Total Amount",
+      dataIndex: "total_amount",
+      key: "total_amount",
+      render: (val) => `LKR ${parseFloat(val).toFixed(2)}`,
+    },
+    { title: "Payment", dataIndex: "payment_method", key: "payment_method" },
+    {
+      title: "Date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (val) => new Date(val).toLocaleDateString(),
+    },
   ];
 
   return (
