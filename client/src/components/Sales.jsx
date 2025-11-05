@@ -37,7 +37,6 @@ ChartJS.register(
 );
 
 const { Title, Text } = Typography;
-const { RangePicker } = DatePicker;
 const { Option } = Select;
 const API_URL = "http://localhost:5001/api";
 
