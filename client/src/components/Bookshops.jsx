@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, message } from 'antd';
+import { Link } from 'react-router-dom';
 
 const API_URL = 'http://localhost:5001/api';
 
@@ -25,7 +26,7 @@ const Bookshops = () => {
 
   const showModal = (bookshop = null) => {
     setEditingBookshop(bookshop);
-    form.setFieldsValue(bookshop || { name: '', location: '', contact: '' });
+    form.setFieldsValue(bookshop || { name: '', location: '', contact: '', consignment: 0 });
     setIsModalVisible(true);
   };
 
@@ -79,6 +80,7 @@ const Bookshops = () => {
     { title: 'Name', dataIndex: 'name', key: 'name' },
     { title: 'Location', dataIndex: 'location', key: 'location' },
     { title: 'Contact', dataIndex: 'contact', key: 'contact' },
+    { title: 'Consignment', dataIndex: 'consignment', key: 'consignment' },
     {
       title: 'Action',
       key: 'action',
@@ -86,6 +88,9 @@ const Bookshops = () => {
         <span>
           <Button type="link" onClick={() => showModal(record)}>Edit</Button>
           <Button type="link" danger onClick={() => handleDelete(record.id)}>Delete</Button>
+          <Link to={`/bookshops/${record.id}`}>
+            <Button type="link">View Details</Button>
+          </Link>
         </span>
       ),
     },
@@ -96,7 +101,16 @@ const Bookshops = () => {
       <Button type="primary" onClick={() => showModal()} style={{ marginBottom: 16 }}>
         Add Bookshop
       </Button>
-      <Table columns={columns} dataSource={bookshops} rowKey="id" />
+      <Table
+        columns={columns}
+        dataSource={bookshops}
+        rowKey="id"
+        expandable={{
+          expandedRowRender: (record) => (
+            <p style={{ margin: 0 }}>Consignment: {record.consignment}</p>
+          ),
+        }}
+      />
       <Modal
         title={editingBookshop ? 'Edit Bookshop' : 'Add Bookshop'}
         visible={isModalVisible}
@@ -111,6 +125,9 @@ const Bookshops = () => {
             <Input />
           </Form.Item>
           <Form.Item name="contact" label="Contact" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="consignment" label="Consignment" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
         </Form>

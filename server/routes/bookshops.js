@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Bookshop } = require('../db/models');
+const { Bookshop, Sale } = require('../db/models');
 
 // Get all bookshops
 router.get('/', async (req, res) => {
@@ -64,6 +64,18 @@ router.delete('/:id', async (req, res) => {
     } else {
       res.status(404).json({ message: 'Bookshop not found' });
     }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get all sales for a bookshop
+router.get('/:id/sales', async (req, res) => {
+  try {
+    const sales = await Sale.findAll({
+      where: { BookshopId: req.params.id },
+    });
+    res.json(sales);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

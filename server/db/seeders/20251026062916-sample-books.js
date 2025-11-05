@@ -50,7 +50,6 @@ module.exports = {
         quantity: getRandomInt(5, 50),
         price: getRandomInt(800, 3500), // Realistic LKR pricing
         reorder_threshold: getRandomInt(5, 10),
-        BookshopId: getRandom(bookshopIds), // Use a real BookshopId
         createdAt: new Date(),
         updatedAt: new Date(),
       });
