@@ -1,6 +1,12 @@
-import { Layout, Menu, Button } from "antd";
+import { Layout, Menu, Button, Dropdown, Avatar } from "antd";
 import { useState } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import {
   PlusOutlined,
   BookOutlined,
@@ -12,6 +18,9 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   DollarCircleOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 
 import Bookshops from "./components/Bookshops";
@@ -24,10 +33,19 @@ import Consignments from "./components/Consignments";
 import BookshopDetails from "./components/BookshopDetails";
 import BookDetails from "./components/BookDetails";
 
+import LoginPage from "./pages/LoginPage";
+
 const { Header, Content, Sider } = Layout;
+
+// A wrapper for protected routes
+const PrivateRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/login" />;
+};
 
 // The main layout for the dashboard, reports, etc.
 const MainLayout = () => {
+  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -43,7 +61,6 @@ const MainLayout = () => {
   const [selectedKey, setSelectedKey] = useState(
     pathMap[location.pathname] || "1"
   );
-  const [collapsed, setCollapsed] = useState(false);
 
   const handleMenuClick = (e) => {
     setSelectedKey(e.key);
@@ -51,37 +68,43 @@ const MainLayout = () => {
     if (path) navigate(path);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
+  // User dropdown menu items
+  const userMenuItems = [
+    {
+      key: "profile",
+      icon: <UserOutlined />,
+      label: "Profile",
+      disabled: true, // Can enable later when profile page is ready
+    },
+    {
+      key: "settings",
+      icon: <SettingOutlined />,
+      label: "Settings",
+      disabled: true, // Can enable later when settings page is ready
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "Logout",
+      danger: true,
+      onClick: handleLogout,
+    },
+  ];
+
   const items = [
-    {
-      key: "1",
-      icon: <DashboardOutlined />,
-      label: "Dashboard",
-    },
-    {
-      key: "2",
-      icon: <ShoppingCartOutlined />,
-      label: "Sales History",
-    },
-    {
-      key: "3",
-      icon: <AppstoreOutlined />,
-      label: "Inventory",
-    },
-    {
-      key: "4",
-      icon: <ShopOutlined />,
-      label: "Bookshops",
-    },
-    {
-      key: "5",
-      icon: <BarChartOutlined />,
-      label: "Reports",
-    },
-    {
-      key: "6",
-      icon: <DollarCircleOutlined />,
-      label: "Consignments",
-    },
+    { key: "1", label: "Dashboard" },
+    { key: "2", label: "Sales History" },
+    { key: "3", label: "Inventory" },
+    { key: "4", label: "Bookshops" },
+    { key: "5", label: "Reports" },
   ];
 
   return (
@@ -156,9 +179,59 @@ const MainLayout = () => {
               />
             )}
           </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <div style={{ color: "#666", fontSize: "14px", marginRight: '16px' }}>Welcome back!</div>
-            <Button type="primary" onClick={() => navigate("/pos")}>New Sale</Button>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              size="large"
+              onClick={() => navigate("/pos")}
+              style={{
+                background:
+                  "linear-gradient(135deg, #4285f4 0%, #346ecbff 100%)",
+                border: "none",
+                borderRadius: "8px",
+                height: "40px",
+                fontSize: "14px",
+                fontWeight: "600",
+                boxShadow: "0 2px 8px rgba(66, 133, 244, 0.3)",
+              }}
+            >
+              New Sale
+            </Button>
+            <Dropdown
+              menu={{ items: userMenuItems }}
+              placement="bottomRight"
+              trigger={["click"]}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: "pointer",
+                  padding: "4px 12px",
+                  borderRadius: "8px",
+                  transition: "background 0.3s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#f5f5f5";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <Avatar
+                  icon={<UserOutlined />}
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    marginRight: "8px",
+                  }}
+                />
+                <span style={{ color: "#2c3e50", fontWeight: "500" }}>
+                  Admin
+                </span>
+              </div>
+            </Dropdown>
           </div>
         </Header>
         <Content
@@ -179,7 +252,6 @@ const MainLayout = () => {
             <Route path="/reports" element={<Reports />} />
             <Route path="/consignments" element={<Consignments />} />
           </Routes>
-          
         </Content>
       </Layout>
     </Layout>
@@ -190,8 +262,23 @@ const MainLayout = () => {
 const App = () => {
   return (
     <Routes>
-      <Route path="/pos" element={<PosPage />} />
-      <Route path="/*" element={<MainLayout />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/pos"
+        element={
+          <PrivateRoute>
+            <PosPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/*"
+        element={
+          <PrivateRoute>
+            <MainLayout />
+          </PrivateRoute>
+        }
+      />
     </Routes>
   );
 };

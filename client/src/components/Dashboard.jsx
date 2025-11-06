@@ -11,6 +11,8 @@ import {
   ShoppingOutlined,
 } from "@ant-design/icons";
 
+import api from "../utils/api";
+
 const { Title, Text } = Typography;
 const API_URL = "http://localhost:5001/api";
 
@@ -33,7 +35,7 @@ const Dashboard = () => {
 
   const fetchLowStockItems = async () => {
     try {
-      const response = await fetch(`${API_URL}/books/low-stock`);
+      const response = await api.fetch(`${API_URL}/books/low-stock`);
       const data = await response.json();
       setLowStockItems(data);
     } catch (error) {
@@ -43,7 +45,7 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch(`${API_URL}/dashboard/stats`);
+      const response = await api.fetch(`${API_URL}/dashboard/stats`);
       const data = await response.json();
       setStats(data);
     } catch (error) {

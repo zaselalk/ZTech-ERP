@@ -10,6 +10,8 @@ import {
   Select,
   message,
 } from "antd";
+
+import api from "../utils/api";
 import { Link } from "react-router-dom";
 
 const { Option } = Select;
@@ -28,7 +30,7 @@ const Books = () => {
 
   const fetchBooks = async () => {
     try {
-      const response = await fetch(`${API_URL}/books`);
+      const response = await api.fetch(`${API_URL}/books`);
       const data = await response.json();
       setBooks(data);
     } catch (error) {
@@ -56,7 +58,7 @@ const Books = () => {
         ? `${API_URL}/books/${editingBook.id}`
         : `${API_URL}/books`;
 
-      const response = await fetch(url, {
+      const response = await api.fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
@@ -78,7 +80,7 @@ const Books = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`${API_URL}/books/${id}`, {
+      const response = await api.fetch(`${API_URL}/books/${id}`, {
         method: "DELETE",
       });
       if (response.ok) {
@@ -93,37 +95,16 @@ const Books = () => {
   };
 
   const columns = [
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      sorter: (a, b) => a.name.localeCompare(b.name),
-    },
-    {
-      title: "Author",
-      dataIndex: "author",
-      key: "author",
-      sorter: (a, b) => a.author.localeCompare(b.author),
-    },
-    {
-      title: "Genre",
-      dataIndex: "genre",
-      key: "genre",
-      sorter: (a, b) => a.genre.localeCompare(b.genre),
-    },
+    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "Author", dataIndex: "author", key: "author" },
+    { title: "Genre", dataIndex: "genre", key: "genre" },
     {
       title: "Price",
       dataIndex: "price",
       key: "price",
-      render: (price) => formatCurrency(price),
-      sorter: (a, b) => a.price - b.price,
+      render: (price) => `LKR ${price}`,
     },
-    {
-      title: "Quantity",
-      dataIndex: "quantity",
-      key: "quantity",
-      sorter: (a, b) => a.quantity - b.quantity,
-    },
+    { title: "Quantity", dataIndex: "quantity", key: "quantity" },
     {
       title: "Action",
       key: "action",

@@ -21,6 +21,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import api from "../utils/api";
 
 const { Header, Content, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -105,7 +106,9 @@ const Receipt = ({ sale, onDone, onEmail, visible }) => {
               title: "Total",
               key: "total",
               render: (_, record) =>
-                formatCurrency(record.SaleItem.price * record.SaleItem.quantity),
+                formatCurrency(
+                  record.SaleItem.price * record.SaleItem.quantity
+                ),
             },
           ]}
           pagination={false}
@@ -116,9 +119,7 @@ const Receipt = ({ sale, onDone, onEmail, visible }) => {
           <br />
           <Text>Cart Discount: {formatCurrency(sale.discount)}</Text>
           <br />
-          <Title level={5}>
-            Total: {formatCurrency(sale.total_amount)}
-          </Title>
+          <Title level={5}>Total: {formatCurrency(sale.total_amount)}</Title>
         </div>
       </div>
     </Modal>
@@ -165,24 +166,33 @@ const ItemDiscountModal = ({ item, visible, onApply, onCancel }) => {
 };
 
 const EmailReceiptModal = ({ visible, onSend, onCancel }) => {
-    const [form] = Form.useForm();
+  const [form] = Form.useForm();
 
-    const handleSend = () => {
-        form.validateFields().then(values => {
-            onSend(values.email);
-        });
-    }
+  const handleSend = () => {
+    form.validateFields().then((values) => {
+      onSend(values.email);
+    });
+  };
 
-    return (
-        <Modal title="Email Receipt" visible={visible} onOk={handleSend} onCancel={onCancel}>
-            <Form form={form} layout="vertical">
-                <Form.Item label="Recipient Email" name="email" rules={[{ required: true, type: 'email' }]}>
-                    <Input />
-                </Form.Item>
-            </Form>
-        </Modal>
-    )
-}
+  return (
+    <Modal
+      title="Email Receipt"
+      visible={visible}
+      onOk={handleSend}
+      onCancel={onCancel}
+    >
+      <Form form={form} layout="vertical">
+        <Form.Item
+          label="Recipient Email"
+          name="email"
+          rules={[{ required: true, type: "email" }]}
+        >
+          <Input />
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};
 
 const PosPage = () => {
   // --- State Management ---
@@ -193,9 +203,9 @@ const PosPage = () => {
   const [isCheckoutVisible, setIsCheckoutVisible] = useState(false);
   const [completedSale, setCompletedSale] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
+  const navigate = useNavigate();
   const [searchResults, setSearchResults] = useState(null);
   const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
-  const navigate = useNavigate();
   const searchTimeout = useRef(null);
 
   // --- Data Fetching ---
@@ -204,7 +214,7 @@ const PosPage = () => {
   }, []);
   const fetchTopSellers = async () => {
     try {
-      const res = await fetch(`${API_URL}/books/top-sellers`);
+      const res = await api.fetch(`${API_URL}/books/top-sellers`);
       setTopSellers(await res.json());
     } catch (e) {
       message.error("Failed to load top sellers");
@@ -214,7 +224,7 @@ const PosPage = () => {
   const handleSearch = async (query) => {
     if (query) {
       try {
-        const res = await fetch(`${API_URL}/books?search=${query}`);
+        const res = await api.fetch(`${API_URL}/books?search=${query}`);
         setSearchResults(await res.json());
       } catch (e) {
         message.error("Failed to search for books");
@@ -226,25 +236,29 @@ const PosPage = () => {
 
   const debouncedSearch = (query) => {
     if (searchTimeout.current) {
-        clearTimeout(searchTimeout.current);
+      clearTimeout(searchTimeout.current);
     }
     searchTimeout.current = setTimeout(() => {
-        handleSearch(query);
+      handleSearch(query);
     }, 300);
   };
 
   const handleSendEmail = async (email) => {
     try {
-      const response = await fetch(`${API_URL}/sales/${completedSale.id}/email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
+      const response = await api.fetch(
+        `${API_URL}/sales/${completedSale.id}/email`,
+        {
+          method: "POST",
+          body: JSON.stringify({ email }),
+        }
+      );
       if (response.ok) {
-        message.success('Receipt sent successfully');
+        message.success("Receipt sent successfully");
         setIsEmailModalVisible(false);
       } else {
-        throw new Error((await response.json()).message || 'Failed to send receipt');
+        throw new Error(
+          (await response.json()).message || "Failed to send receipt"
+        );
       }
     } catch (error) {
       message.error(error.message);
@@ -588,7 +602,7 @@ const CheckoutModal = ({
   }, [visible]);
   const fetchBookshops = async () => {
     try {
-      const res = await fetch(`${API_URL}/bookshops`);
+      const res = await api.fetch(`${API_URL}/bookshops`);
       setBookshops(await res.json());
     } catch (e) {
       message.error("Failed to fetch bookshops");
@@ -608,9 +622,8 @@ const CheckoutModal = ({
         })),
         cartDiscount,
       };
-      const response = await fetch(`${API_URL}/sales`, {
+      const response = await api.fetch(`${API_URL}/sales`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(saleData),
       });
       if (response.ok) {
