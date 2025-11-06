@@ -1,11 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const { Book } = require('../db/models');
+const { Book, SaleItem, Sale, Bookshop } = require('../db/models');
+const { Sequelize } = require('sequelize');
 
 // Get all books
 router.get('/', async (req, res) => {
   try {
-    const books = await Book.findAll();
+    const { search } = req.query;
+    let where = {};
+    if (search) {
+      where = {
+        [Sequelize.Op.or]: [
+          { name: { [Sequelize.Op.like]: `%${search}%` } },
+          { author: { [Sequelize.Op.like]: `%${search}%` } },
+        ],
+      };
+    }
+    const books = await Book.findAll({ where });
     res.json(books);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -22,6 +33,22 @@ router.get('/top-sellers', async (req, res) => {
   }
 });
 
+// Get low stock books
+router.get('/low-stock', async (req, res) => {
+  try {
+    const books = await Book.findAll({
+      where: {
+        quantity: {
+          [Sequelize.Op.lte]: Sequelize.col('reorder_threshold'),
+        },
+      },
+    });
+    res.json(books);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Get a single book
 router.get('/:id', async (req, res) => {
   try {
@@ -31,6 +58,25 @@ router.get('/:id', async (req, res) => {
     } else {
       res.status(404).json({ message: 'Book not found' });
     }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get stats for a single book
+router.get('/:id/stats', async (req, res) => {
+  try {
+    const bookId = req.params.id;
+
+    // Calculate total sales
+    const totalSales = await SaleItem.sum('quantity', {
+      where: { BookId: bookId },
+    });
+
+    res.json({
+      totalSales: totalSales || 0,
+      topBookshops: [],
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -14,7 +14,6 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
     setLoading(true);
     try {
       const response = await api.fetch("http://localhost:5001/api/auth/login", {
@@ -24,6 +23,7 @@ const LoginPage = () => {
 
       if (response.ok) {
         const { token } = await response.json();
+        console.log(token);
         localStorage.setItem("token", token);
         message.success("Login successful!");
         navigate("/");
@@ -97,57 +97,54 @@ const LoginPage = () => {
           </Text>
         </div>
 
-        <form onSubmit={handleLogin}>
-          <Form.Item style={{ marginBottom: "20px" }}>
-            <Input
-              size="large"
-              prefix={<UserOutlined style={{ color: "#7f8c8d" }} />}
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              style={{
-                borderRadius: "8px",
-                border: "1px solid #e0e0e0",
-              }}
-            />
-          </Form.Item>
+        <Form.Item style={{ marginBottom: "20px" }}>
+          <Input
+            size="large"
+            prefix={<UserOutlined style={{ color: "#7f8c8d" }} />}
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            style={{
+              borderRadius: "8px",
+              border: "1px solid #e0e0e0",
+            }}
+          />
+        </Form.Item>
 
-          <Form.Item style={{ marginBottom: "24px" }}>
-            <Input.Password
-              size="large"
-              prefix={<LockOutlined style={{ color: "#7f8c8d" }} />}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{
-                borderRadius: "8px",
-                border: "1px solid #e0e0e0",
-              }}
-            />
-          </Form.Item>
+        <Form.Item style={{ marginBottom: "24px" }}>
+          <Input.Password
+            size="large"
+            prefix={<LockOutlined style={{ color: "#7f8c8d" }} />}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              borderRadius: "8px",
+              border: "1px solid #e0e0e0",
+            }}
+          />
+        </Form.Item>
 
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              size="large"
-              loading={loading}
-              block
-              style={{
-                background:
-                  "linear-gradient(135deg, #4285f4 0%, #346ecbff 100%)",
-                border: "none",
-                borderRadius: "8px",
-                height: "48px",
-                fontSize: "16px",
-                fontWeight: "600",
-                boxShadow: "0 4px 16px rgba(66, 133, 244, 0.3)",
-              }}
-            >
-              Sign In
-            </Button>
-          </Form.Item>
-        </form>
+        <Form.Item>
+          <Button
+            type="primary"
+            size="large"
+            loading={loading}
+            block
+            style={{
+              background: "linear-gradient(135deg, #4285f4 0%, #346ecbff 100%)",
+              border: "none",
+              borderRadius: "8px",
+              height: "48px",
+              fontSize: "16px",
+              fontWeight: "600",
+              boxShadow: "0 4px 16px rgba(66, 133, 244, 0.3)",
+            }}
+            onClick={handleLogin}
+          >
+            Sign In
+          </Button>
+        </Form.Item>
       </Card>
     </div>
   );

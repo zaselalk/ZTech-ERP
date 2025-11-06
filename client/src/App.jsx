@@ -1,6 +1,12 @@
 import { Layout, Menu, Button, Dropdown, Avatar } from "antd";
 import { useState } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import {
   PlusOutlined,
   BookOutlined,
@@ -50,6 +56,7 @@ const MainLayout = () => {
     "/inventory": "3",
     "/bookshops": "4",
     "/reports": "5",
+    "/consignments": "6",
   };
   const [selectedKey, setSelectedKey] = useState(
     pathMap[location.pathname] || "1"

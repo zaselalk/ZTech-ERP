@@ -20,7 +20,9 @@ const BookshopDetails = () => {
         const bookshopData = await bookshopResponse.json();
         setBookshop(bookshopData);
 
-        const salesResponse = await api.fetch(`${API_URL}/bookshops/${id}/sales`);
+        const salesResponse = await api.fetch(
+          `${API_URL}/bookshops/${id}/sales`
+        );
         const salesData = await salesResponse.json();
         setSales(salesData);
       } catch (error) {

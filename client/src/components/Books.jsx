@@ -1,3 +1,4 @@
+import { formatCurrency } from "../utils";
 import { useState, useEffect } from "react";
 import {
   Table,
@@ -11,12 +12,14 @@ import {
 } from "antd";
 
 import api from "../utils/api";
+import { Link } from "react-router-dom";
 
 const { Option } = Select;
 const API_URL = "http://localhost:5001/api";
 
 const Books = () => {
   const [books, setBooks] = useState([]);
+  const [searchText, setSearchText] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
   const [form] = Form.useForm();
@@ -113,21 +116,39 @@ const Books = () => {
           <Button type="link" danger onClick={() => handleDelete(record.id)}>
             Delete
           </Button>
+          <Link to={`/books/${record.id}`}>
+            <Button type="link">View Details</Button>
+          </Link>
         </span>
       ),
     },
   ];
 
+  const filteredBooks = books.filter((book) =>
+    Object.values(book).some((value) =>
+      String(value).toLowerCase().includes(searchText.toLowerCase())
+    )
+  );
+
   return (
     <div>
-      <Button
-        type="primary"
-        onClick={() => showModal()}
-        style={{ marginBottom: 16 }}
+      <div
+        style={{
+          marginBottom: 16,
+          display: "flex",
+          justifyContent: "space-between",
+        }}
       >
-        Add Book
-      </Button>
-      <Table columns={columns} dataSource={books} rowKey="id" />
+        <Input
+          placeholder="Search books..."
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ width: 300 }}
+        />
+        <Button type="primary" onClick={() => showModal()}>
+          Add Book
+        </Button>
+      </div>
+      <Table columns={columns} dataSource={filteredBooks} rowKey="id" />
       <Modal
         title={editingBook ? "Edit Book" : "Add Book"}
         visible={isModalVisible}

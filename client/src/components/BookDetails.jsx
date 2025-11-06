@@ -3,10 +3,10 @@ import { useState, useEffect } from "react";
 
 import { useParams } from "react-router-dom";
 import { Card, Spin, message, Table, Typography } from "antd";
-import api from "../utils/api";
 
 const { Title } = Typography;
 const API_URL = "http://localhost:5001/api";
+import api from "../utils/api";
 
 const BookDetails = () => {
   const { id } = useParams();

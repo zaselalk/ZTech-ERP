@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Table, message, Button, Modal, Form, InputNumber } from 'antd';
+import { useState, useEffect } from "react";
+import { Table, message, Button, Modal, Form, InputNumber } from "antd";
 
-import api from '../utils/api';
+import api from "../utils/api";
 
-const API_URL = 'http://localhost:5001/api';
+const API_URL = "http://localhost:5001/api";
 
 const Consignments = () => {
   const [bookshops, setBookshops] = useState([]);
@@ -21,7 +21,7 @@ const Consignments = () => {
       const data = await response.json();
       setBookshops(data);
     } catch (error) {
-      message.error('Failed to fetch bookshops');
+      message.error("Failed to fetch bookshops");
     }
   };
 
@@ -43,13 +43,14 @@ const Consignments = () => {
       const { amount } = values;
 
       if (amount <= 0) {
-        message.error('Please enter a valid amount');
+        message.error("Please enter a valid amount");
         return;
       }
 
-      const response = await api.fetch(`${API_URL}/bookshops/${editingBookshop.id}`,
+      const response = await api.fetch(
+        `${API_URL}/bookshops/${editingBookshop.id}`,
         {
-          method: 'PUT',
+          method: "PUT",
           body: JSON.stringify({
             consignment: editingBookshop.consignment - amount,
           }),
@@ -57,11 +58,11 @@ const Consignments = () => {
       );
 
       if (response.ok) {
-        message.success('Payment recorded successfully');
+        message.success("Payment recorded successfully");
         fetchBookshops();
         handleCancel();
       } else {
-        throw new Error('Failed to record payment');
+        throw new Error("Failed to record payment");
       }
     } catch (error) {
       message.error(error.message);
@@ -69,16 +70,16 @@ const Consignments = () => {
   };
 
   const columns = [
-    { title: 'Bookshop', dataIndex: 'name', key: 'name' },
+    { title: "Bookshop", dataIndex: "name", key: "name" },
     {
-      title: 'Consignment Amount',
-      dataIndex: 'consignment',
-      key: 'consignment',
+      title: "Consignment Amount",
+      dataIndex: "consignment",
+      key: "consignment",
       render: (amount) => `LKR ${amount}`,
     },
     {
-      title: 'Action',
-      key: 'action',
+      title: "Action",
+      key: "action",
       render: (_, record) => (
         <Button type="primary" onClick={() => showModal(record)}>
           Record Payment
@@ -100,9 +101,9 @@ const Consignments = () => {
           <Form.Item
             name="amount"
             label="Amount Paid"
-            rules={[{ required: true, type: 'number', min: 0.01 }]}
+            rules={[{ required: true, type: "number", min: 0.01 }]}
           >
-            <InputNumber style={{ width: '100%' }} />
+            <InputNumber style={{ width: "100%" }} />
           </Form.Item>
         </Form>
       </Modal>

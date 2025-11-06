@@ -21,7 +21,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
-
 import api from "../utils/api";
 
 const { Header, Content, Sider } = Layout;
@@ -32,7 +31,7 @@ const API_URL = "http://localhost:5001/api";
 
 // --- Re-usable sub-components ---
 
-const Receipt = ({ sale, onDone, visible }) => {
+const Receipt = ({ sale, onDone, onEmail, visible }) => {
   const componentRef = useRef();
   const handlePrint = useReactToPrint({ content: () => componentRef.current });
   if (!sale) return null;
@@ -53,6 +52,9 @@ const Receipt = ({ sale, onDone, visible }) => {
         </Button>,
         <Button key="submit" type="primary" onClick={handlePrint}>
           Print Receipt
+        </Button>,
+        <Button key="email" onClick={onEmail}>
+          Email Receipt
         </Button>,
       ]}
     >
@@ -87,7 +89,7 @@ const Receipt = ({ sale, onDone, visible }) => {
               title: "Price",
               dataIndex: ["SaleItem", "price"],
               key: "price",
-              render: (val) => `LKR ${parseFloat(val).toFixed(2)}`,
+              render: (val) => formatCurrency(val),
             },
             {
               title: "Discount",
@@ -104,22 +106,20 @@ const Receipt = ({ sale, onDone, visible }) => {
               title: "Total",
               key: "total",
               render: (_, record) =>
-                `LKR ${(
+                formatCurrency(
                   record.SaleItem.price * record.SaleItem.quantity
-                ).toFixed(2)}`,
+                ),
             },
           ]}
           pagination={false}
           size="small"
         />
         <div style={{ textAlign: "right", marginTop: 16 }}>
-          <Text>Subtotal: LKR {subtotal.toFixed(2)}</Text>
+          <Text>Subtotal: {formatCurrency(subtotal)}</Text>
           <br />
-          <Text>Cart Discount: LKR {parseFloat(sale.discount).toFixed(2)}</Text>
+          <Text>Cart Discount: {formatCurrency(sale.discount)}</Text>
           <br />
-          <Title level={5}>
-            Total: LKR {parseFloat(sale.total_amount).toFixed(2)}
-          </Title>
+          <Title level={5}>Total: {formatCurrency(sale.total_amount)}</Title>
         </div>
       </div>
     </Modal>
@@ -165,6 +165,35 @@ const ItemDiscountModal = ({ item, visible, onApply, onCancel }) => {
   );
 };
 
+const EmailReceiptModal = ({ visible, onSend, onCancel }) => {
+  const [form] = Form.useForm();
+
+  const handleSend = () => {
+    form.validateFields().then((values) => {
+      onSend(values.email);
+    });
+  };
+
+  return (
+    <Modal
+      title="Email Receipt"
+      visible={visible}
+      onOk={handleSend}
+      onCancel={onCancel}
+    >
+      <Form form={form} layout="vertical">
+        <Form.Item
+          label="Recipient Email"
+          name="email"
+          rules={[{ required: true, type: "email" }]}
+        >
+          <Input />
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};
+
 const PosPage = () => {
   // --- State Management ---
   const [topSellers, setTopSellers] = useState([]);
@@ -175,6 +204,9 @@ const PosPage = () => {
   const [completedSale, setCompletedSale] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const navigate = useNavigate();
+  const [searchResults, setSearchResults] = useState(null);
+  const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
+  const searchTimeout = useRef(null);
 
   // --- Data Fetching ---
   useEffect(() => {
@@ -305,7 +337,7 @@ const PosPage = () => {
       title: "Price",
       dataIndex: "price",
       key: "price",
-      render: (val) => `LKR ${val}`,
+      render: (val) => formatCurrency(val),
     },
     {
       title: "Qty",
@@ -341,7 +373,7 @@ const PosPage = () => {
     {
       title: "Subtotal",
       key: "subtotal",
-      render: (_, record) => `LKR ${calculateItemTotal(record).toFixed(2)}`,
+      render: (_, record) => formatCurrency(calculateItemTotal(record)),
     },
   ];
 
@@ -366,77 +398,153 @@ const PosPage = () => {
         </Title>
         <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
       </Header>
-      <Layout>
-        <Content style={{ padding: "24px" }}>
+      <Layout style={{ height: "calc(100vh - 64px)" }}>
+        <Content
+          style={{
+            padding: "24px",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <Search
             placeholder="Search for books..."
-            style={{ marginBottom: 24 }}
+            onChange={(e) => debouncedSearch(e.target.value)}
+            style={{ marginBottom: 24, flexShrink: 0 }}
           />
-          <Row gutter={[16, 16]}>
-            {topSellers.map((book) => (
-              <Col key={book.id} span={6}>
-                <Card hoverable onClick={() => handleAddToCart(book)}>
-                  <Card.Meta
-                    title={book.name}
-                    description={`LKR ${book.price}`}
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              background: "white",
+              borderRadius: "8px",
+              padding: "16px",
+            }}
+          >
+            <List
+              dataSource={searchResults !== null ? searchResults : topSellers}
+              renderItem={(book) => (
+                <List.Item
+                  actions={[
+                    <Button
+                      key="add"
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={() => handleAddToCart(book)}
+                      size="large"
+                    >
+                      Add to Cart
+                    </Button>,
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={
+                      <span style={{ fontSize: "16px", fontWeight: "bold" }}>
+                        {book.name}
+                      </span>
+                    }
+                    description={
+                      <div>
+                        <Text
+                          strong
+                          style={{ fontSize: "14px", color: "#52c41a" }}
+                        >
+                          {formatCurrency(book.price)}
+                        </Text>
+                        {book.author && (
+                          <div style={{ marginTop: "4px" }}>
+                            <Text type="secondary">by {book.author}</Text>
+                          </div>
+                        )}
+                      </div>
+                    }
                   />
-                </Card>
-              </Col>
-            ))}
-          </Row>
+                </List.Item>
+              )}
+              pagination={false}
+            />
+          </div>
         </Content>
         <Sider
-          width={450}
+          width="50%"
           theme="light"
-          style={{ padding: "24px", borderLeft: "1px solid #f0f0f0" }}
+          style={{ padding: 0, borderLeft: "1px solid #f0f0f0", flex: 1 }}
         >
-          <Title level={4}>Cart</Title>
-          <Table
-            columns={cartColumns}
-            dataSource={cart}
-            rowKey="id"
-            pagination={false}
-            size="small"
-          />
-          <div style={{ textAlign: "right", marginTop: 24 }}>
-            <Text strong>Subtotal: LKR {subtotal.toFixed(2)}</Text>
-            <br />
-            <Text type="secondary">
-              Subtotal (after item discounts): LKR{" "}
-              {subtotalAfterItemDiscounts.toFixed(2)}
-            </Text>
+          <div
+            style={{
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              padding: "24px",
+            }}
+          >
+            <Title level={4} style={{ marginBottom: "16px" }}>
+              Cart
+            </Title>
             <div
               style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                alignItems: "center",
-                marginTop: 8,
+                maxHeight: "calc(100vh - 350px)",
+                overflowY: "auto",
+                marginBottom: "16px",
               }}
             >
-              <Text strong style={{ marginRight: 8 }}>
-                Cart Discount:
-              </Text>
-              <InputNumber
-                value={cartDiscountInput}
-                onChange={setCartDiscountInput}
-                min={0}
-                addonAfter={cartDiscountSelector}
+              <Table
+                columns={cartColumns}
+                dataSource={cart}
+                rowKey="id"
+                pagination={false}
+                size="small"
+                scroll={{ y: false }}
               />
             </div>
-            <Title level={4} style={{ marginTop: 8 }}>
-              Total: LKR {total.toFixed(2)}
-            </Title>
+            <div
+              style={{
+                marginTop: "auto",
+                paddingTop: "16px",
+                borderTop: "1px solid #f0f0f0",
+              }}
+            >
+              <div style={{ textAlign: "right" }}>
+                <Text strong>Subtotal: {formatCurrency(subtotal)}</Text>
+                <br />
+                <Text type="secondary">
+                  Subtotal (after item discounts):{" "}
+                  {formatCurrency(subtotalAfterItemDiscounts)}
+                </Text>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    alignItems: "center",
+                    marginTop: 8,
+                  }}
+                >
+                  <Text strong style={{ marginRight: 8 }}>
+                    Cart Discount:
+                  </Text>
+                  <InputNumber
+                    value={cartDiscountInput}
+                    onChange={setCartDiscountInput}
+                    min={0}
+                    addonAfter={cartDiscountSelector}
+                  />
+                </div>
+                <Title level={4} style={{ marginTop: 8 }}>
+                  Total: {formatCurrency(total)}
+                </Title>
+              </div>
+              <Button
+                type="primary"
+                block
+                size="large"
+                disabled={cart.length === 0}
+                onClick={() => setIsCheckoutVisible(true)}
+                style={{ marginTop: 16 }}
+              >
+                Checkout
+              </Button>
+            </div>
           </div>
-          <Button
-            type="primary"
-            block
-            size="large"
-            disabled={cart.length === 0}
-            onClick={() => setIsCheckoutVisible(true)}
-            style={{ marginTop: 24 }}
-          >
-            Checkout
-          </Button>
         </Sider>
       </Layout>
       {isCheckoutVisible && (
@@ -465,6 +573,14 @@ const PosPage = () => {
           sale={completedSale}
           visible={!!completedSale}
           onDone={resetSale}
+          onEmail={() => setIsEmailModalVisible(true)}
+        />
+      )}
+      {isEmailModalVisible && (
+        <EmailReceiptModal
+          visible={isEmailModalVisible}
+          onSend={handleSendEmail}
+          onCancel={() => setIsEmailModalVisible(false)}
         />
       )}
     </Layout>
@@ -543,7 +659,7 @@ const PaymentForm = ({ form, total, bookshops }) => {
 
   return (
     <>
-      <Title level={4}>Total Due: LKR {total.toFixed(2)}</Title>
+      <Title level={4}>Total Due: {formatCurrency(total)}</Title>
       <Form.Item
         name="BookshopId"
         label="Bookshop"
@@ -565,6 +681,7 @@ const PaymentForm = ({ form, total, bookshops }) => {
         <Select placeholder="Select a payment method">
           <Option value="Cash">Cash</Option>
           <Option value="Card">Card</Option>
+          <Option value="Consignment">Consignment</Option>
         </Select>
       </Form.Item>
       {paymentMethod === "Cash" && (
@@ -581,7 +698,7 @@ const PaymentForm = ({ form, total, bookshops }) => {
           </Col>
           <Col span={12}>
             <Title level={5} style={{ paddingTop: 30 }}>
-              Change: LKR {change > 0 ? change.toFixed(2) : "0.00"}
+              Change: {formatCurrency(change > 0 ? change : 0)}
             </Title>
           </Col>
         </Row>
