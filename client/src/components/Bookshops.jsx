@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, message } from 'antd';
 import { Link } from 'react-router-dom';
 
+import api from '../utils/api';
+
 const API_URL = 'http://localhost:5001/api';
 
 const Bookshops = () => {
@@ -16,7 +18,7 @@ const Bookshops = () => {
 
   const fetchBookshops = async () => {
     try {
-      const response = await fetch(`${API_URL}/bookshops`);
+      const response = await api.fetch(`${API_URL}/bookshops`);
       const data = await response.json();
       setBookshops(data);
     } catch (error) {
@@ -44,9 +46,8 @@ const Bookshops = () => {
         ? `${API_URL}/bookshops/${editingBookshop.id}`
         : `${API_URL}/bookshops`;
 
-      const response = await fetch(url, {
+      const response = await api.fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
 
@@ -64,7 +65,7 @@ const Bookshops = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`${API_URL}/bookshops/${id}`, { method: 'DELETE' });
+      const response = await api.fetch(`${API_URL}/bookshops/${id}`, { method: 'DELETE' });
       if (response.ok) {
         message.success('Bookshop deleted successfully');
         fetchBookshops();

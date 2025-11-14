@@ -37,6 +37,7 @@ ChartJS.register(
 );
 
 const { Title, Text } = Typography;
+const { Option } = Select;
 const API_URL = "http://localhost:5001/api";
 
 const Sales = ({ refreshKey }) => {
@@ -55,7 +56,7 @@ const Sales = ({ refreshKey }) => {
 
   const fetchSales = async () => {
     try {
-      const response = await fetch(`${API_URL}/sales`);
+      const response = await api.fetch(`${API_URL}/sales`);
       const salesData = await response.json();
       setSales(salesData);
       processChartData(salesData);
