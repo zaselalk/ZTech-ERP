@@ -1,4 +1,4 @@
-import { Layout, Menu, Button } from "antd";
+import { Layout, Menu, Button, Dropdown, Avatar } from "antd";
 import { useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -12,6 +12,9 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   DollarCircleOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 
 import Bookshops from "./components/Bookshops";
@@ -81,6 +84,36 @@ const MainLayout = () => {
       key: "6",
       icon: <DollarCircleOutlined />,
       label: "Consignments",
+    },
+  ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
+  const userMenuItems = [
+    {
+      key: "profile",
+      icon: <UserOutlined />,
+      label: "Profile",
+      disabled: true, // Can enable later when profile page is ready
+    },
+    {
+      key: "settings",
+      icon: <SettingOutlined />,
+      label: "Settings",
+      disabled: true, // Can enable later when settings page is ready
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "Logout",
+      danger: true,
+      onClick: handleLogout,
     },
   ];
 
@@ -157,8 +190,48 @@ const MainLayout = () => {
             )}
           </div>
           <div style={{ display: "flex", alignItems: "center" }}>
-            <div style={{ color: "#666", fontSize: "14px", marginRight: '16px' }}>Welcome back!</div>
-            <Button type="primary" onClick={() => navigate("/pos")}>New Sale</Button>
+            <div
+              style={{ color: "#666", fontSize: "14px", marginRight: "16px" }}
+            >
+              Welcome back!
+            </div>
+            <Button type="primary" onClick={() => navigate("/pos")}>
+              New Sale
+            </Button>
+            <Dropdown
+              menu={{ items: userMenuItems }}
+              placement="bottomRight"
+              trigger={["click"]}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: "pointer",
+                  padding: "4px 12px",
+                  borderRadius: "8px",
+                  transition: "background 0.3s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#f5f5f5";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <Avatar
+                  icon={<UserOutlined />}
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    marginRight: "8px",
+                  }}
+                />
+                <span style={{ color: "#2c3e50", fontWeight: "500" }}>
+                  Admin
+                </span>
+              </div>
+            </Dropdown>
           </div>
         </Header>
         <Content
@@ -179,7 +252,6 @@ const MainLayout = () => {
             <Route path="/reports" element={<Reports />} />
             <Route path="/consignments" element={<Consignments />} />
           </Routes>
-          
         </Content>
       </Layout>
     </Layout>
