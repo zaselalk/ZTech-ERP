@@ -1,12 +1,6 @@
 import { Layout, Menu, Button, Dropdown, Avatar } from "antd";
 import { useState } from "react";
-import {
-  Routes,
-  Route,
-  useNavigate,
-  useLocation,
-  Navigate,
-} from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
   PlusOutlined,
   BookOutlined,
@@ -33,19 +27,10 @@ import Consignments from "./components/Consignments";
 import BookshopDetails from "./components/BookshopDetails";
 import BookDetails from "./components/BookDetails";
 
-import LoginPage from "./pages/LoginPage";
-
 const { Header, Content, Sider } = Layout;
-
-// A wrapper for protected routes
-const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/login" />;
-};
 
 // The main layout for the dashboard, reports, etc.
 const MainLayout = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,6 +46,7 @@ const MainLayout = () => {
   const [selectedKey, setSelectedKey] = useState(
     pathMap[location.pathname] || "1"
   );
+  const [collapsed, setCollapsed] = useState(false);
 
   const handleMenuClick = (e) => {
     setSelectedKey(e.key);
@@ -68,12 +54,44 @@ const MainLayout = () => {
     if (path) navigate(path);
   };
 
+  const items = [
+    {
+      key: "1",
+      icon: <DashboardOutlined />,
+      label: "Dashboard",
+    },
+    {
+      key: "2",
+      icon: <ShoppingCartOutlined />,
+      label: "Sales History",
+    },
+    {
+      key: "3",
+      icon: <AppstoreOutlined />,
+      label: "Inventory",
+    },
+    {
+      key: "4",
+      icon: <ShopOutlined />,
+      label: "Bookshops",
+    },
+    {
+      key: "5",
+      icon: <BarChartOutlined />,
+      label: "Reports",
+    },
+    {
+      key: "6",
+      icon: <DollarCircleOutlined />,
+      label: "Consignments",
+    },
+  ];
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
-  // User dropdown menu items
   const userMenuItems = [
     {
       key: "profile",
@@ -97,14 +115,6 @@ const MainLayout = () => {
       danger: true,
       onClick: handleLogout,
     },
-  ];
-
-  const items = [
-    { key: "1", label: "Dashboard" },
-    { key: "2", label: "Sales History" },
-    { key: "3", label: "Inventory" },
-    { key: "4", label: "Bookshops" },
-    { key: "5", label: "Reports" },
   ];
 
   return (
@@ -179,23 +189,13 @@ const MainLayout = () => {
               />
             )}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              size="large"
-              onClick={() => navigate("/pos")}
-              style={{
-                background:
-                  "linear-gradient(135deg, #4285f4 0%, #346ecbff 100%)",
-                border: "none",
-                borderRadius: "8px",
-                height: "40px",
-                fontSize: "14px",
-                fontWeight: "600",
-                boxShadow: "0 2px 8px rgba(66, 133, 244, 0.3)",
-              }}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <div
+              style={{ color: "#666", fontSize: "14px", marginRight: "16px" }}
             >
+              Welcome back!
+            </div>
+            <Button type="primary" onClick={() => navigate("/pos")}>
               New Sale
             </Button>
             <Dropdown
@@ -262,23 +262,8 @@ const MainLayout = () => {
 const App = () => {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route
-        path="/pos"
-        element={
-          <PrivateRoute>
-            <PosPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/*"
-        element={
-          <PrivateRoute>
-            <MainLayout />
-          </PrivateRoute>
-        }
-      />
+      <Route path="/pos" element={<PosPage />} />
+      <Route path="/*" element={<MainLayout />} />
     </Routes>
   );
 };
