@@ -7,7 +7,7 @@ import {
 import { useEffect, useState } from "react";
 import api from "../../../utils/api";
 const { Title, Text } = Typography;
-const API_URL = "http://localhost:5001/api";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const DashboardInventoryOverview = () => {
   const lowStockColumns = [

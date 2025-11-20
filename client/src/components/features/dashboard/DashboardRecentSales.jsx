@@ -3,7 +3,7 @@ import { ShoppingOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import api from "../../../utils/api";
 import { formatCurrency } from "../../../utils";
-const API_URL = "http://localhost:5001/api";
+const API_URL = import.meta.env.VITE_API_URL;
 const { Text } = Typography;
 
 export const DashboardRecentSales = () => {

@@ -8,7 +8,8 @@ import {
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import api from "../../../utils/api";
-const API_URL = "http://localhost:5001/api";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const { Title, Text } = Typography;
 export const DashboardStatCards = () => {
