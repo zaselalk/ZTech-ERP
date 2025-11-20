@@ -68,7 +68,7 @@ export const DashboardInventoryOverview = () => {
                   style={{ color: "#f39c12", marginRight: "8px" }}
                 />
                 <Text strong style={{ color: "#f39c12" }}>
-                  You're having {lowStockItems.length} Low Stock Alert
+                  You have {lowStockItems.length} low stock alerts
                 </Text>
               </div>
             </div>
