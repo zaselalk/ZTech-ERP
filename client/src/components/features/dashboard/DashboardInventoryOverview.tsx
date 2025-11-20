@@ -1,5 +1,9 @@
 import { Card, Col, Divider, message, Table, Typography } from "antd";
-import { WarningOutlined, AppstoreOutlined } from "@ant-design/icons";
+import {
+  WarningOutlined,
+  AppstoreOutlined,
+  AlertOutlined,
+} from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import api from "../../../utils/api";
 const { Title, Text } = Typography;
@@ -12,32 +16,11 @@ export const DashboardInventoryOverview = () => {
     { title: "Quantity", dataIndex: "quantity", key: "quantity" },
   ];
 
-  const [stats, setStats] = useState({
-    totalSalesToday: 0,
-    totalSalesWeek: 0,
-    totalSalesMonth: 0,
-    lowStockCount: 0,
-    totalBooks: 0,
-    recentSales: [],
-    totalConsignment: 0,
-  });
-
   const [lowStockItems, setLowStockItems] = useState([]);
 
   useEffect(() => {
-    fetchStats();
     fetchLowStockItems();
   }, []);
-
-  const fetchStats = async () => {
-    try {
-      const response = await api.fetch(`${API_URL}/dashboard/stats`);
-      const data = await response.json();
-      setStats(data);
-    } catch (error) {
-      message.error("Failed to fetch dashboard stats");
-    }
-  };
 
   const fetchLowStockItems = async () => {
     try {
@@ -54,10 +37,8 @@ export const DashboardInventoryOverview = () => {
       <Card
         title={
           <div style={{ display: "flex", alignItems: "center" }}>
-            <AppstoreOutlined
-              style={{ marginRight: "8px", color: "#667eea" }}
-            />
-            <span>Inventory Overview</span>
+            <AlertOutlined style={{ marginRight: "8px", color: "#667eea" }} />
+            <span>Low Stock Alert</span>
           </div>
         }
         style={{
@@ -71,56 +52,38 @@ export const DashboardInventoryOverview = () => {
         }}
         bodyStyle={{ padding: "24px" }}
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "12px",
-          }}
-        >
-          <Text strong style={{ fontSize: "16px" }}>
-            Total Books
-          </Text>
-          <Title level={3} style={{ margin: 0, color: "#2c3e50" }}>
-            {stats.totalBooks}
-          </Title>
-        </div>
-        <Divider style={{ margin: "16px 0" }} />
-        <div
-          style={{
-            padding: "16px",
-            background: "#fff3cd",
-            borderRadius: "8px",
-            border: "1px solid #ffeaa7",
-            marginBottom: "16px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <WarningOutlined style={{ color: "#f39c12", marginRight: "8px" }} />
-            <Text strong style={{ color: "#f39c12" }}>
-              Low Stock Alert
-            </Text>
-          </div>
-          <Text
-            style={{
-              color: "#e17055",
-              fontSize: "24px",
-              fontWeight: "bold",
-              display: "block",
-              marginTop: "4px",
-            }}
-          >
-            {stats.lowStockCount}
-          </Text>
-        </div>
-        <Table
-          columns={lowStockColumns}
-          dataSource={lowStockItems}
-          rowKey="id"
-          pagination={false}
-          size="small"
-        />
+        {lowStockItems.length > 0 && (
+          <>
+            <div
+              style={{
+                padding: "16px",
+                background: "#fff3cd",
+                borderRadius: "8px",
+                border: "1px solid #ffeaa7",
+                marginBottom: "16px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <WarningOutlined
+                  style={{ color: "#f39c12", marginRight: "8px" }}
+                />
+                <Text strong style={{ color: "#f39c12" }}>
+                  You're having {lowStockItems.length} Low Stock Alert
+                </Text>
+              </div>
+            </div>
+
+            <Table
+              columns={lowStockColumns}
+              dataSource={lowStockItems}
+              rowKey="id"
+              pagination={false}
+              size="small"
+            />
+          </>
+        )}
+
+        {lowStockItems.length <= 0 && "You are having ready stock..!"}
       </Card>
     </Col>
   );
