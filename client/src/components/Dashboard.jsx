@@ -1,17 +1,10 @@
 import { formatCurrency } from "../utils";
 import { useState, useEffect } from "react";
 import { Row, Col, Card, Table, Typography, message, Divider } from "antd";
-import {
-  DollarCircleOutlined,
-  WarningOutlined,
-  CalendarOutlined,
-  RiseOutlined,
-  AppstoreOutlined,
-  ShoppingOutlined,
-} from "@ant-design/icons";
-
+import { ShoppingOutlined } from "@ant-design/icons";
 import api from "../utils/api";
 import { DashboardStatCards } from "./features/dashboard/DashboardStatCards";
+import { DashboardInventoryOverview } from "./features/dashboard/DashboardInventoryOverview";
 
 const { Title, Text } = Typography;
 const API_URL = "http://localhost:5001/api";
@@ -70,12 +63,6 @@ const Dashboard = () => {
     },
   ];
 
-  const lowStockColumns = [
-    { title: "Book Name", dataIndex: "name", key: "name" },
-    { title: "Author", dataIndex: "author", key: "author" },
-    { title: "Quantity", dataIndex: "quantity", key: "quantity" },
-  ];
-
   return (
     <div style={{ padding: "0px" }}>
       <div
@@ -109,81 +96,7 @@ const Dashboard = () => {
       <DashboardStatCards />
 
       <Row gutter={[24, 24]}>
-        <Col xs={24} lg={12}>
-          <Card
-            title={
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <AppstoreOutlined
-                  style={{ marginRight: "8px", color: "#667eea" }}
-                />
-                <span>Inventory Overview</span>
-              </div>
-            }
-            style={{
-              borderRadius: "16px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              border: "none",
-            }}
-            headStyle={{
-              borderBottom: "1px solid #f0f0f0",
-              padding: "16px 24px",
-            }}
-            bodyStyle={{ padding: "24px" }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "12px",
-              }}
-            >
-              <Text strong style={{ fontSize: "16px" }}>
-                Total Books
-              </Text>
-              <Title level={3} style={{ margin: 0, color: "#2c3e50" }}>
-                {stats.totalBooks}
-              </Title>
-            </div>
-            <Divider style={{ margin: "16px 0" }} />
-            <div
-              style={{
-                padding: "16px",
-                background: "#fff3cd",
-                borderRadius: "8px",
-                border: "1px solid #ffeaa7",
-                marginBottom: "16px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <WarningOutlined
-                  style={{ color: "#f39c12", marginRight: "8px" }}
-                />
-                <Text strong style={{ color: "#f39c12" }}>
-                  Low Stock Alert
-                </Text>
-              </div>
-              <Text
-                style={{
-                  color: "#e17055",
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                  display: "block",
-                  marginTop: "4px",
-                }}
-              >
-                {stats.lowStockCount}
-              </Text>
-            </div>
-            <Table
-              columns={lowStockColumns}
-              dataSource={lowStockItems}
-              rowKey="id"
-              pagination={false}
-              size="small"
-            />
-          </Card>
-        </Col>
+        <DashboardInventoryOverview />
 
         <Col xs={24} lg={12}>
           <Card
