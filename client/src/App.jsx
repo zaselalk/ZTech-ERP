@@ -2,7 +2,6 @@ import { Layout, Menu, Button, Dropdown, Avatar } from "antd";
 import { useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
-  PlusOutlined,
   BookOutlined,
   DashboardOutlined,
   ShoppingCartOutlined,
@@ -26,6 +25,7 @@ import PosPage from "./pages/PosPage";
 import Consignments from "./components/Consignments";
 import BookshopDetails from "./components/BookshopDetails";
 import BookDetails from "./components/BookDetails";
+import LoginPage from "./pages/LoginPage";
 
 const { Header, Content, Sider } = Layout;
 
@@ -166,6 +166,7 @@ const MainLayout = () => {
         />
       </Sider>
       <Layout>
+        {/* Header section */}
         <Header
           style={{
             background: "#fff",
@@ -198,6 +199,8 @@ const MainLayout = () => {
             <Button type="primary" onClick={() => navigate("/pos")}>
               New Sale
             </Button>
+
+            {/* Profile icon section */}
             <Dropdown
               menu={{ items: userMenuItems }}
               placement="bottomRight"
@@ -263,6 +266,7 @@ const App = () => {
   return (
     <Routes>
       <Route path="/pos" element={<PosPage />} />
+      <Route path="/login" element={<LoginPage />} />
       <Route path="/*" element={<MainLayout />} />
     </Routes>
   );
