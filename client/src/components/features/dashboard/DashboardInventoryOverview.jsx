@@ -83,7 +83,7 @@ export const DashboardInventoryOverview = () => {
           </>
         )}
 
-        {lowStockItems.length <= 0 && "You are having ready stock..!"}
+        {lowStockItems.length <= 0 && "All items are in stock."}
       </Card>
     </Col>
   );
