@@ -1,6 +1,5 @@
 import { formatCurrency } from "../utils";
 import { useState, useEffect } from "react";
-
 import { useParams } from "react-router-dom";
 import { Card, Spin, message, Table, Typography } from "antd";
 
@@ -42,7 +41,7 @@ const BookDetails = () => {
 
         const statsResponse = await api.fetch(`${API_URL}/books/${id}/stats`);
         const statsData = await statsResponse.json();
-        // setStats(statsData);
+        setStats(statsData);
       } catch (error) {
         message.error("Failed to fetch book details");
       } finally {
