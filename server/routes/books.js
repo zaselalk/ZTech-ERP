@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Book, SaleItem, Sale, Bookshop } = require('../db/models');
+const { Book, SaleItem } = require('../db/models');
 const { Sequelize } = require('sequelize');
 
 // Get all books
