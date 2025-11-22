@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from "react";
 import {
   Layout,
   Input,
-  Card,
   Row,
   Col,
   Typography,
@@ -15,7 +14,6 @@ import {
   Select,
   InputNumber,
   Divider,
-  Popover,
   List,
 } from "antd";
 import { useNavigate } from "react-router-dom";
