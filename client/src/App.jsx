@@ -22,6 +22,7 @@ import Sales from "./components/Sales";
 import Reports from "./components/Reports";
 import Dashboard from "./components/Dashboard";
 import PosPage from "./pages/PosPage";
+import ReceiptPage from "./pages/ReceiptPage";
 import Consignments from "./components/Consignments";
 import BookshopDetails from "./components/BookshopDetails";
 import BookDetails from "./components/BookDetails";
@@ -253,6 +254,7 @@ const MainLayout = () => {
             <Route path="/bookshops" element={<Bookshops />} />
             <Route path="/bookshops/:id" element={<BookshopDetails />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/receipts/:id" element={<ReceiptPage />} />
             <Route path="/consignments" element={<Consignments />} />
           </Routes>
         </Content>

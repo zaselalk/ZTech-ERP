@@ -6,7 +6,7 @@ import api from "../utils/api";
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
-const API_URL = "http://localhost:5001/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 const Reports = () => {
   const [salesData, setSalesData] = useState([]);
@@ -25,7 +25,7 @@ const Reports = () => {
       }
       const response = await api.fetch(url);
       setSalesData(await response.json());
-    } catch (e) {
+    } catch {
       message.error("Failed to fetch sales report");
     }
   };
@@ -34,7 +34,7 @@ const Reports = () => {
     try {
       const response = await api.fetch(`${API_URL}/reports/low-stock`);
       setLowStockData(await response.json());
-    } catch (e) {
+    } catch {
       message.error("Failed to fetch low stock report");
     }
   };
@@ -72,7 +72,7 @@ const Reports = () => {
       key: "actions",
       render: (_, record) => (
         <span>
-          <Link to={`/bookshops/`}>
+          <Link to={`/receipts/${record.id}`}>
             <Button type="link">View Receipt</Button>
           </Link>
         </span>
