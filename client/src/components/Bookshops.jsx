@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, message } from 'antd';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { Table, Button, Modal, Form, Input, message } from "antd";
+import { Link } from "react-router-dom";
 
-import api from '../utils/api';
+import api from "../utils/api";
 
-const API_URL = 'http://localhost:5001/api';
+const API_URL = "http://localhost:5001/api";
 
 const Bookshops = () => {
   const [bookshops, setBookshops] = useState([]);
@@ -22,13 +22,15 @@ const Bookshops = () => {
       const data = await response.json();
       setBookshops(data);
     } catch (error) {
-      message.error('Failed to fetch bookshops');
+      message.error("Failed to fetch bookshops");
     }
   };
 
   const showModal = (bookshop = null) => {
     setEditingBookshop(bookshop);
-    form.setFieldsValue(bookshop || { name: '', location: '', contact: '', consignment: 0 });
+    form.setFieldsValue(
+      bookshop || { name: "", location: "", contact: "", consignment: 0 }
+    );
     setIsModalVisible(true);
   };
 
@@ -41,7 +43,7 @@ const Bookshops = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      const method = editingBookshop ? 'PUT' : 'POST';
+      const method = editingBookshop ? "PUT" : "POST";
       const url = editingBookshop
         ? `${API_URL}/bookshops/${editingBookshop.id}`
         : `${API_URL}/bookshops`;
@@ -52,11 +54,13 @@ const Bookshops = () => {
       });
 
       if (response.ok) {
-        message.success(`Bookshop ${editingBookshop ? 'updated' : 'created'} successfully`);
+        message.success(
+          `Bookshop ${editingBookshop ? "updated" : "created"} successfully`
+        );
         fetchBookshops();
         handleCancel();
       } else {
-        throw new Error('Failed to save bookshop');
+        throw new Error("Failed to save bookshop");
       }
     } catch (error) {
       message.error(error.message);
@@ -65,12 +69,14 @@ const Bookshops = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await api.fetch(`${API_URL}/bookshops/${id}`, { method: 'DELETE' });
+      const response = await api.fetch(`${API_URL}/bookshops/${id}`, {
+        method: "DELETE",
+      });
       if (response.ok) {
-        message.success('Bookshop deleted successfully');
+        message.success("Bookshop deleted successfully");
         fetchBookshops();
       } else {
-        throw new Error('Failed to delete bookshop');
+        throw new Error("Failed to delete bookshop");
       }
     } catch (error) {
       message.error(error.message);
@@ -78,17 +84,21 @@ const Bookshops = () => {
   };
 
   const columns = [
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'Location', dataIndex: 'location', key: 'location' },
-    { title: 'Contact', dataIndex: 'contact', key: 'contact' },
-    { title: 'Consignment', dataIndex: 'consignment', key: 'consignment' },
+    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "Location", dataIndex: "location", key: "location" },
+    { title: "Contact", dataIndex: "contact", key: "contact" },
+    { title: "Consignment", dataIndex: "consignment", key: "consignment" },
     {
-      title: 'Action',
-      key: 'action',
+      title: "Action",
+      key: "action",
       render: (_, record) => (
         <span>
-          <Button type="link" onClick={() => showModal(record)}>Edit</Button>
-          <Button type="link" danger onClick={() => handleDelete(record.id)}>Delete</Button>
+          <Button type="link" onClick={() => showModal(record)}>
+            Edit
+          </Button>
+          <Button type="link" danger onClick={() => handleDelete(record.id)}>
+            Delete
+          </Button>
           <Link to={`/bookshops/${record.id}`}>
             <Button type="link">View Details</Button>
           </Link>
@@ -99,21 +109,16 @@ const Bookshops = () => {
 
   return (
     <div>
-      <Button type="primary" onClick={() => showModal()} style={{ marginBottom: 16 }}>
+      <Button
+        type="primary"
+        onClick={() => showModal()}
+        style={{ marginBottom: 16 }}
+      >
         Add Bookshop
       </Button>
-      <Table
-        columns={columns}
-        dataSource={bookshops}
-        rowKey="id"
-        expandable={{
-          expandedRowRender: (record) => (
-            <p style={{ margin: 0 }}>Consignment: {record.consignment}</p>
-          ),
-        }}
-      />
+      <Table columns={columns} dataSource={bookshops} rowKey="id" />
       <Modal
-        title={editingBookshop ? 'Edit Bookshop' : 'Add Bookshop'}
+        title={editingBookshop ? "Edit Bookshop" : "Add Bookshop"}
         visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
@@ -122,13 +127,25 @@ const Bookshops = () => {
           <Form.Item name="name" label="Name" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="location" label="Location" rules={[{ required: true }]}>
+          <Form.Item
+            name="location"
+            label="Location"
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item name="contact" label="Contact" rules={[{ required: true }]}>
+          <Form.Item
+            name="contact"
+            label="Contact"
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item name="consignment" label="Consignment" rules={[{ required: true }]}>
+          <Form.Item
+            name="consignment"
+            label="Consignment"
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
         </Form>
