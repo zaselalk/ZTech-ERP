@@ -1,30 +1,26 @@
 import { useState, useEffect } from "react";
+import { Bookshop, Sale } from "../types";
 import { Link, useParams } from "react-router-dom";
 import { Card, Spin, message, Table, Typography, Button } from "antd";
-
-import api from "../utils/api";
+import { bookshopService } from "../services";
+import { formatCurrency } from "../utils";
 
 const { Title } = Typography;
-const API_URL = "http://localhost:5001/api";
 
 const BookshopDetails = () => {
   const { id } = useParams();
-  const [bookshop, setBookshop] = useState(null);
-  const [sales, setSales] = useState([]);
+  const [bookshop, setBookshop] = useState<Bookshop | null>(null);
+  const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBookshopDetails = async () => {
       try {
-        const bookshopResponse = await api.fetch(`${API_URL}/bookshops/${id}`);
-        const bookshopData = await bookshopResponse.json();
-        setBookshop(bookshopData);
+        const bookshopResponse = await bookshopService.getBookshopById(id!);
+        setBookshop(bookshopResponse);
 
-        const salesResponse = await api.fetch(
-          `${API_URL}/bookshops/${id}/sales`
-        );
-        const salesData = await salesResponse.json();
-        setSales(salesData);
+        const salesResponse = await bookshopService.getBookshopSales(id!);
+        setSales(salesResponse);
       } catch (error) {
         message.error("Failed to fetch bookshop details");
       } finally {
@@ -41,10 +37,22 @@ const BookshopDetails = () => {
       title: "Date",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (date) => new Date(date).toLocaleDateString(),
+      render: (date: string) => new Date(date).toLocaleDateString(),
     },
-    { title: "Total Amount", dataIndex: "total_amount", key: "total_amount" },
-    { title: "Discount", dataIndex: "discount", key: "discount" },
+    {
+      title: "Total Amount",
+      dataIndex: "total_amount",
+      key: "total_amount",
+      render: (val: string | number) =>
+        `${formatCurrency(typeof val === "number" ? val : parseFloat(val))}`,
+    },
+    {
+      title: "Discount",
+      dataIndex: "discount",
+      key: "discount",
+      render: (val: string | number) =>
+        `${formatCurrency(typeof val === "number" ? val : parseFloat(val))}`,
+    },
     {
       title: "Payment Method",
       dataIndex: "payment_method",
@@ -53,7 +61,7 @@ const BookshopDetails = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (_, record) => (
+      render: (_: unknown, _record: Sale) => (
         <span>
           <Link to={`/bookshops/`}>
             <Button type="link">View Receipt</Button>
@@ -94,7 +102,7 @@ const BookshopDetails = () => {
       </Title>
       <Table columns={salesColumns} dataSource={sales} rowKey="id" />
 
-      {bookshop.consignment > 0 && (
+      {(bookshop.consignment ?? 0) > 0 && (
         <>
           <Title level={4} style={{ marginTop: "24px" }}>
             Consignments

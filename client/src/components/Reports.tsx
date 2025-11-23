@@ -1,47 +1,63 @@
 import { useState, useEffect } from "react";
 import { Table, DatePicker, Typography, message, Button } from "antd";
+import type { Dayjs } from "dayjs";
+import { Sale, Bookshop, Book } from "../types";
 import { Link } from "react-router-dom";
-
-import api from "../utils/api";
+import { reportService } from "../services";
+import { formatCurrency } from "../utils";
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+
+interface LowStockBook extends Book {
+  quantity: number;
+  reorder_threshold?: number;
+  bookshop?: Bookshop;
+}
 
 const Reports = () => {
-  const [salesData, setSalesData] = useState([]);
-  const [lowStockData, setLowStockData] = useState([]);
+  const [salesData, setSalesData] = useState<Sale[]>([]);
+  const [lowStockData, setLowStockData] = useState<LowStockBook[]>([]);
 
   useEffect(() => {
     fetchLowStockReport();
     fetchSalesReport(); // Initial fetch without dates
   }, []);
 
-  const fetchSalesReport = async (dates = null) => {
+  const fetchSalesReport = async (
+    dates: [Dayjs, Dayjs] | null = null
+  ): Promise<void> => {
     try {
-      let url = `${API_URL}/reports/sales`;
+      let data: Sale[];
       if (dates) {
-        url += `?startDate=${dates[0].toISOString()}&endDate=${dates[1].toISOString()}`;
+        data = await reportService.getSalesReport(
+          dates[0].toISOString(),
+          dates[1].toISOString()
+        );
+      } else {
+        data = await reportService.getSalesReport();
       }
-      const response = await api.fetch(url);
-      setSalesData(await response.json());
+      setSalesData(data);
     } catch {
       message.error("Failed to fetch sales report");
     }
   };
 
-  const fetchLowStockReport = async () => {
+  const fetchLowStockReport = async (): Promise<void> => {
     try {
-      const response = await api.fetch(`${API_URL}/reports/low-stock`);
-      setLowStockData(await response.json());
+      const data = await reportService.getLowStockReport();
+      setLowStockData(data);
     } catch {
       message.error("Failed to fetch low stock report");
     }
   };
 
-  const handleDateChange = (dates) => {
-    if (dates) {
-      fetchSalesReport(dates);
+  const handleDateChange = (
+    dates: [Dayjs | null, Dayjs | null] | null,
+    _dateStrings: [string, string]
+  ): void => {
+    if (dates && dates[0] && dates[1]) {
+      fetchSalesReport([dates[0], dates[1]]);
     } else {
       fetchSalesReport();
     }
@@ -54,7 +70,8 @@ const Reports = () => {
       title: "Total Amount",
       dataIndex: "total_amount",
       key: "total_amount",
-      render: (val) => `$${val}`,
+      render: (val: number | string) =>
+        `${formatCurrency(typeof val === "number" ? val : parseFloat(val))}`,
     },
     {
       title: "Payment Method",
@@ -65,12 +82,12 @@ const Reports = () => {
       title: "Date",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (val) => new Date(val).toLocaleString(),
+      render: (val: string) => new Date(val).toLocaleString(),
     },
     {
       title: "Actions",
       key: "actions",
-      render: (_, record) => (
+      render: (_: unknown, record: Sale) => (
         <span>
           <Link to={`/receipts/${record.id}`}>
             <Button type="link">View Receipt</Button>
@@ -95,13 +112,13 @@ const Reports = () => {
     <div>
       <Title level={2}>Reports</Title>
 
-      <Title level={3} style={{ marginTop: 32 }}>
+      <Title level={3} className="mt-8">
         Sales Report
       </Title>
-      <RangePicker onChange={handleDateChange} style={{ marginBottom: 16 }} />
+      <RangePicker onChange={handleDateChange} className="mb-4" />
       <Table columns={salesColumns} dataSource={salesData} rowKey="id" />
 
-      <Title level={3} style={{ marginTop: 32 }}>
+      <Title level={3} className="mt-8">
         Low Stock Report
       </Title>
       <Table columns={lowStockColumns} dataSource={lowStockData} rowKey="id" />

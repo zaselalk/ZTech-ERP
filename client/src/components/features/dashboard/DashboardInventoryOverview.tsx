@@ -1,32 +1,30 @@
-import { Card, Col, Divider, message, Table, Typography } from "antd";
-import {
-  WarningOutlined,
-  AppstoreOutlined,
-  AlertOutlined,
-} from "@ant-design/icons";
+import { Card, Col, message, Table, Typography } from "antd";
+import { WarningOutlined, AlertOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import api from "../../../utils/api";
-const { Title, Text } = Typography;
-const API_URL = import.meta.env.VITE_API_URL;
+import { Book } from "../../../types";
+import { bookService } from "../../../services";
+const { Text } = Typography;
 
 export const DashboardInventoryOverview = () => {
+  interface LowStockItem extends Book {
+    quantity: number;
+  }
   const lowStockColumns = [
     { title: "Book Name", dataIndex: "name", key: "name" },
     { title: "Author", dataIndex: "author", key: "author" },
     { title: "Quantity", dataIndex: "quantity", key: "quantity" },
   ];
 
-  const [lowStockItems, setLowStockItems] = useState([]);
+  const [lowStockItems, setLowStockItems] = useState<LowStockItem[]>([]);
 
   useEffect(() => {
     fetchLowStockItems();
   }, []);
 
-  const fetchLowStockItems = async () => {
+  const fetchLowStockItems = async (): Promise<void> => {
     try {
-      const response = await api.fetch(`${API_URL}/books/low-stock`);
-      const data = await response.json();
-      setLowStockItems(data);
+      const data = await bookService.getLowStockBooks();
+      setLowStockItems(data as LowStockItem[]);
     } catch (error) {
       message.error("Failed to fetch low stock items");
     }
@@ -41,16 +39,7 @@ export const DashboardInventoryOverview = () => {
             <span>Low Stock Alert</span>
           </div>
         }
-        style={{
-          borderRadius: "16px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          border: "none",
-        }}
-        headStyle={{
-          borderBottom: "1px solid #f0f0f0",
-          padding: "16px 24px",
-        }}
-        bodyStyle={{ padding: "24px" }}
+        className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] border-none"
       >
         {lowStockItems.length > 0 && (
           <>

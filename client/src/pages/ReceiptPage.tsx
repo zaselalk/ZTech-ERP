@@ -13,36 +13,36 @@ import {
   Spin,
   Card,
 } from "antd";
-import { PrinterOutlined, MailOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import {
+  PrinterOutlined,
+  MailOutlined,
+  ArrowLeftOutlined,
+} from "@ant-design/icons";
 import { useReactToPrint } from "react-to-print";
 import { formatCurrency } from "../utils";
-import api from "../utils/api";
+import { salesService } from "../services";
+import { Sale } from "../types";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 const ReceiptPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [sale, setSale] = useState(null);
+  const [sale, setSale] = useState<Sale | null>(null);
   const [loading, setLoading] = useState(true);
   const [emailModalVisible, setEmailModalVisible] = useState(false);
   const [form] = Form.useForm();
-  const componentRef = useRef();
+  const componentRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const fetchSaleDetails = async () => {
       try {
         setLoading(true);
-        const response = await api.fetch(`${API_URL}/sales/${id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch sale details");
-        }
-        const saleData = await response.json();
+        const saleData = await salesService.getSaleById(id!);
         setSale(saleData);
       } catch (e) {
-        message.error("Failed to load receipt. " + e.message);
+        message.error("Failed to load receipt. " + (e as Error).message);
         navigate("/reports");
       } finally {
         setLoading(false);
@@ -54,32 +54,23 @@ const ReceiptPage = () => {
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-  });
+  } as any);
 
-  const handleEmailReceipt = async (email) => {
+  const handleEmailReceipt = async (email: string): Promise<void> => {
     try {
-      const response = await api.fetch(`${API_URL}/sales/${id}/email`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send email");
-      }
-
+      await salesService.sendReceiptEmail(id!, email);
       message.success("Receipt sent successfully to " + email);
       setEmailModalVisible(false);
       form.resetFields();
     } catch (e) {
-      message.error("Failed to send email. " + e.message);
+      message.error("Failed to send email. " + (e as Error).message);
     }
   };
 
   if (loading) {
     return (
-      <Layout style={{ minHeight: "100vh", background: "#f5f6fa" }}>
-        <Content style={{ padding: "50px", textAlign: "center" }}>
+      <Layout className="min-h-screen bg-[#f5f6fa]">
+        <Content className="p-[50px] text-center">
           <Spin size="large" />
         </Content>
       </Layout>
@@ -91,29 +82,30 @@ const ReceiptPage = () => {
   }
 
   const subtotal = sale.books.reduce(
-    (acc, book) => acc + book.SaleItem.price * book.SaleItem.quantity,
+    (acc: number, book) =>
+      acc + (book.SaleItem?.price || 0) * (book.SaleItem?.quantity || 0),
     0
   );
 
   return (
-    <Layout style={{ minHeight: "100vh", background: "#f5f6fa" }}>
-      <Content style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
-        <div style={{ marginBottom: "24px" }}>
+    <Layout className="min-h-screen bg-[#f5f6fa]">
+      <Content className="p-6 max-w-[900px] mx-auto">
+        <div className="mb-6">
           <Button
             icon={<ArrowLeftOutlined />}
             onClick={() => navigate("/reports")}
-            style={{ marginBottom: "16px" }}
+            className="mb-4"
           >
             Back to Reports
           </Button>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div className="flex justify-between items-center">
             <Title level={2}>Receipt</Title>
             <div>
               <Button
                 type="primary"
                 icon={<PrinterOutlined />}
                 onClick={handlePrint}
-                style={{ marginRight: "8px" }}
+                className="mr-2"
               >
                 Print
               </Button>
@@ -128,7 +120,7 @@ const ReceiptPage = () => {
         </div>
 
         <Card>
-          <div ref={componentRef} style={{ padding: "24px" }}>
+          <div ref={componentRef} className="p-6">
             <Title level={3}>Receipt - Sale #{sale.id}</Title>
             {sale.bookshop && (
               <>
@@ -160,14 +152,14 @@ const ReceiptPage = () => {
                   title: "Price",
                   dataIndex: ["SaleItem", "price"],
                   key: "price",
-                  render: (val) => formatCurrency(val),
+                  render: (val: number) => formatCurrency(val),
                 },
                 {
                   title: "Discount",
                   dataIndex: ["SaleItem"],
                   key: "discount",
-                  render: (si) =>
-                    si.discount > 0
+                  render: (si: any) =>
+                    si?.discount > 0
                       ? `${si.discount} ${
                           si.discount_type === "Fixed" ? "LKR" : "%"
                         }`
@@ -176,20 +168,23 @@ const ReceiptPage = () => {
                 {
                   title: "Total",
                   key: "total",
-                  render: (_, record) =>
+                  render: (_: unknown, record: Sale["books"][number]) =>
                     formatCurrency(
-                      record.SaleItem.price * record.SaleItem.quantity
+                      (record.SaleItem?.price || 0) *
+                        (record.SaleItem?.quantity || 0)
                     ),
                 },
               ]}
               pagination={false}
             />
-            <div style={{ textAlign: "right", marginTop: "16px" }}>
+            <div className="text-right mt-4">
               <Text>Subtotal: {formatCurrency(subtotal)}</Text>
               <br />
-              <Text>Cart Discount: {formatCurrency(sale.discount)}</Text>
+              <Text>Cart Discount: {formatCurrency(sale.discount ?? 0)}</Text>
               <br />
-              <Title level={4}>Total: {formatCurrency(sale.total_amount)}</Title>
+              <Title level={4}>
+                Total: {formatCurrency(sale.total_amount)}
+              </Title>
             </div>
           </div>
         </Card>

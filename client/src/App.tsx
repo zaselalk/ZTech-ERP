@@ -1,4 +1,4 @@
-import { Layout, Menu, Button, Dropdown, Avatar } from "antd";
+import { Layout, Menu, Button, Dropdown, Avatar, type MenuProps } from "antd";
 import { useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -36,7 +36,7 @@ const MainLayout = () => {
   const location = useLocation();
 
   // Determine selected key from path, default to '1' (Dashboard)
-  const pathMap = {
+  const pathMap: Record<string, string> = {
     "/": "1",
     "/sales": "2",
     "/inventory": "3",
@@ -49,7 +49,7 @@ const MainLayout = () => {
   );
   const [collapsed, setCollapsed] = useState(false);
 
-  const handleMenuClick = (e) => {
+  const handleMenuClick = (e: { key: string }) => {
     setSelectedKey(e.key);
     const path = Object.keys(pathMap).find((key) => pathMap[key] === e.key);
     if (path) navigate(path);
@@ -93,7 +93,7 @@ const MainLayout = () => {
     navigate("/login");
   };
 
-  const userMenuItems = [
+  const userMenuItems: MenuProps["items"] = [
     {
       key: "profile",
       icon: <UserOutlined />,
@@ -119,84 +119,50 @@ const MainLayout = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout className="min-h-screen">
       <Sider
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
-        style={{
-          background: "linear-gradient(180deg, #667eea 0%, #764ba2 100%)",
-          boxShadow: "2px 0 8px rgba(0,0,0,0.1)",
-        }}
+        className="bg-linear-to-b! from-[#667eea]! to-[#764ba2]! shadow-[2px_0_8px_rgba(0,0,0,0.1)] min-h-screen"
         width={250}
         collapsedWidth={80}
       >
         <div
-          style={{
-            height: "64px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: collapsed ? "center" : "flex-start",
-            padding: collapsed ? "0" : "0 24px",
-            color: "white",
-            fontSize: "20px",
-            fontWeight: "600",
-            borderBottom: "1px solid rgba(255,255,255,0.1)",
-            marginBottom: "8px",
-          }}
+          className={`h-16 flex items-center text-white text-xl font-semibold border-b border-white/10 mb-2 ${
+            collapsed ? "justify-center px-0" : "justify-start px-6"
+          }`}
         >
-          <BookOutlined
-            style={{
-              fontSize: "24px",
-              marginRight: collapsed ? "0" : "12px",
-            }}
-          />
+          <BookOutlined className={`text-2xl ${collapsed ? "mr-0" : "mr-3"}`} />
           {!collapsed && "Bookshop Manager"}
         </div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           selectedKeys={[selectedKey]}
           onClick={handleMenuClick}
           items={items}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "white",
-          }}
+          className="bg-transparent border-none text-white"
         />
       </Sider>
       <Layout>
         {/* Header section */}
-        <Header
-          style={{
-            background: "#fff",
-            padding: "0 24px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center" }}>
+        <Header className="bg-white! px-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex items-center justify-between">
+          <div className="flex items-center">
             {collapsed ? (
               <MenuUnfoldOutlined
-                style={{ fontSize: "18px", cursor: "pointer", color: "#666" }}
+                className="text-lg cursor-pointer text-[#666]"
                 onClick={() => setCollapsed(false)}
               />
             ) : (
               <MenuFoldOutlined
-                style={{ fontSize: "18px", cursor: "pointer", color: "#666" }}
+                className="text-lg cursor-pointer text-[#666]"
                 onClick={() => setCollapsed(true)}
               />
             )}
           </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <div
-              style={{ color: "#666", fontSize: "14px", marginRight: "16px" }}
-            >
-              Welcome back!
-            </div>
+          <div className="flex items-center">
+            <div className="text-[#666] text-sm mr-4">Welcome back!</div>
             <Button type="primary" onClick={() => navigate("/pos")}>
               New Sale
             </Button>
@@ -207,45 +173,17 @@ const MainLayout = () => {
               placement="bottomRight"
               trigger={["click"]}
             >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  cursor: "pointer",
-                  padding: "4px 12px",
-                  borderRadius: "8px",
-                  transition: "background 0.3s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#f5f5f5";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "transparent";
-                }}
-              >
+              <div className="flex items-center cursor-pointer p-1 px-3 rounded-lg transition-colors hover:bg-[#f5f5f5]">
                 <Avatar
                   icon={<UserOutlined />}
-                  style={{
-                    background:
-                      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                    marginRight: "8px",
-                  }}
+                  className="!bg-gradient-to-br !from-[#667eea] !to-[#764ba2] mr-2"
                 />
-                <span style={{ color: "#2c3e50", fontWeight: "500" }}>
-                  Admin
-                </span>
+                <span className="text-[#2c3e50] font-medium">Admin</span>
               </div>
             </Dropdown>
           </div>
         </Header>
-        <Content
-          style={{
-            margin: "24px",
-            padding: "24px",
-            background: "#f5f6fa",
-            borderRadius: "8px",
-          }}
-        >
+        <Content className="m-6 p-6 bg-[#f5f6fa] rounded-lg">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/sales" element={<Sales />} />

@@ -1,44 +1,32 @@
-import { formatCurrency } from "../utils";
 import { useState, useEffect } from "react";
-import {
-  Table,
-  Button,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  message,
-} from "antd";
-
-import api from "../utils/api";
+import { Book } from "../types";
+import { Table, Button, Modal, Form, Input, InputNumber, message } from "antd";
 import { Link } from "react-router-dom";
-
-const { Option } = Select;
-const API_URL = "http://localhost:5001/api";
+import { bookService } from "../services";
+import { formatCurrency } from "../utils";
 
 const Books = () => {
-  const [books, setBooks] = useState([]);
+  const [books, setBooks] = useState<Book[]>([]);
   const [searchText, setSearchText] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingBook, setEditingBook] = useState(null);
+  const [editingBook, setEditingBook] = useState<Book | null>(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
     fetchBooks();
   }, []);
 
-  const fetchBooks = async () => {
+  const fetchBooks = async (): Promise<void> => {
     try {
-      const response = await api.fetch(`${API_URL}/books`);
-      const data = await response.json();
+      const data = await bookService.getBooks();
+      console.log(data);
       setBooks(data);
     } catch (error) {
       message.error("Failed to fetch books");
     }
   };
 
-  const showModal = (book = null) => {
+  const showModal = (book: Book | null = null): void => {
     setEditingBook(book);
     form.setFieldsValue(book || {});
     setIsModalVisible(true);
@@ -50,47 +38,33 @@ const Books = () => {
     form.resetFields();
   };
 
-  const handleOk = async () => {
+  const handleOk = async (): Promise<void> => {
     try {
       const values = await form.validateFields();
-      const method = editingBook ? "PUT" : "POST";
-      const url = editingBook
-        ? `${API_URL}/books/${editingBook.id}`
-        : `${API_URL}/books`;
 
-      const response = await api.fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-
-      if (response.ok) {
-        message.success(
-          `Book ${editingBook ? "updated" : "created"} successfully`
-        );
-        fetchBooks();
-        handleCancel();
+      if (editingBook) {
+        await bookService.updateBook(editingBook.id, values);
       } else {
-        throw new Error("Failed to save book");
+        await bookService.createBook(values);
       }
+
+      message.success(
+        `Book ${editingBook ? "updated" : "created"} successfully`
+      );
+      fetchBooks();
+      handleCancel();
     } catch (error) {
-      message.error(error.message);
+      message.error((error as Error).message);
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number): Promise<void> => {
     try {
-      const response = await api.fetch(`${API_URL}/books/${id}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        message.success("Book deleted successfully");
-        fetchBooks();
-      } else {
-        throw new Error("Failed to delete book");
-      }
+      await bookService.deleteBook(id);
+      message.success("Book deleted successfully");
+      fetchBooks();
     } catch (error) {
-      message.error(error.message);
+      message.error((error as Error).message);
     }
   };
 
@@ -102,13 +76,16 @@ const Books = () => {
       title: "Price",
       dataIndex: "price",
       key: "price",
-      render: (price) => `LKR ${price}`,
+      render: (price: number | string) =>
+        `${formatCurrency(
+          typeof price === "number" ? price : parseFloat(price)
+        )}`,
     },
     { title: "Quantity", dataIndex: "quantity", key: "quantity" },
     {
       title: "Action",
       key: "action",
-      render: (_, record) => (
+      render: (_: unknown, record: Book) => (
         <span>
           <Button type="link" onClick={() => showModal(record)}>
             Edit
@@ -123,7 +100,6 @@ const Books = () => {
       ),
     },
   ];
-
   const filteredBooks = books.filter((book) =>
     Object.values(book).some((value) =>
       String(value).toLowerCase().includes(searchText.toLowerCase())
@@ -151,7 +127,7 @@ const Books = () => {
       <Table columns={columns} dataSource={filteredBooks} rowKey="id" />
       <Modal
         title={editingBook ? "Edit Book" : "Add Book"}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >

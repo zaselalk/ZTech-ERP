@@ -1,13 +1,15 @@
 import { Col, Card, Table, message, Typography } from "antd";
 import { ShoppingOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import api from "../../../utils/api";
+import {
+  dashboardService,
+  DashboardStats,
+} from "../../../services/dashboardService";
 import { formatCurrency } from "../../../utils";
-const API_URL = import.meta.env.VITE_API_URL;
 const { Text } = Typography;
 
 export const DashboardRecentSales = () => {
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     totalSalesToday: 0,
     totalSalesWeek: 0,
     totalSalesMonth: 0,
@@ -21,11 +23,10 @@ export const DashboardRecentSales = () => {
     fetchStats();
   }, []);
 
-  const fetchStats = async () => {
+  const fetchStats = async (): Promise<void> => {
     try {
-      const response = await api.fetch(`${API_URL}/dashboard/stats`);
-      const data = await response.json();
-      setStats(data);
+      const response = await dashboardService.getStats();
+      setStats(response);
     } catch (error) {
       message.error("Failed to fetch dashboard stats");
     }
@@ -37,13 +38,13 @@ export const DashboardRecentSales = () => {
       title: "Amount",
       dataIndex: "total_amount",
       key: "total_amount",
-      render: (val) => formatCurrency(val),
+      render: (val: number | string) => formatCurrency(val),
     },
     {
       title: "Date",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (val) => new Date(val).toLocaleDateString(),
+      render: (val: string) => new Date(val).toLocaleDateString(),
     },
   ];
 
@@ -63,11 +64,6 @@ export const DashboardRecentSales = () => {
           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
           border: "none",
         }}
-        headStyle={{
-          borderBottom: "1px solid #f0f0f0",
-          padding: "16px 24px",
-        }}
-        bodyStyle={{ padding: "24px" }}
       >
         <Text style={{ color: "#666", fontSize: "14px" }}>
           Latest transactions

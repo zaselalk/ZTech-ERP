@@ -1,14 +1,8 @@
 import { useState, useEffect } from "react";
-import {
-  Table,
-  Typography,
-  message,
-  Row,
-  Col,
-  Card,
-  DatePicker,
-  Select,
-} from "antd";
+import { Table, Typography, message, Row, Col, Card } from "antd";
+import { salesService } from "../services";
+import { Sale, ChartDataShape } from "../types";
+import type { ChartOptions } from "chart.js";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -20,8 +14,10 @@ import {
   Tooltip,
   Legend,
   ArcElement,
+  Filler,
 } from "chart.js";
 import { Line, Bar, Doughnut } from "react-chartjs-2";
+import { formatCurrency } from "../utils";
 
 // Register Chart.js components
 ChartJS.register(
@@ -33,49 +29,66 @@ ChartJS.register(
   ChartTitle,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
+  Filler
 );
 
 const { Title, Text } = Typography;
-const { Option } = Select;
-const API_URL = "http://localhost:5001/api";
 
-const Sales = ({ refreshKey }) => {
-  const [sales, setSales] = useState([]);
-  const [chartData, setChartData] = useState({
+interface SalesProps {
+  refreshKey?: number | string;
+}
+
+const Sales = ({ refreshKey }: SalesProps) => {
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [chartData, setChartData] = useState<ChartDataShape>({
     dailySales: [],
-    monthlySales: [],
     bookshopSales: [],
     paymentMethods: [],
   });
+  const [totalSales, setTotalSales] = useState<number>(0);
+
+  useEffect(() => {
+    const total = sales.reduce((sum, sale) => {
+      const amount =
+        typeof sale.total_amount === "number"
+          ? sale.total_amount
+          : parseFloat(String(sale.total_amount));
+      return sum + amount;
+    }, 0);
+    setTotalSales(total);
+  }, [sales]);
 
   useEffect(() => {
     fetchSales();
     processChartData();
   }, [refreshKey]); // Refetch when the refreshKey changes
 
-  const fetchSales = async () => {
+  const fetchSales = async (): Promise<void> => {
     try {
-      const response = await api.fetch(`${API_URL}/sales`);
-      const salesData = await response.json();
+      const salesData = await salesService.getSales();
       setSales(salesData);
       processChartData(salesData);
     } catch (e) {
-      message.error("Failed to fetch sales");
+      const err = e as Error;
+      message.error(`Failed to fetch sales: ${err.message}`);
     }
   };
 
-  const processChartData = (salesData = sales) => {
+  const processChartData = (salesData: Sale[] = sales): void => {
     if (!salesData || salesData.length === 0) return;
 
     // Process daily sales for line chart
-    const dailySalesMap = {};
-    const bookshopSalesMap = {};
-    const paymentMethodsMap = {};
+    const dailySalesMap: Record<string, number> = {};
+    const bookshopSalesMap: Record<string, number> = {};
+    const paymentMethodsMap: Record<string, number> = {};
 
     salesData.forEach((sale) => {
       const date = new Date(sale.createdAt).toLocaleDateString();
-      const amount = parseFloat(sale.total_amount);
+      const amount =
+        typeof sale.total_amount === "number"
+          ? sale.total_amount
+          : parseFloat(String(sale.total_amount));
       const bookshop = sale.bookshop?.name || "Unknown";
       const paymentMethod = sale.payment_method || "Cash";
 
@@ -92,16 +105,16 @@ const Sales = ({ refreshKey }) => {
 
     // Convert to array format for charts
     const dailySales = Object.entries(dailySalesMap)
-      .sort(([a], [b]) => new Date(a) - new Date(b))
+      .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
       .slice(-7); // Last 7 days
 
     const bookshopSales = Object.entries(bookshopSalesMap);
     const paymentMethods = Object.entries(paymentMethodsMap);
 
     setChartData({
-      dailySales,
-      bookshopSales,
-      paymentMethods,
+      dailySales: dailySales as [string, number][],
+      bookshopSales: bookshopSales as [string, number][],
+      paymentMethods: paymentMethods as [string, number][],
     });
   };
 
@@ -112,14 +125,15 @@ const Sales = ({ refreshKey }) => {
       title: "Total Amount",
       dataIndex: "total_amount",
       key: "total_amount",
-      render: (val) => `LKR ${parseFloat(val).toFixed(2)}`,
+      render: (val: string | number) =>
+        `${formatCurrency(typeof val === "number" ? val : parseFloat(val))}`,
     },
     { title: "Payment", dataIndex: "payment_method", key: "payment_method" },
     {
       title: "Date",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (val) => new Date(val).toLocaleDateString(),
+      render: (val: string) => new Date(val).toLocaleDateString(),
     },
   ];
 
@@ -173,7 +187,7 @@ const Sales = ({ refreshKey }) => {
     ],
   };
 
-  const chartOptions = {
+  const chartOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -185,13 +199,13 @@ const Sales = ({ refreshKey }) => {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: (value) => `LKR ${value}`,
+          callback: (value: number | string) => `LKR ${value}`,
         },
       },
     },
   };
 
-  const doughnutOptions = {
+  const doughnutOptions: ChartOptions<"doughnut"> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -209,67 +223,33 @@ const Sales = ({ refreshKey }) => {
   };
 
   return (
-    <div style={{ padding: "0px" }}>
-      <div
-        style={{
-          marginBottom: "32px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+    <div className="p-0">
+      <div className="mb-8 flex justify-between items-center">
         <div>
           <Title
             level={2}
-            style={{
-              color: "#2c3e50",
-              marginBottom: "8px",
-              fontSize: "28px",
-              fontWeight: "700",
-            }}
+            className="text-[#2c3e50] mb-2 text-[28px] font-bold"
           >
             Sales Analytics
           </Title>
-          <Text
-            style={{
-              fontSize: "16px",
-              color: "#7f8c8d",
-            }}
-          >
+          <Text className="text-base text-[#7f8c8d]">
             Comprehensive sales data and insights
           </Text>
         </div>
       </div>
 
       {/* Charts Section */}
-      <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
+      <Row gutter={[24, 24]} className="mb-8">
         <Col xs={24} lg={16}>
           <Card
             title="Daily Sales Trend"
-            style={{
-              borderRadius: "16px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              border: "none",
-            }}
-            headStyle={{
-              borderBottom: "1px solid #f0f0f0",
-              padding: "16px 24px",
-            }}
-            bodyStyle={{ padding: "24px" }}
+            className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] border-none"
           >
-            <div style={{ height: "300px" }}>
+            <div className="h-[300px]">
               {chartData.dailySales.length > 0 ? (
                 <Line data={dailySalesChartData} options={chartOptions} />
               ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "100%",
-                    color: "#999",
-                  }}
-                >
+                <div className="flex justify-center items-center h-full text-[#999]">
                   No sales data available
                 </div>
               )}
@@ -280,33 +260,16 @@ const Sales = ({ refreshKey }) => {
         <Col xs={24} lg={8}>
           <Card
             title="Payment Methods"
-            style={{
-              borderRadius: "16px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              border: "none",
-            }}
-            headStyle={{
-              borderBottom: "1px solid #f0f0f0",
-              padding: "16px 24px",
-            }}
-            bodyStyle={{ padding: "24px" }}
+            className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] border-none"
           >
-            <div style={{ height: "300px" }}>
+            <div className="h-[300px]">
               {chartData.paymentMethods.length > 0 ? (
                 <Doughnut
                   data={paymentMethodsChartData}
                   options={doughnutOptions}
                 />
               ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "100%",
-                    color: "#999",
-                  }}
-                >
+                <div className="flex justify-center items-center h-full text-[#999]">
                   No payment data available
                 </div>
               )}
@@ -315,37 +278,35 @@ const Sales = ({ refreshKey }) => {
         </Col>
       </Row>
 
-      <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
+      <Row gutter={[24, 24]} className="mb-8">
         <Col xs={24} lg={12}>
           <Card
             title="Sales by Bookshop"
-            style={{
-              borderRadius: "16px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              border: "none",
-            }}
-            headStyle={{
-              borderBottom: "1px solid #f0f0f0",
-              padding: "16px 24px",
-            }}
-            bodyStyle={{ padding: "24px" }}
+            className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] border-none"
           >
-            <div style={{ height: "300px" }}>
+            <div className="h-[300px]">
               {chartData.bookshopSales.length > 0 ? (
                 <Bar
                   data={bookshopSalesChartData}
-                  options={{
-                    ...chartOptions,
-                    indexAxis: "y",
-                    scales: {
-                      x: {
-                        beginAtZero: true,
-                        ticks: {
-                          callback: (value) => `LKR ${value}`,
+                  options={
+                    {
+                      indexAxis: "y",
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { position: "top" },
+                      },
+                      scales: {
+                        x: {
+                          beginAtZero: true,
+                          ticks: {
+                            callback: (value: number | string) =>
+                              `LKR ${value}`,
+                          },
                         },
                       },
-                    },
-                  }}
+                    } as ChartOptions<"bar">
+                  }
                 />
               ) : (
                 <div
@@ -367,88 +328,38 @@ const Sales = ({ refreshKey }) => {
         <Col xs={24} lg={12}>
           <Card
             title="Sales Summary"
-            style={{
-              borderRadius: "16px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              border: "none",
-            }}
-            headStyle={{
-              borderBottom: "1px solid #f0f0f0",
-              padding: "16px 24px",
-            }}
-            bodyStyle={{ padding: "24px" }}
+            className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] border-none"
           >
-            <div style={{ height: "300px", overflow: "auto" }}>
+            <div className="h-[300px] overflow-auto">
               {sales.length > 0 ? (
                 <div>
-                  <div style={{ marginBottom: "16px" }}>
-                    <Text strong style={{ fontSize: "16px" }}>
+                  <div className="mb-4">
+                    <Text strong className="text-base">
                       Total Sales
                     </Text>
-                    <div
-                      style={{
-                        fontSize: "24px",
-                        fontWeight: "bold",
-                        color: "#667eea",
-                        marginTop: "4px",
-                      }}
-                    >
-                      LKR{" "}
-                      {sales
-                        .reduce(
-                          (sum, sale) => sum + parseFloat(sale.total_amount),
-                          0
-                        )
-                        .toFixed(2)}
+                    <div className="text-2xl font-bold text-[#667eea] mt-1">
+                      {formatCurrency(totalSales)}
                     </div>
                   </div>
-                  <div style={{ marginBottom: "16px" }}>
-                    <Text strong style={{ fontSize: "16px" }}>
+                  <div className="mb-4">
+                    <Text strong className="text-base">
                       Total Transactions
                     </Text>
-                    <div
-                      style={{
-                        fontSize: "24px",
-                        fontWeight: "bold",
-                        color: "#06d6a0",
-                        marginTop: "4px",
-                      }}
-                    >
+                    <div className="text-2xl font-bold text-[#06d6a0] mt-1">
                       {sales.length}
                     </div>
                   </div>
-                  <div style={{ marginBottom: "16px" }}>
-                    <Text strong style={{ fontSize: "16px" }}>
+                  <div className="mb-4">
+                    <Text strong className="text-base">
                       Average Sale
                     </Text>
-                    <div
-                      style={{
-                        fontSize: "24px",
-                        fontWeight: "bold",
-                        color: "#8b5cf6",
-                        marginTop: "4px",
-                      }}
-                    >
-                      LKR{" "}
-                      {(
-                        sales.reduce(
-                          (sum, sale) => sum + parseFloat(sale.total_amount),
-                          0
-                        ) / sales.length
-                      ).toFixed(2)}
+                    <div className="text-2xl font-bold text-[#8b5cf6] mt-1">
+                      {formatCurrency(totalSales / sales.length)}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "100%",
-                    color: "#999",
-                  }}
-                >
+                <div className="flex justify-center items-center h-full text-[#999]">
                   No sales data available
                 </div>
               )}
@@ -460,16 +371,7 @@ const Sales = ({ refreshKey }) => {
       {/* Sales Table */}
       <Card
         title="Sales History"
-        style={{
-          borderRadius: "16px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          border: "none",
-        }}
-        headStyle={{
-          borderBottom: "1px solid #f0f0f0",
-          padding: "16px 24px",
-        }}
-        bodyStyle={{ padding: "0" }}
+        className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] border-none"
       >
         <Table
           columns={salesColumns}

@@ -1,32 +1,31 @@
 import { useState, useEffect } from "react";
+import { Bookshop } from "../types";
 import { Table, Button, Modal, Form, Input, message } from "antd";
 import { Link } from "react-router-dom";
-
-import api from "../utils/api";
-
-const API_URL = "http://localhost:5001/api";
+import { bookshopService } from "../services";
+import { format } from "path";
+import { formatCurrency } from "../utils";
 
 const Bookshops = () => {
-  const [bookshops, setBookshops] = useState([]);
+  const [bookshops, setBookshops] = useState<Bookshop[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingBookshop, setEditingBookshop] = useState(null);
+  const [editingBookshop, setEditingBookshop] = useState<Bookshop | null>(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
     fetchBookshops();
   }, []);
 
-  const fetchBookshops = async () => {
+  const fetchBookshops = async (): Promise<void> => {
     try {
-      const response = await api.fetch(`${API_URL}/bookshops`);
-      const data = await response.json();
+      const data = await bookshopService.getBookshops();
       setBookshops(data);
     } catch (error) {
       message.error("Failed to fetch bookshops");
     }
   };
 
-  const showModal = (bookshop = null) => {
+  const showModal = (bookshop: Bookshop | null = null): void => {
     setEditingBookshop(bookshop);
     form.setFieldsValue(
       bookshop || { name: "", location: "", contact: "", consignment: 0 }
@@ -40,46 +39,33 @@ const Bookshops = () => {
     form.resetFields();
   };
 
-  const handleOk = async () => {
+  const handleOk = async (): Promise<void> => {
     try {
       const values = await form.validateFields();
-      const method = editingBookshop ? "PUT" : "POST";
-      const url = editingBookshop
-        ? `${API_URL}/bookshops/${editingBookshop.id}`
-        : `${API_URL}/bookshops`;
 
-      const response = await api.fetch(url, {
-        method,
-        body: JSON.stringify(values),
-      });
-
-      if (response.ok) {
-        message.success(
-          `Bookshop ${editingBookshop ? "updated" : "created"} successfully`
-        );
-        fetchBookshops();
-        handleCancel();
+      if (editingBookshop) {
+        await bookshopService.updateBookshop(editingBookshop.id, values);
       } else {
-        throw new Error("Failed to save bookshop");
+        await bookshopService.createBookshop(values);
       }
+
+      message.success(
+        `Bookshop ${editingBookshop ? "updated" : "created"} successfully`
+      );
+      fetchBookshops();
+      handleCancel();
     } catch (error) {
-      message.error(error.message);
+      message.error((error as Error).message);
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number): Promise<void> => {
     try {
-      const response = await api.fetch(`${API_URL}/bookshops/${id}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        message.success("Bookshop deleted successfully");
-        fetchBookshops();
-      } else {
-        throw new Error("Failed to delete bookshop");
-      }
+      await bookshopService.deleteBookshop(id);
+      message.success("Bookshop deleted successfully");
+      fetchBookshops();
     } catch (error) {
-      message.error(error.message);
+      message.error((error as Error).message);
     }
   };
 
@@ -87,11 +73,16 @@ const Bookshops = () => {
     { title: "Name", dataIndex: "name", key: "name" },
     { title: "Location", dataIndex: "location", key: "location" },
     { title: "Contact", dataIndex: "contact", key: "contact" },
-    { title: "Consignment", dataIndex: "consignment", key: "consignment" },
+    {
+      title: "Consignment",
+      dataIndex: "consignment",
+      key: "consignment",
+      render: (consignment: number) => `${formatCurrency(consignment)}`,
+    },
     {
       title: "Action",
       key: "action",
-      render: (_, record) => (
+      render: (_: unknown, record: Bookshop) => (
         <span>
           <Button type="link" onClick={() => showModal(record)}>
             Edit
@@ -119,7 +110,7 @@ const Bookshops = () => {
       <Table columns={columns} dataSource={bookshops} rowKey="id" />
       <Modal
         title={editingBookshop ? "Edit Bookshop" : "Add Bookshop"}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >

@@ -2,46 +2,42 @@ import { formatCurrency } from "../utils";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Card, Spin, message, Table, Typography } from "antd";
+import { bookService } from "../services";
+import { Book } from "../types";
 
 const { Title } = Typography;
-const API_URL = "http://localhost:5001/api";
-import api from "../utils/api";
+
+interface ExtendedBook extends Book {
+  genre?: string;
+  quantity?: number;
+  price: number;
+  author?: string;
+  name: string;
+}
 
 const BookDetails = () => {
   const { id } = useParams();
-  const [book, setBook] = useState(null);
-  const [stats, setStats] = useState({
+  const [book, setBook] = useState<ExtendedBook | null>(null);
+  const [stats, setStats] = useState<{
+    totalSales: number;
+    topBookshops: Array<{
+      bookshop: { id: number; name: string };
+      total_quantity: number;
+      date: string;
+    }>;
+  }>({
     totalSales: 0,
-    topBookshops: [
-      {
-        bookshop: { id: 1, name: "Sarasavi" },
-        total_quantity: 10,
-        date: "2024-01-15",
-      },
-      {
-        bookshop: { id: 2, name: "Ruhunu Book" },
-        total_quantity: 5,
-        date: "2024-01-16",
-      },
-      {
-        bookshop: { id: 3, name: "Book Land" },
-        total_quantity: 3,
-        date: "2024-01-17",
-      },
-    ],
+    topBookshops: [],
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
       try {
-        const bookResponse = await api.fetch(`${API_URL}/books/${id}`);
-        const bookData = await bookResponse.json();
-        setBook(bookData);
-
-        const statsResponse = await api.fetch(`${API_URL}/books/${id}/stats`);
-        const statsData = await statsResponse.json();
-        setStats(statsData);
+        const bookResponse = await bookService.getBookById(id!);
+        setBook(bookResponse);
+        const statsResponse = await bookService.getBookStats(id!);
+        setStats(statsResponse);
       } catch (error) {
         message.error("Failed to fetch book details");
       } finally {
@@ -52,7 +48,12 @@ const BookDetails = () => {
     fetchBookDetails();
   }, [id]);
 
-  const topBookshopsColumns = [
+  const topBookshopsColumns: Array<{
+    title: string;
+    dataIndex: string | string[];
+    key: string;
+    render?: (text: string) => string;
+  }> = [
     {
       title: "Bookshop Name",
       dataIndex: ["bookshop", "name"],
@@ -67,7 +68,7 @@ const BookDetails = () => {
       title: "Date",
       dataIndex: "date",
       key: "date",
-      render: (text) => new Date(text).toLocaleDateString(),
+      render: (text: string) => new Date(text).toLocaleDateString(),
     },
   ];
 

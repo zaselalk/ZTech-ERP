@@ -19,23 +19,33 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
-import api from "../utils/api";
+import { bookService, bookshopService, salesService } from "../services";
+import { Book, Sale, Bookshop } from "../types";
+import type { FormInstance } from "antd/es/form";
 
 const { Header, Content, Sider } = Layout;
 const { Title, Text } = Typography;
 const { Search } = Input;
 const { Option } = Select;
-const API_URL = "http://localhost:5001/api";
 
 // --- Re-usable sub-components ---
 
-const Receipt = ({ sale, onDone, onEmail, visible }) => {
-  const componentRef = useRef();
-  const handlePrint = useReactToPrint({ content: () => componentRef.current });
+interface ReceiptProps {
+  sale: Sale | null;
+  onDone: () => void;
+  onEmail: () => void;
+  visible: boolean;
+}
+const Receipt = ({ sale, onDone, onEmail, visible }: ReceiptProps) => {
+  const componentRef = useRef<HTMLDivElement | null>(null);
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  } as any);
   if (!sale) return null;
 
   const subtotal = sale.books.reduce(
-    (acc, book) => acc + book.SaleItem.price * book.SaleItem.quantity,
+    (acc, book) =>
+      acc + (book.SaleItem?.price || 0) * (book.SaleItem?.quantity || 0),
     0
   );
 
@@ -56,7 +66,7 @@ const Receipt = ({ sale, onDone, onEmail, visible }) => {
         </Button>,
       ]}
     >
-      <div ref={componentRef} style={{ padding: 20 }}>
+      <div ref={componentRef} className="p-5">
         <Title level={4}>Receipt - Sale #{sale.id}</Title>
         {sale.bookshop && (
           <>
@@ -105,17 +115,18 @@ const Receipt = ({ sale, onDone, onEmail, visible }) => {
               key: "total",
               render: (_, record) =>
                 formatCurrency(
-                  record.SaleItem.price * record.SaleItem.quantity
+                  (record.SaleItem?.price || 0) *
+                    (record.SaleItem?.quantity || 0)
                 ),
             },
           ]}
           pagination={false}
           size="small"
         />
-        <div style={{ textAlign: "right", marginTop: 16 }}>
+        <div className="text-right mt-4">
           <Text>Subtotal: {formatCurrency(subtotal)}</Text>
           <br />
-          <Text>Cart Discount: {formatCurrency(sale.discount)}</Text>
+          <Text>Cart Discount: {formatCurrency(sale.discount ?? 0)}</Text>
           <br />
           <Title level={5}>Total: {formatCurrency(sale.total_amount)}</Title>
         </div>
@@ -124,7 +135,21 @@ const Receipt = ({ sale, onDone, onEmail, visible }) => {
   );
 };
 
-const ItemDiscountModal = ({ item, visible, onApply, onCancel }) => {
+interface ItemDiscountModalProps {
+  item: CartItem;
+  visible: boolean;
+  onApply: (
+    id: number,
+    values: { discountValue: number; discountType: "Fixed" | "Percentage" }
+  ) => void;
+  onCancel: () => void;
+}
+const ItemDiscountModal = ({
+  item,
+  visible,
+  onApply,
+  onCancel,
+}: ItemDiscountModalProps) => {
   const [form] = Form.useForm();
   useEffect(() => {
     if (visible) {
@@ -150,7 +175,7 @@ const ItemDiscountModal = ({ item, visible, onApply, onCancel }) => {
     >
       <Form form={form} layout="vertical">
         <Form.Item label="Discount Value" name="discountValue">
-          <InputNumber min={0} style={{ width: "100%" }} />
+          <InputNumber min={0} className="w-full" />
         </Form.Item>
         <Form.Item label="Discount Type" name="discountType">
           <Select>
@@ -163,7 +188,16 @@ const ItemDiscountModal = ({ item, visible, onApply, onCancel }) => {
   );
 };
 
-const EmailReceiptModal = ({ visible, onSend, onCancel }) => {
+interface EmailReceiptModalProps {
+  visible: boolean;
+  onSend: (email: string) => void;
+  onCancel: () => void;
+}
+const EmailReceiptModal = ({
+  visible,
+  onSend,
+  onCancel,
+}: EmailReceiptModalProps) => {
   const [form] = Form.useForm();
 
   const handleSend = () => {
@@ -192,38 +226,46 @@ const EmailReceiptModal = ({ visible, onSend, onCancel }) => {
   );
 };
 
+interface CartItem extends Book {
+  quantity: number;
+  discountValue: number;
+  discountType: "Fixed" | "Percentage";
+}
 const PosPage = () => {
   // --- State Management ---
-  const [topSellers, setTopSellers] = useState([]);
-  const [cart, setCart] = useState([]);
-  const [cartDiscountInput, setCartDiscountInput] = useState(0);
-  const [cartDiscountType, setCartDiscountType] = useState("Fixed");
-  const [isCheckoutVisible, setIsCheckoutVisible] = useState(false);
-  const [completedSale, setCompletedSale] = useState(null);
-  const [editingItem, setEditingItem] = useState(null);
+  const [topSellers, setTopSellers] = useState<Book[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartDiscountInput, setCartDiscountInput] = useState<number>(0);
+  const [cartDiscountType, setCartDiscountType] = useState<
+    "Fixed" | "Percentage"
+  >("Fixed");
+  const [isCheckoutVisible, setIsCheckoutVisible] = useState<boolean>(false);
+  const [completedSale, setCompletedSale] = useState<Sale | null>(null);
+  const [editingItem, setEditingItem] = useState<CartItem | null>(null);
   const navigate = useNavigate();
-  const [searchResults, setSearchResults] = useState(null);
-  const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
-  const searchTimeout = useRef(null);
+  const [searchResults, setSearchResults] = useState<Book[] | null>(null);
+  const [isEmailModalVisible, setIsEmailModalVisible] =
+    useState<boolean>(false);
+  const searchTimeout = useRef<number | null>(null);
 
   // --- Data Fetching ---
   useEffect(() => {
     fetchTopSellers();
   }, []);
-  const fetchTopSellers = async () => {
+  const fetchTopSellers = async (): Promise<void> => {
     try {
-      const res = await api.fetch(`${API_URL}/books/top-sellers`);
-      setTopSellers(await res.json());
+      const data = await bookService.getTopSellers();
+      setTopSellers(data);
     } catch (e) {
       message.error("Failed to load top sellers");
     }
   };
 
-  const handleSearch = async (query) => {
+  const handleSearch = async (query: string): Promise<void> => {
     if (query) {
       try {
-        const res = await api.fetch(`${API_URL}/books?search=${query}`);
-        setSearchResults(await res.json());
+        const data = await bookService.searchBooks(query);
+        setSearchResults(data);
       } catch (e) {
         message.error("Failed to search for books");
       }
@@ -232,39 +274,30 @@ const PosPage = () => {
     }
   };
 
-  const debouncedSearch = (query) => {
+  const debouncedSearch = (query: string): void => {
     if (searchTimeout.current) {
-      clearTimeout(searchTimeout.current);
+      window.clearTimeout(searchTimeout.current);
     }
-    searchTimeout.current = setTimeout(() => {
+    searchTimeout.current = window.setTimeout(() => {
       handleSearch(query);
     }, 300);
   };
 
-  const handleSendEmail = async (email) => {
+  const handleSendEmail = async (email: string): Promise<void> => {
     try {
-      const response = await api.fetch(
-        `${API_URL}/sales/${completedSale.id}/email`,
-        {
-          method: "POST",
-          body: JSON.stringify({ email }),
-        }
-      );
-      if (response.ok) {
-        message.success("Receipt sent successfully");
-        setIsEmailModalVisible(false);
-      } else {
-        throw new Error(
-          (await response.json()).message || "Failed to send receipt"
-        );
+      if (!completedSale) {
+        throw new Error("No completed sale to email");
       }
+      await salesService.sendReceiptEmail(completedSale.id, email);
+      message.success("Receipt sent successfully");
+      setIsEmailModalVisible(false);
     } catch (error) {
-      message.error(error.message);
+      message.error((error as Error).message);
     }
   };
 
   // --- Cart & Discount Logic ---
-  const handleAddToCart = (book) => {
+  const handleAddToCart = (book: Book): void => {
     const existing = cart.find((item) => item.id === book.id);
     if (existing) {
       setCart(
@@ -280,7 +313,7 @@ const PosPage = () => {
     }
   };
 
-  const handleQuantityChange = (bookId, quantity) => {
+  const handleQuantityChange = (bookId: number, quantity: number): void => {
     setCart(
       cart
         .map((item) => (item.id === bookId ? { ...item, quantity } : item))
@@ -288,25 +321,28 @@ const PosPage = () => {
     );
   };
 
-  const handleItemDiscountApply = (bookId, discount) => {
+  const handleItemDiscountApply = (
+    bookId: number,
+    discount: { discountValue: number; discountType: "Fixed" | "Percentage" }
+  ): void => {
     setCart(
       cart.map((item) => (item.id === bookId ? { ...item, ...discount } : item))
     );
     setEditingItem(null);
   };
 
-  const calculateItemTotal = (item) => {
-    let priceAfterDiscount = parseFloat(item.price);
+  const calculateItemTotal = (item: CartItem): number => {
+    let priceAfterDiscount = item.price;
     if (item.discountType === "Fixed") {
-      priceAfterDiscount -= parseFloat(item.discountValue);
+      priceAfterDiscount -= item.discountValue;
     } else if (item.discountType === "Percentage") {
-      priceAfterDiscount *= 1 - parseFloat(item.discountValue) / 100;
+      priceAfterDiscount *= 1 - item.discountValue / 100;
     }
     return Math.max(0, priceAfterDiscount) * item.quantity;
   };
 
   const subtotal = cart.reduce(
-    (acc, item) => acc + item.price * item.quantity,
+    (acc: number, item) => acc + item.price * item.quantity,
     0
   );
   const subtotalAfterItemDiscounts = cart.reduce(
@@ -319,7 +355,7 @@ const PosPage = () => {
       : (subtotalAfterItemDiscounts * cartDiscountInput) / 100;
   const total = Math.max(0, subtotalAfterItemDiscounts - finalCartDiscount);
 
-  const resetSale = () => {
+  const resetSale = (): void => {
     setCart([]);
     setCartDiscountInput(0);
     setCartDiscountType("Fixed");
@@ -335,26 +371,26 @@ const PosPage = () => {
       title: "Price",
       dataIndex: "price",
       key: "price",
-      render: (val) => formatCurrency(val),
+      render: (val: number | string) => formatCurrency(val),
     },
     {
       title: "Qty",
       dataIndex: "quantity",
       key: "quantity",
       width: 80,
-      render: (text, record) => (
+      render: (text: number, record: CartItem) => (
         <InputNumber
           size="small"
           min={0}
           value={text}
-          onChange={(val) => handleQuantityChange(record.id, val)}
+          onChange={(val) => handleQuantityChange(record.id, Number(val))}
         />
       ),
     },
     {
       title: "Discount",
       key: "discount",
-      render: (_, record) => (
+      render: (_: unknown, record: CartItem) => (
         <Button
           icon={<EditOutlined />}
           size="small"
@@ -371,40 +407,31 @@ const PosPage = () => {
     {
       title: "Subtotal",
       key: "subtotal",
-      render: (_, record) => formatCurrency(calculateItemTotal(record)),
+      render: (_: unknown, record: CartItem) =>
+        formatCurrency(calculateItemTotal(record)),
     },
   ];
 
   const cartDiscountSelector = (
-    <Select value={cartDiscountType} onChange={setCartDiscountType}>
+    <Select
+      value={cartDiscountType}
+      onChange={(val: "Fixed" | "Percentage") => setCartDiscountType(val)}
+    >
       <Option value="Fixed">LKR</Option>
       <Option value="Percentage">%</Option>
     </Select>
   );
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+    <Layout className="min-h-screen">
+      <Header className="flex justify-between items-center">
         <Title level={3} style={{ color: "white", margin: 0 }}>
           Point of Sale
         </Title>
         <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
       </Header>
-      <Layout style={{ height: "calc(100vh - 64px)" }}>
-        <Content
-          style={{
-            padding: "24px",
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
+      <Layout className="h-[calc(100vh-64px)]">
+        <Content className="p-6 flex-1 flex flex-col">
           <Search
             placeholder="Search for books..."
             onChange={(e) => debouncedSearch(e.target.value)}
@@ -437,20 +464,15 @@ const PosPage = () => {
                 >
                   <List.Item.Meta
                     title={
-                      <span style={{ fontSize: "16px", fontWeight: "bold" }}>
-                        {book.name}
-                      </span>
+                      <span className="text-base font-bold">{book.name}</span>
                     }
                     description={
                       <div>
-                        <Text
-                          strong
-                          style={{ fontSize: "14px", color: "#52c41a" }}
-                        >
+                        <Text strong className="text-sm text-[#52c41a]">
                           {formatCurrency(book.price)}
                         </Text>
                         {book.author && (
-                          <div style={{ marginTop: "4px" }}>
+                          <div className="mt-1">
                             <Text type="secondary">by {book.author}</Text>
                           </div>
                         )}
@@ -466,68 +488,42 @@ const PosPage = () => {
         <Sider
           width="50%"
           theme="light"
-          style={{ padding: 0, borderLeft: "1px solid #f0f0f0", flex: 1 }}
+          className="p-0 border-l border-[#f0f0f0] flex-1"
         >
-          <div
-            style={{
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              padding: "24px",
-            }}
-          >
-            <Title level={4} style={{ marginBottom: "16px" }}>
+          <div className="h-full flex flex-col p-6">
+            <Title level={4} className="mb-4">
               Cart
             </Title>
-            <div
-              style={{
-                maxHeight: "calc(100vh - 350px)",
-                overflowY: "auto",
-                marginBottom: "16px",
-              }}
-            >
+            <div className="max-h-[calc(100vh-350px)] overflow-y-auto mb-4">
               <Table
                 columns={cartColumns}
                 dataSource={cart}
                 rowKey="id"
                 pagination={false}
                 size="small"
-                scroll={{ y: false }}
+                /* removed invalid scroll prop */
               />
             </div>
-            <div
-              style={{
-                marginTop: "auto",
-                paddingTop: "16px",
-                borderTop: "1px solid #f0f0f0",
-              }}
-            >
-              <div style={{ textAlign: "right" }}>
+            <div className="mt-auto pt-4 border-t border-[#f0f0f0]">
+              <div className="text-right">
                 <Text strong>Subtotal: {formatCurrency(subtotal)}</Text>
                 <br />
                 <Text type="secondary">
                   Subtotal (after item discounts):{" "}
                   {formatCurrency(subtotalAfterItemDiscounts)}
                 </Text>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    alignItems: "center",
-                    marginTop: 8,
-                  }}
-                >
-                  <Text strong style={{ marginRight: 8 }}>
+                <div className="flex justify-end items-center mt-2">
+                  <Text strong className="mr-2">
                     Cart Discount:
                   </Text>
                   <InputNumber
                     value={cartDiscountInput}
-                    onChange={setCartDiscountInput}
+                    onChange={(val) => setCartDiscountInput(val ?? 0)}
                     min={0}
                     addonAfter={cartDiscountSelector}
                   />
                 </div>
-                <Title level={4} style={{ marginTop: 8 }}>
+                <Title level={4} className="mt-2">
                   Total: {formatCurrency(total)}
                 </Title>
               </div>
@@ -537,7 +533,7 @@ const PosPage = () => {
                 size="large"
                 disabled={cart.length === 0}
                 onClick={() => setIsCheckoutVisible(true)}
-                style={{ marginTop: 16 }}
+                className="mt-4"
               >
                 Checkout
               </Button>
@@ -585,6 +581,14 @@ const PosPage = () => {
   );
 };
 
+interface CheckoutModalProps {
+  visible: boolean;
+  onClose: () => void;
+  cart: CartItem[];
+  total: number;
+  cartDiscount: { type: "Fixed" | "Percentage"; value: number };
+  onSaleComplete: (sale: Sale) => void;
+}
 const CheckoutModal = ({
   visible,
   onClose,
@@ -592,22 +596,22 @@ const CheckoutModal = ({
   total,
   cartDiscount,
   onSaleComplete,
-}) => {
+}: CheckoutModalProps) => {
   const [form] = Form.useForm();
-  const [bookshops, setBookshops] = useState([]);
+  const [bookshops, setBookshops] = useState<Bookshop[]>([]);
   useEffect(() => {
     if (visible) fetchBookshops();
   }, [visible]);
-  const fetchBookshops = async () => {
+  const fetchBookshops = async (): Promise<void> => {
     try {
-      const res = await api.fetch(`${API_URL}/bookshops`);
-      setBookshops(await res.json());
+      const data = await bookshopService.getBookshops();
+      setBookshops(data);
     } catch (e) {
       message.error("Failed to fetch bookshops");
     }
   };
 
-  const handleFinalizeSale = async () => {
+  const handleFinalizeSale = async (): Promise<void> => {
     try {
       const values = await form.validateFields();
       const saleData = {
@@ -620,19 +624,10 @@ const CheckoutModal = ({
         })),
         cartDiscount,
       };
-      const response = await api.fetch(`${API_URL}/sales`, {
-        method: "POST",
-        body: JSON.stringify(saleData),
-      });
-      if (response.ok) {
-        onSaleComplete(await response.json());
-      } else {
-        throw new Error(
-          (await response.json()).message || "Failed to create sale"
-        );
-      }
+      const createdSale = await salesService.createSale(saleData);
+      onSaleComplete(createdSale);
     } catch (error) {
-      message.error(error.message);
+      message.error((error as Error).message);
     }
   };
 
@@ -650,9 +645,14 @@ const CheckoutModal = ({
   );
 };
 
-const PaymentForm = ({ form, total, bookshops }) => {
+interface PaymentFormProps {
+  form: FormInstance;
+  total: number;
+  bookshops: Bookshop[];
+}
+const PaymentForm = ({ form, total, bookshops }: PaymentFormProps) => {
   const paymentMethod = Form.useWatch("payment_method", form);
-  const [amountTendered, setAmountTendered] = useState(0);
+  const [amountTendered, setAmountTendered] = useState<number>(0);
   const change = amountTendered - total;
 
   return (
@@ -688,14 +688,14 @@ const PaymentForm = ({ form, total, bookshops }) => {
             <Form.Item label="Amount Tendered">
               <InputNumber
                 min={total}
-                style={{ width: "100%" }}
+                className="w-full"
                 value={amountTendered}
-                onChange={setAmountTendered}
+                onChange={(val) => setAmountTendered(val ?? 0)}
               />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Title level={5} style={{ paddingTop: 30 }}>
+            <Title level={5} className="pt-[30px]">
               Change: {formatCurrency(change > 0 ? change : 0)}
             </Title>
           </Col>
