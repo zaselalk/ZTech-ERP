@@ -21,6 +21,7 @@ export interface Book {
   name: string;
   author?: string;
   price: number;
+  quantity?: number;
   consignment?: boolean;
   SaleItem?: SaleItem; // present in sale responses
 }

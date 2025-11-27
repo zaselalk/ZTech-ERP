@@ -14,7 +14,7 @@ import {
   Select,
   InputNumber,
   Divider,
-  List,
+  Space,
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
@@ -52,7 +52,8 @@ const Receipt = ({ sale, onDone, onEmail, visible }: ReceiptProps) => {
   return (
     <Modal
       title="Sale Successful"
-      visible={visible}
+      // visible={visible}
+      open={visible}
       onCancel={onDone}
       footer={[
         <Button key="back" onClick={onDone}>
@@ -169,7 +170,7 @@ const ItemDiscountModal = ({
   return (
     <Modal
       title={`Discount for ${item.name}`}
-      visible={visible}
+      open={visible}
       onOk={handleApply}
       onCancel={onCancel}
     >
@@ -209,7 +210,7 @@ const EmailReceiptModal = ({
   return (
     <Modal
       title="Email Receipt"
-      visible={visible}
+      open={visible}
       onOk={handleSend}
       onCancel={onCancel}
     >
@@ -228,6 +229,7 @@ const EmailReceiptModal = ({
 
 interface CartItem extends Book {
   quantity: number;
+  availableStock: number;
   discountValue: number;
   discountType: "Fixed" | "Percentage";
 }
@@ -298,8 +300,20 @@ const PosPage = () => {
 
   // --- Cart & Discount Logic ---
   const handleAddToCart = (book: Book): void => {
+    const availableQuantity = book.quantity ?? 0;
+    if (availableQuantity <= 0) {
+      message.warning(`${book.name} is out of stock`);
+      return;
+    }
+
     const existing = cart.find((item) => item.id === book.id);
     if (existing) {
+      if (existing.quantity >= existing.availableStock) {
+        message.warning(
+          `Only ${existing.availableStock} available for ${book.name}`
+        );
+        return;
+      }
       setCart(
         cart.map((item) =>
           item.id === book.id ? { ...item, quantity: item.quantity + 1 } : item
@@ -308,15 +322,31 @@ const PosPage = () => {
     } else {
       setCart([
         ...cart,
-        { ...book, quantity: 1, discountValue: 0, discountType: "Fixed" },
+        {
+          ...book,
+          quantity: 1,
+          availableStock: availableQuantity,
+          discountValue: 0,
+          discountType: "Fixed",
+        },
       ]);
     }
   };
 
   const handleQuantityChange = (bookId: number, quantity: number): void => {
+    const cartItem = cart.find((item) => item.id === bookId);
+    let finalQuantity = quantity;
+    if (cartItem && quantity > cartItem.availableStock) {
+      message.warning(
+        `Only ${cartItem.availableStock} available for ${cartItem.name}`
+      );
+      finalQuantity = cartItem.availableStock;
+    }
     setCart(
       cart
-        .map((item) => (item.id === bookId ? { ...item, quantity } : item))
+        .map((item) =>
+          item.id === bookId ? { ...item, quantity: finalQuantity } : item
+        )
         .filter((item) => item.quantity > 0)
     );
   };
@@ -382,6 +412,7 @@ const PosPage = () => {
         <InputNumber
           size="small"
           min={0}
+          max={record.availableStock}
           value={text}
           onChange={(val) => handleQuantityChange(record.id, Number(val))}
         />
@@ -446,42 +477,140 @@ const PosPage = () => {
               padding: "16px",
             }}
           >
-            <List
+            {/* <List
               dataSource={searchResults !== null ? searchResults : topSellers}
-              renderItem={(book) => (
-                <List.Item
-                  actions={[
-                    <Button
-                      key="add"
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      onClick={() => handleAddToCart(book)}
-                      size="large"
-                    >
-                      Add to Cart
-                    </Button>,
-                  ]}
-                >
-                  <List.Item.Meta
-                    title={
-                      <span className="text-base font-bold">{book.name}</span>
-                    }
-                    description={
+              renderItem={(book) => {
+                const availableQuantity = book.quantity ?? 0;
+                const isOutOfStock = availableQuantity <= 0;
+                const cartItem = cart.find((item) => item.id === book.id);
+                const cartQuantity = cartItem ? cartItem.quantity : 0;
+                const canAddToCart = !isOutOfStock && cartQuantity < availableQuantity;
+
+                return (
+                  <List.Item
+                    actions={[
+                      isOutOfStock ? (
+                        <Button
+                          key="out-of-stock"
+                          disabled
+                          size="large"
+                        >
+                          Out of Stock
+                        </Button>
+                      ) : (
+                        <Button
+                          key="add"
+                          type="primary"
+                          icon={<PlusOutlined />}
+                          onClick={() => handleAddToCart(book)}
+                          size="large"
+                          disabled={!canAddToCart}
+                        >
+                          {canAddToCart ? "Add to Cart" : "Max in Cart"}
+                        </Button>
+                      ),
+                    ]}
+                  >
+                    <List.Item.Meta
+                      title={
+                        <span className="text-base font-bold">{book.name}</span>
+                      }
+                      description={
+                        <div>
+                          <Text strong className="text-sm text-[#52c41a]">
+                            {formatCurrency(book.price)}
+                          </Text>
+                          <div className="mt-1">
+                            <Text
+                              type={isOutOfStock ? "danger" : "secondary"}
+                              strong={isOutOfStock}
+                            >
+                              {isOutOfStock
+                                ? "Out of Stock"
+                                : `Available: ${availableQuantity}`}
+                            </Text>
+                          </div>
+                          {book.author && (
+                            <div className="mt-1">
+                              <Text type="secondary">by {book.author}</Text>
+                            </div>
+                          )}
+                        </div>
+                      }
+                    />
+                  </List.Item>
+                );
+              }}
+              pagination={false}
+            /> */}
+
+            <Table
+              rowKey="id"
+              pagination={false}
+              dataSource={searchResults !== null ? searchResults : topSellers}
+              columns={[
+                {
+                  title: "Book",
+                  dataIndex: "name",
+                  key: "name",
+                  render: (name: string, book) => (
+                    <div>
+                      <span className="text-base font-bold">{name}</span>
                       <div>
-                        <Text strong className="text-sm text-[#52c41a]">
+                        <Typography.Text
+                          strong
+                          className="text-sm text-[#52c41a]"
+                        >
                           {formatCurrency(book.price)}
-                        </Text>
+                        </Typography.Text>
                         {book.author && (
                           <div className="mt-1">
-                            <Text type="secondary">by {book.author}</Text>
+                            <Typography.Text type="secondary">
+                              by {book.author}
+                            </Typography.Text>
                           </div>
                         )}
                       </div>
-                    }
-                  />
-                </List.Item>
-              )}
-              pagination={false}
+                    </div>
+                  ),
+                },
+                {
+                  title: "Quantity",
+                  dataIndex: "quantity",
+                  key: "quantity",
+                },
+                {
+                  title: "Action",
+                  key: "action",
+                  width: 200,
+                  render: (_: unknown, book) => {
+                    const availableQuantity = book.quantity ?? 0;
+                    const isOutOfStock = availableQuantity <= 0;
+                    const cartItem = cart.find((item) => item.id === book.id);
+                    const cartQuantity = cartItem ? cartItem.quantity : 0;
+                    const canAddToCart =
+                      !isOutOfStock && cartQuantity < availableQuantity;
+
+                    return isOutOfStock ? (
+                      <Button key="out-of-stock" disabled size="large">
+                        Out of Stock
+                      </Button>
+                    ) : (
+                      <Button
+                        key="add"
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => handleAddToCart(book)}
+                        size="large"
+                        disabled={!canAddToCart}
+                      >
+                        {canAddToCart ? "Add to Cart" : "Max in Cart"}
+                      </Button>
+                    );
+                  },
+                },
+              ]}
+              size="small"
             />
           </div>
         </Content>
@@ -516,12 +645,14 @@ const PosPage = () => {
                   <Text strong className="mr-2">
                     Cart Discount:
                   </Text>
-                  <InputNumber
-                    value={cartDiscountInput}
-                    onChange={(val) => setCartDiscountInput(val ?? 0)}
-                    min={0}
-                    addonAfter={cartDiscountSelector}
-                  />
+                  <Space.Compact>
+                    <InputNumber
+                      value={cartDiscountInput}
+                      onChange={(val) => setCartDiscountInput(val ?? 0)}
+                      min={0}
+                    />
+                    {cartDiscountSelector}
+                  </Space.Compact>
                 </div>
                 <Title level={4} className="mt-2">
                   Total: {formatCurrency(total)}
@@ -589,6 +720,7 @@ interface CheckoutModalProps {
   cartDiscount: { type: "Fixed" | "Percentage"; value: number };
   onSaleComplete: (sale: Sale) => void;
 }
+
 const CheckoutModal = ({
   visible,
   onClose,
@@ -599,9 +731,11 @@ const CheckoutModal = ({
 }: CheckoutModalProps) => {
   const [form] = Form.useForm();
   const [bookshops, setBookshops] = useState<Bookshop[]>([]);
+
   useEffect(() => {
     if (visible) fetchBookshops();
   }, [visible]);
+
   const fetchBookshops = async (): Promise<void> => {
     try {
       const data = await bookshopService.getBookshops();
@@ -634,7 +768,8 @@ const CheckoutModal = ({
   return (
     <Modal
       title="Finalize Sale"
-      visible={visible}
+      // visible={visible}
+      open={visible}
       onOk={handleFinalizeSale}
       onCancel={onClose}
     >
