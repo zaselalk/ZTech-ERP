@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 const db = require("../db/models");
-const { Bookshop, Sale } = db;
+const { Bookshop, Sale, ConsignmentPayment } = db;
 
 const router = express.Router();
 
@@ -88,5 +88,67 @@ router.get("/:id/sales", async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: error.message });
   }
 });
+
+// Add a consignment payment
+router.post(
+  "/:id/payments",
+  async (req: Request, res: Response): Promise<void> => {
+    const t = await db.sequelize.transaction();
+    try {
+      const { amount, paymentDate, note } = req.body;
+      const bookshopId = req.params.id;
+
+      // 1. Create payment record
+      const payment = await ConsignmentPayment.create(
+        {
+          bookshopId,
+          amount,
+          paymentDate,
+          note,
+        },
+        { transaction: t }
+      );
+
+      // 2. Update bookshop consignment balance (decrement)
+      const bookshop = await Bookshop.findByPk(bookshopId, { transaction: t });
+      if (!bookshop) {
+        await t.rollback();
+        res.status(404).json({ message: "Bookshop not found" });
+        return;
+      }
+
+      // Assuming 'consignment' is the amount OWED by the bookshop.
+      // So a payment REDUCES this amount.
+      await bookshop.decrement("consignment", { by: amount, transaction: t });
+
+      await t.commit();
+      res.status(201).json(payment);
+    } catch (err) {
+      await t.rollback();
+      const error = err as Error;
+      res.status(400).json({ message: error.message });
+    }
+  }
+);
+
+// Get consignment payments for a bookshop
+router.get(
+  "/:id/payments",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const payments = await ConsignmentPayment.findAll({
+        where: { bookshopId: req.params.id },
+        order: [
+          ["paymentDate", "DESC"],
+          ["createdAt", "DESC"],
+        ],
+      });
+      res.json(payments);
+    } catch (err) {
+      const error = err as Error;
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
 
 export = router;

@@ -63,3 +63,12 @@ export type ApiHeaders = Record<string, string>;
 export interface ApiOptions extends RequestInit {
   headers?: ApiHeaders;
 }
+
+export interface ConsignmentPayment {
+  id: number;
+  bookshopId: number;
+  amount: number;
+  paymentDate: string;
+  note?: string;
+  createdAt: string;
+}

@@ -787,8 +787,11 @@ interface PaymentFormProps {
 }
 const PaymentForm = ({ form, total, bookshops }: PaymentFormProps) => {
   const paymentMethod = Form.useWatch("payment_method", form);
+  const bookshopId = Form.useWatch("BookshopId", form);
   const [amountTendered, setAmountTendered] = useState<number>(0);
   const change = amountTendered - total;
+
+  const selectedBookshop = bookshops.find((b) => b.id === bookshopId);
 
   return (
     <>
@@ -817,6 +820,27 @@ const PaymentForm = ({ form, total, bookshops }: PaymentFormProps) => {
           <Option value="Consignment">Consignment</Option>
         </Select>
       </Form.Item>
+
+      {paymentMethod === "Consignment" && selectedBookshop && (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: 10,
+            background: "#f5f5f5",
+            borderRadius: 4,
+          }}
+        >
+          <Text>
+            Current Consignment Balance:{" "}
+            <strong>{formatCurrency(selectedBookshop.consignment || 0)}</strong>
+          </Text>
+          <br />
+          <Text type="secondary">
+            This sale will increase the balance by {formatCurrency(total)}
+          </Text>
+        </div>
+      )}
+
       {paymentMethod === "Cash" && (
         <Row gutter={16}>
           <Col span={12}>

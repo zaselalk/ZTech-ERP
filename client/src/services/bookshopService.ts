@@ -1,5 +1,5 @@
 import api from "../utils/api";
-import { Bookshop, Sale } from "../types";
+import { Bookshop, Sale, ConsignmentPayment } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
@@ -55,5 +55,30 @@ export const bookshopService = {
     await api.fetch(`${API_URL}/bookshops/${id}`, {
       method: "DELETE",
     });
+  },
+
+  /**
+   * Add a consignment payment
+   */
+  async addPayment(
+    id: string | number,
+    data: { amount: number; paymentDate: string; note?: string }
+  ): Promise<ConsignmentPayment> {
+    return await api.fetch<ConsignmentPayment>(
+      `${API_URL}/bookshops/${id}/payments`,
+      {
+        method: "POST",
+        data,
+      }
+    );
+  },
+
+  /**
+   * Get consignment payments for a bookshop
+   */
+  async getPayments(id: string | number): Promise<ConsignmentPayment[]> {
+    return await api.fetch<ConsignmentPayment[]>(
+      `${API_URL}/bookshops/${id}/payments`
+    );
   },
 };
