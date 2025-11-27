@@ -27,6 +27,7 @@ import Consignments from "./components/Consignments";
 import BookshopDetails from "./components/BookshopDetails";
 import BookDetails from "./components/BookDetails";
 import LoginPage from "./pages/LoginPage";
+import Backups from "./components/Backups";
 
 const { Header, Content, Sider } = Layout;
 
@@ -43,6 +44,7 @@ const MainLayout = () => {
     "/bookshops": "4",
     "/reports": "5",
     "/consignments": "6",
+    "/backups": "7",
   };
   const [selectedKey, setSelectedKey] = useState(
     pathMap[location.pathname] || "1"
@@ -85,6 +87,11 @@ const MainLayout = () => {
       key: "6",
       icon: <DollarCircleOutlined />,
       label: "Consignments",
+    },
+    {
+      key: "7",
+      icon: <SettingOutlined />,
+      label: "Backups",
     },
   ];
 
@@ -194,6 +201,7 @@ const MainLayout = () => {
             <Route path="/reports" element={<Reports />} />
             <Route path="/receipts/:id" element={<ReceiptPage />} />
             <Route path="/consignments" element={<Consignments />} />
+            <Route path="/backups" element={<Backups />} />
           </Routes>
         </Content>
       </Layout>

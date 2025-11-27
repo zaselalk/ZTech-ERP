@@ -4,3 +4,4 @@ export { salesService } from "./salesService";
 export { reportService } from "./reportService";
 export { dashboardService } from "./dashboardService";
 export { authService } from "./authService";
+export { backupService } from "./backupService";

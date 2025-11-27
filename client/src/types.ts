@@ -72,3 +72,9 @@ export interface ConsignmentPayment {
   note?: string;
   createdAt: string;
 }
+
+export interface Backup {
+  filename: string;
+  size: number;
+  createdAt: string;
+}
