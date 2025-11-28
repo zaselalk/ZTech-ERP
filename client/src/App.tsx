@@ -14,6 +14,7 @@ import {
   UserOutlined,
   LogoutOutlined,
   SettingOutlined,
+  BugOutlined,
 } from "@ant-design/icons";
 
 import Bookshops from "./components/Bookshops";
@@ -28,6 +29,7 @@ import BookshopDetails from "./components/BookshopDetails";
 import BookDetails from "./components/BookDetails";
 import LoginPage from "./pages/LoginPage";
 import Backups from "./components/Backups";
+import Issues from "./components/Issues";
 
 const { Header, Content, Sider } = Layout;
 
@@ -45,6 +47,7 @@ const MainLayout = () => {
     "/reports": "5",
     "/consignments": "6",
     "/backups": "7",
+    "/issues": "8",
   };
   const [selectedKey, setSelectedKey] = useState(
     pathMap[location.pathname] || "1"
@@ -92,6 +95,11 @@ const MainLayout = () => {
       key: "7",
       icon: <SettingOutlined />,
       label: "Backups",
+    },
+    {
+      key: "8",
+      icon: <BugOutlined />,
+      label: "Issues",
     },
   ];
 
@@ -144,7 +152,7 @@ const MainLayout = () => {
           {!collapsed && "Bookshop Manager"}
         </div>
         <Menu
-          theme="light"
+          theme="dark"
           mode="inline"
           selectedKeys={[selectedKey]}
           onClick={handleMenuClick}
@@ -183,7 +191,7 @@ const MainLayout = () => {
               <div className="flex items-center cursor-pointer p-1 px-3 rounded-lg transition-colors hover:bg-[#f5f5f5]">
                 <Avatar
                   icon={<UserOutlined />}
-                  className="!bg-gradient-to-br !from-[#667eea] !to-[#764ba2] mr-2"
+                  className="bg-linear-to-br! from-[#667eea]! to-[#764ba2]! mr-2"
                 />
                 <span className="text-[#2c3e50] font-medium">Admin</span>
               </div>
@@ -202,6 +210,7 @@ const MainLayout = () => {
             <Route path="/receipts/:id" element={<ReceiptPage />} />
             <Route path="/consignments" element={<Consignments />} />
             <Route path="/backups" element={<Backups />} />
+            <Route path="/issues" element={<Issues />} />
           </Routes>
         </Content>
       </Layout>

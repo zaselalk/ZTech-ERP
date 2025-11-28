@@ -9,6 +9,7 @@ import salesRoutes from "./sales";
 import reportsRoutes from "./reports";
 import dashboardRoutes from "./dashboard";
 import backupsRoutes from "./backups";
+import issuesRoutes from "./issues";
 
 export function registerRoutes(app: Express): void {
   app.use(passport.initialize());
@@ -20,6 +21,7 @@ export function registerRoutes(app: Express): void {
   app.use("/api/reports", requireAuth, reportsRoutes);
   app.use("/api/dashboard", requireAuth, dashboardRoutes);
   app.use("/api/backups", requireAuth, backupsRoutes);
+  app.use("/api/issues", requireAuth, issuesRoutes);
 
   app.get("/", (_req, res) => {
     res.send("Bookshop API is running...");

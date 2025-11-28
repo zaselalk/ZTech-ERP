@@ -133,10 +133,6 @@ const BookshopDetails = () => {
     },
   ];
 
-  const consignmentSales = sales.filter(
-    (sale) => sale.payment_method === "Consignment"
-  );
-
   if (loading) {
     return <Spin size="large" />;
   }
