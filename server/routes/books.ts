@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { Op } from "sequelize";
 const db = require("../db/models");
-const { Book, SaleItem } = db;
+const { Book, SaleItem, Sale, Bookshop } = db;
 
 const router = express.Router();
 
@@ -97,9 +97,45 @@ router.get("/:id/stats", async (req: Request, res: Response): Promise<void> => {
       where: { BookId: bookId },
     });
 
+    // Calculate top bookshops
+    const topBookshopsData = await SaleItem.findAll({
+      where: { BookId: bookId },
+      attributes: [
+        [
+          db.sequelize.fn("SUM", db.sequelize.col("SaleItem.quantity")),
+          "total_quantity",
+        ],
+        [db.sequelize.fn("MAX", db.sequelize.col("sale.createdAt")), "date"],
+      ],
+      include: [
+        {
+          model: Sale,
+          as: "sale",
+          attributes: [],
+          include: [
+            {
+              model: Bookshop,
+              as: "bookshop",
+              attributes: ["id", "name"],
+            },
+          ],
+        },
+      ],
+      group: ["sale.BookshopId", "sale->bookshop.id", "sale->bookshop.name"],
+      order: [[db.sequelize.literal("total_quantity"), "DESC"]],
+      raw: true,
+      nest: true,
+    });
+
+    const topBookshops = topBookshopsData.map((item: any) => ({
+      bookshop: item.sale.bookshop,
+      total_quantity: item.total_quantity,
+      date: item.date,
+    }));
+
     res.json({
       totalSales: totalSales || 0,
-      topBookshops: [],
+      topBookshops: topBookshops,
     });
   } catch (err) {
     const error = err as Error;
