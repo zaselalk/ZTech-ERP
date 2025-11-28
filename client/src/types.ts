@@ -24,6 +24,7 @@ export interface SaleItem {
 
 export interface Book {
   id: number;
+  barcode?: string;
   name: string;
   author?: string;
   price: number;

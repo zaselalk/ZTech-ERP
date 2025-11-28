@@ -84,6 +84,9 @@ const BookDetails = () => {
     <div>
       <Card title={`Book: ${book.name}`}>
         <p>
+          <strong>Barcode:</strong> {book.barcode}
+        </p>
+        <p>
           <strong>Author:</strong> {book.author}
         </p>
         <p>

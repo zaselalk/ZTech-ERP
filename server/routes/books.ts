@@ -7,6 +7,7 @@ const router = express.Router();
 
 interface BooksQueryParams {
   search?: string;
+  type?: "name" | "barcode";
 }
 
 // Get all books
@@ -17,15 +18,19 @@ router.get(
     res: Response
   ): Promise<void> => {
     try {
-      const { search } = req.query;
+      const { search, type } = req.query;
       let where = {};
       if (search) {
-        where = {
-          [Op.or]: [
-            { name: { [Op.like]: `%${search}%` } },
-            { author: { [Op.like]: `%${search}%` } },
-          ],
-        };
+        if (type === "barcode") {
+          where = { barcode: { [Op.like]: `%${search}%` } };
+        } else {
+          where = {
+            [Op.or]: [
+              { name: { [Op.like]: `%${search}%` } },
+              { author: { [Op.like]: `%${search}%` } },
+            ],
+          };
+        }
       }
       const books = await Book.findAll({ where });
       res.json(books);

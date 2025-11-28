@@ -37,8 +37,13 @@ export const bookService = {
   /**
    * Search books by query
    */
-  async searchBooks(query: string): Promise<Book[]> {
-    return await api.fetch<Book[]>(`${API_URL}/books?search=${query}`);
+  async searchBooks(
+    query: string,
+    type: "name" | "barcode" = "name"
+  ): Promise<Book[]> {
+    return await api.fetch<Book[]>(
+      `${API_URL}/books?search=${query}&type=${type}`
+    );
   },
 
   /**

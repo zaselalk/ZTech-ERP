@@ -15,7 +15,9 @@ import {
   InputNumber,
   Divider,
   Space,
+  Switch,
 } from "antd";
+import type { InputRef } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
@@ -248,12 +250,27 @@ const PosPage = () => {
   const [searchResults, setSearchResults] = useState<Book[] | null>(null);
   const [isEmailModalVisible, setIsEmailModalVisible] =
     useState<boolean>(false);
+  const [searchType, setSearchType] = useState<"name" | "barcode">("name");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const searchTimeout = useRef<number | null>(null);
+  const searchInputRef = useRef<InputRef>(null);
+  const cartRef = useRef<CartItem[]>(cart);
 
   // --- Data Fetching ---
   useEffect(() => {
     fetchTopSellers();
   }, []);
+
+  useEffect(() => {
+    cartRef.current = cart;
+  }, [cart]);
+
+  useEffect(() => {
+    if (searchQuery) {
+      handleSearch(searchQuery);
+    }
+  }, [searchType]);
+
   const fetchTopSellers = async (): Promise<void> => {
     try {
       const data = await bookService.getTopSellers();
@@ -264,9 +281,25 @@ const PosPage = () => {
   };
 
   const handleSearch = async (query: string): Promise<void> => {
+    if (searchTimeout.current) {
+      window.clearTimeout(searchTimeout.current);
+      searchTimeout.current = null;
+    }
+
     if (query) {
       try {
-        const data = await bookService.searchBooks(query);
+        const data = await bookService.searchBooks(query, searchType);
+
+        if (searchType === "barcode" && data.length === 1) {
+          const book = data[0];
+          handleAddToCart(book);
+          message.success(`Added ${book.name} to cart`);
+          setSearchQuery("");
+          setSearchResults(null);
+          searchInputRef.current?.focus();
+          return;
+        }
+
         setSearchResults(data);
       } catch (e) {
         message.error("Failed to search for books");
@@ -277,6 +310,7 @@ const PosPage = () => {
   };
 
   const debouncedSearch = (query: string): void => {
+    setSearchQuery(query);
     if (searchTimeout.current) {
       window.clearTimeout(searchTimeout.current);
     }
@@ -300,13 +334,14 @@ const PosPage = () => {
 
   // --- Cart & Discount Logic ---
   const handleAddToCart = (book: Book): void => {
+    const currentCart = cartRef.current;
     const availableQuantity = book.quantity ?? 0;
     if (availableQuantity <= 0) {
       message.warning(`${book.name} is out of stock`);
       return;
     }
 
-    const existing = cart.find((item) => item.id === book.id);
+    const existing = currentCart.find((item) => item.id === book.id);
     if (existing) {
       if (existing.quantity >= existing.availableStock) {
         message.warning(
@@ -315,13 +350,13 @@ const PosPage = () => {
         return;
       }
       setCart(
-        cart.map((item) =>
+        currentCart.map((item) =>
           item.id === book.id ? { ...item, quantity: item.quantity + 1 } : item
         )
       );
     } else {
       setCart([
-        ...cart,
+        ...currentCart,
         {
           ...book,
           quantity: 1,
@@ -469,11 +504,34 @@ const PosPage = () => {
       </Header>
       <Layout className="h-[calc(100vh-64px)]">
         <Content className="p-6 flex-1 flex flex-col">
-          <Search
-            placeholder="Search for books..."
-            onChange={(e) => debouncedSearch(e.target.value)}
-            style={{ marginBottom: 24, flexShrink: 0 }}
-          />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: 24,
+              gap: 16,
+            }}
+          >
+            <Search
+              ref={searchInputRef}
+              placeholder={`Search for books by ${searchType}...`}
+              value={searchQuery}
+              onChange={(e) => debouncedSearch(e.target.value)}
+              onSearch={(value) => handleSearch(value)}
+              style={{ flex: 1 }}
+            />
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Text>Search by:</Text>
+              <Switch
+                checkedChildren="Barcode"
+                unCheckedChildren="Name"
+                checked={searchType === "barcode"}
+                onChange={(checked) =>
+                  setSearchType(checked ? "barcode" : "name")
+                }
+              />
+            </div>
+          </div>
           <div
             style={{
               flex: 1,
