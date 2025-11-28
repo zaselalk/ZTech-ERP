@@ -93,15 +93,47 @@ router.get("/:id/sales", async (req: Request, res: Response): Promise<void> => {
 router.post(
   "/:id/payments",
   async (req: Request, res: Response): Promise<void> => {
+    const { amount, paymentDate, note } = req.body;
+    const bookshopId = req.params.id;
+
+    // Validate bookshop ID is a valid number
+    const parsedBookshopId = parseInt(bookshopId, 10);
+    if (isNaN(parsedBookshopId) || parsedBookshopId <= 0) {
+      res.status(400).json({ message: "Bookshop ID must be a valid positive number" });
+      return;
+    }
+
+    // Validate amount is a positive number and not zero
+    if (typeof amount !== "number" || isNaN(amount) || amount <= 0) {
+      res.status(400).json({ message: "Amount must be a positive number greater than zero" });
+      return;
+    }
+
+    // Validate paymentDate is provided and is a valid date
+    if (!paymentDate) {
+      res.status(400).json({ message: "Payment date is required" });
+      return;
+    }
+
+    const parsedDate = new Date(paymentDate);
+    if (isNaN(parsedDate.getTime())) {
+      res.status(400).json({ message: "Payment date must be a valid date" });
+      return;
+    }
+
+    // Validate paymentDate is not in the future
+    const now = new Date();
+    if (parsedDate > now) {
+      res.status(400).json({ message: "Payment date cannot be in the future" });
+      return;
+    }
+
     const t = await db.sequelize.transaction();
     try {
-      const { amount, paymentDate, note } = req.body;
-      const bookshopId = req.params.id;
-
       // 1. Create payment record
       const payment = await ConsignmentPayment.create(
         {
-          bookshopId,
+          bookshopId: parsedBookshopId,
           amount,
           paymentDate,
           note,
@@ -110,7 +142,7 @@ router.post(
       );
 
       // 2. Update bookshop consignment balance (decrement)
-      const bookshop = await Bookshop.findByPk(bookshopId, { transaction: t });
+      const bookshop = await Bookshop.findByPk(parsedBookshopId, { transaction: t });
       if (!bookshop) {
         await t.rollback();
         res.status(404).json({ message: "Bookshop not found" });
