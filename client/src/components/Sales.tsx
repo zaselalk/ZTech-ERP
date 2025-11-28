@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react";
-import { Table, Typography, message, Row, Col, Card, Button } from "antd";
+import {
+  Table,
+  Typography,
+  message,
+  Row,
+  Col,
+  Card,
+  Button,
+  DatePicker,
+} from "antd";
 import { EyeOutlined } from "@ant-design/icons";
+import { Dayjs } from "dayjs";
 import { salesService } from "../services";
 import { Sale, ChartDataShape } from "../types";
 import ReceiptModal from "./ReceiptModal";
@@ -36,6 +46,7 @@ ChartJS.register(
 );
 
 const { Title, Text } = Typography;
+const { RangePicker } = DatePicker;
 
 interface SalesProps {
   refreshKey?: number | string;
@@ -43,6 +54,9 @@ interface SalesProps {
 
 const Sales = ({ refreshKey }: SalesProps) => {
   const [sales, setSales] = useState<Sale[]>([]);
+  const [dateRange, setDateRange] = useState<
+    [Dayjs | null, Dayjs | null] | null
+  >(null);
   const [chartData, setChartData] = useState<ChartDataShape>({
     dailySales: [],
     bookshopSales: [],
@@ -65,12 +79,16 @@ const Sales = ({ refreshKey }: SalesProps) => {
 
   useEffect(() => {
     fetchSales();
-    processChartData();
-  }, [refreshKey]); // Refetch when the refreshKey changes
+  }, [refreshKey, dateRange]); // Refetch when the refreshKey or dateRange changes
 
   const fetchSales = async (): Promise<void> => {
     try {
-      const salesData = await salesService.getSales();
+      let startStr, endStr;
+      if (dateRange && dateRange[0] && dateRange[1]) {
+        startStr = dateRange[0].format("YYYY-MM-DD");
+        endStr = dateRange[1].format("YYYY-MM-DD");
+      }
+      const salesData = await salesService.getSales(startStr, endStr);
       setSales(salesData);
       processChartData(salesData);
     } catch (e) {
@@ -267,6 +285,14 @@ const Sales = ({ refreshKey }: SalesProps) => {
           <Text className="text-base text-[#7f8c8d]">
             Comprehensive sales data and insights
           </Text>
+        </div>
+        <div>
+          <RangePicker
+            onChange={(dates) =>
+              setDateRange(dates as [Dayjs | null, Dayjs | null] | null)
+            }
+            className="w-64"
+          />
         </div>
       </div>
 
