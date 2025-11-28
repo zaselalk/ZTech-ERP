@@ -6,3 +6,4 @@ export { dashboardService } from "./dashboardService";
 export { authService } from "./authService";
 export { backupService } from "./backupService";
 export { issueService } from "./issueService";
+export { userService } from "./userService";

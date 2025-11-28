@@ -5,6 +5,7 @@ export interface UserAttributes {
   id: number;
   username: string;
   password: string;
+  role: "admin" | "staff";
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -92,6 +93,7 @@ export class User
   public id!: number;
   public username!: string;
   public password!: string;
+  public role!: "admin" | "staff";
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }

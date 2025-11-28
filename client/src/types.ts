@@ -1,4 +1,10 @@
-// Shared application TypeScript interfaces
+export interface User {
+  id: number;
+  username: string;
+  role: "admin" | "staff";
+  createdAt: string;
+}
+
 export interface Bookshop {
   id: number;
   name: string;

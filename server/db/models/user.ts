@@ -21,6 +21,11 @@ export = (
         type: dataTypes.STRING,
         allowNull: false,
       },
+      role: {
+        type: dataTypes.ENUM("admin", "staff"),
+        allowNull: false,
+        defaultValue: "staff",
+      },
     },
     {
       sequelize,

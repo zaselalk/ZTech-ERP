@@ -1,5 +1,5 @@
 import { Layout, Menu, Button, Dropdown, Avatar, type MenuProps } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
   BookOutlined,
@@ -8,8 +8,6 @@ import {
   AppstoreOutlined,
   ShopOutlined,
   BarChartOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   DollarCircleOutlined,
   UserOutlined,
   LogoutOutlined,
@@ -30,6 +28,8 @@ import BookDetails from "./components/BookDetails";
 import LoginPage from "./pages/LoginPage";
 import Backups from "./components/Backups";
 import Issues from "./components/Issues";
+import Users from "./components/Users";
+import { authService } from "./services";
 
 const { Header, Content, Sider } = Layout;
 
@@ -37,6 +37,14 @@ const { Header, Content, Sider } = Layout;
 const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Determine selected key from path, default to '1' (Dashboard)
   const pathMap: Record<string, string> = {
@@ -48,11 +56,14 @@ const MainLayout = () => {
     "/consignments": "6",
     "/backups": "7",
     "/issues": "8",
+    "/users": "9",
   };
   const [selectedKey, setSelectedKey] = useState(
     pathMap[location.pathname] || "1"
   );
   const [collapsed, setCollapsed] = useState(false);
+  const userRole = authService.getRole();
+  const username = authService.getUsername();
 
   const handleMenuClick = (e: { key: string }) => {
     setSelectedKey(e.key);
@@ -103,8 +114,16 @@ const MainLayout = () => {
     },
   ];
 
+  if (userRole === "admin") {
+    items.push({
+      key: "9",
+      icon: <UserOutlined />,
+      label: "Users",
+    });
+  }
+
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    authService.removeToken();
     navigate("/login");
   };
 
@@ -164,17 +183,8 @@ const MainLayout = () => {
         {/* Header section */}
         <Header className="bg-white! px-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex items-center justify-between">
           <div className="flex items-center">
-            {collapsed ? (
-              <MenuUnfoldOutlined
-                className="text-lg cursor-pointer text-[#666]"
-                onClick={() => setCollapsed(false)}
-              />
-            ) : (
-              <MenuFoldOutlined
-                className="text-lg cursor-pointer text-[#666]"
-                onClick={() => setCollapsed(true)}
-              />
-            )}
+            Today is: {currentTime.toDateString()} | Time:{" "}
+            {currentTime.toLocaleTimeString()}
           </div>
           <div className="flex items-center">
             <div className="text-[#666] text-sm mr-4">Welcome back!</div>
@@ -193,7 +203,9 @@ const MainLayout = () => {
                   icon={<UserOutlined />}
                   className="bg-linear-to-br! from-[#667eea]! to-[#764ba2]! mr-2"
                 />
-                <span className="text-[#2c3e50] font-medium">Admin</span>
+                <span className="text-[#2c3e50] font-medium">
+                  {username || "User"}
+                </span>
               </div>
             </Dropdown>
           </div>
@@ -211,6 +223,7 @@ const MainLayout = () => {
             <Route path="/consignments" element={<Consignments />} />
             <Route path="/backups" element={<Backups />} />
             <Route path="/issues" element={<Issues />} />
+            <Route path="/users" element={<Users />} />
           </Routes>
         </Content>
       </Layout>
