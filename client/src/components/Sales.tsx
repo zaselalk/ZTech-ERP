@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { Table, Typography, message, Row, Col, Card } from "antd";
+import { Table, Typography, message, Row, Col, Card, Button } from "antd";
+import { EyeOutlined } from "@ant-design/icons";
 import { salesService } from "../services";
 import { Sale, ChartDataShape } from "../types";
+import ReceiptModal from "./ReceiptModal";
 import type { ChartOptions } from "chart.js";
 import {
   Chart as ChartJS,
@@ -47,6 +49,8 @@ const Sales = ({ refreshKey }: SalesProps) => {
     paymentMethods: [],
   });
   const [totalSales, setTotalSales] = useState<number>(0);
+  const [selectedSaleId, setSelectedSaleId] = useState<number | null>(null);
+  const [receiptVisible, setReceiptVisible] = useState(false);
 
   useEffect(() => {
     const total = sales.reduce((sum, sale) => {
@@ -118,8 +122,24 @@ const Sales = ({ refreshKey }: SalesProps) => {
     });
   };
 
+  const handleViewReceipt = (saleId: number) => {
+    setSelectedSaleId(saleId);
+    setReceiptVisible(true);
+  };
+
+  const handleCloseReceipt = () => {
+    setReceiptVisible(false);
+    setSelectedSaleId(null);
+  };
+
   const salesColumns = [
-    { title: "ID", dataIndex: "id", key: "id" },
+    {
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
+      sorter: (a: Sale, b: Sale) => a.id - b.id,
+      defaultSortOrder: "descend" as const,
+    },
     { title: "Bookshop", dataIndex: ["bookshop", "name"], key: "bookshop" },
     {
       title: "Total Amount",
@@ -134,6 +154,18 @@ const Sales = ({ refreshKey }: SalesProps) => {
       dataIndex: "createdAt",
       key: "createdAt",
       render: (val: string) => new Date(val).toLocaleDateString(),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: unknown, record: Sale) => (
+        <Button
+          icon={<EyeOutlined />}
+          onClick={() => handleViewReceipt(record.id)}
+        >
+          View Receipt
+        </Button>
+      ),
     },
   ];
 
@@ -386,6 +418,12 @@ const Sales = ({ refreshKey }: SalesProps) => {
           }}
         />
       </Card>
+
+      <ReceiptModal
+        saleId={selectedSaleId}
+        visible={receiptVisible}
+        onClose={handleCloseReceipt}
+      />
     </div>
   );
 };

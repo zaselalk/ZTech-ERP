@@ -81,6 +81,7 @@ router.get("/:id/sales", async (req: Request, res: Response): Promise<void> => {
   try {
     const sales = await Sale.findAll({
       where: { BookshopId: req.params.id },
+      order: [["createdAt", "DESC"]],
     });
     res.json(sales);
   } catch (err) {
@@ -99,13 +100,19 @@ router.post(
     // Validate bookshop ID is a valid number
     const parsedBookshopId = parseInt(bookshopId, 10);
     if (isNaN(parsedBookshopId) || parsedBookshopId <= 0) {
-      res.status(400).json({ message: "Bookshop ID must be a valid positive number" });
+      res
+        .status(400)
+        .json({ message: "Bookshop ID must be a valid positive number" });
       return;
     }
 
     // Validate amount is a positive number and not zero
     if (typeof amount !== "number" || isNaN(amount) || amount <= 0) {
-      res.status(400).json({ message: "Amount must be a positive number greater than zero" });
+      res
+        .status(400)
+        .json({
+          message: "Amount must be a positive number greater than zero",
+        });
       return;
     }
 
@@ -142,7 +149,9 @@ router.post(
       );
 
       // 2. Update bookshop consignment balance (decrement)
-      const bookshop = await Bookshop.findByPk(parsedBookshopId, { transaction: t });
+      const bookshop = await Bookshop.findByPk(parsedBookshopId, {
+        transaction: t,
+      });
       if (!bookshop) {
         await t.rollback();
         res.status(404).json({ message: "Bookshop not found" });

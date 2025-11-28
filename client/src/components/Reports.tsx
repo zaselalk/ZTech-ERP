@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { Table, DatePicker, Typography, message, Button, Space } from "antd";
 import type { Dayjs } from "dayjs";
 import { Sale, Bookshop, Book } from "../types";
-import { Link } from "react-router-dom";
 import { reportService } from "../services";
 import { formatCurrency } from "../utils";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import ReceiptModal from "./ReceiptModal";
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
@@ -21,6 +21,8 @@ interface LowStockBook extends Book {
 const Reports = () => {
   const [salesData, setSalesData] = useState<Sale[]>([]);
   const [lowStockData, setLowStockData] = useState<LowStockBook[]>([]);
+  const [selectedSaleId, setSelectedSaleId] = useState<number | null>(null);
+  const [isReceiptModalVisible, setIsReceiptModalVisible] = useState(false);
 
   useEffect(() => {
     fetchLowStockReport();
@@ -168,11 +170,15 @@ const Reports = () => {
       title: "Actions",
       key: "actions",
       render: (_: unknown, record: Sale) => (
-        <span>
-          <Link to={`/receipts/${record.id}`}>
-            <Button type="link">View Receipt</Button>
-          </Link>
-        </span>
+        <Button
+          type="link"
+          onClick={() => {
+            setSelectedSaleId(record.id);
+            setIsReceiptModalVisible(true);
+          }}
+        >
+          View Receipt
+        </Button>
       ),
     },
   ];
@@ -213,6 +219,12 @@ const Reports = () => {
         </Space>
       </div>
       <Table columns={lowStockColumns} dataSource={lowStockData} rowKey="id" />
+
+      <ReceiptModal
+        saleId={selectedSaleId}
+        visible={isReceiptModalVisible}
+        onClose={() => setIsReceiptModalVisible(false)}
+      />
     </div>
   );
 };

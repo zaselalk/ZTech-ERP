@@ -189,4 +189,33 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// Get sales for a single book
+router.get("/:id/sales", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const bookId = req.params.id;
+    const sales = await Sale.findAll({
+      include: [
+        {
+          model: Book,
+          as: "books",
+          where: { id: bookId },
+          through: {
+            attributes: ["quantity", "price", "discount"],
+          },
+        },
+        {
+          model: Bookshop,
+          as: "bookshop",
+          attributes: ["name"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+    res.json(sales);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export = router;

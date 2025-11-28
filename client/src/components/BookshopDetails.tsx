@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Bookshop, Sale, ConsignmentPayment } from "../types";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   Card,
   Spin,
@@ -17,6 +17,7 @@ import {
 import { bookshopService } from "../services";
 import { formatCurrency } from "../utils";
 import dayjs from "dayjs";
+import ReceiptModal from "./ReceiptModal";
 
 const { Title } = Typography;
 
@@ -27,6 +28,8 @@ const BookshopDetails = () => {
   const [payments, setPayments] = useState<ConsignmentPayment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
+  const [selectedSaleId, setSelectedSaleId] = useState<number | null>(null);
+  const [isReceiptModalVisible, setIsReceiptModalVisible] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -123,12 +126,16 @@ const BookshopDetails = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (_: unknown, _record: Sale) => (
-        <span>
-          <Link to={`/bookshops/`}>
-            <Button type="link">View Receipt</Button>
-          </Link>
-        </span>
+      render: (_: unknown, record: Sale) => (
+        <Button
+          type="link"
+          onClick={() => {
+            setSelectedSaleId(record.id);
+            setIsReceiptModalVisible(true);
+          }}
+        >
+          View Receipt
+        </Button>
       ),
     },
   ];
@@ -173,6 +180,12 @@ const BookshopDetails = () => {
         Sales History
       </Title>
       <Table columns={salesColumns} dataSource={sales} rowKey="id" />
+
+      <ReceiptModal
+        saleId={selectedSaleId}
+        visible={isReceiptModalVisible}
+        onClose={() => setIsReceiptModalVisible(false)}
+      />
 
       <Modal
         title="Add Consignment Payment"

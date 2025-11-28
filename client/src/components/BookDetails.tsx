@@ -1,9 +1,10 @@
 import { formatCurrency } from "../utils";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Card, Spin, message, Table, Typography } from "antd";
+import { Card, Spin, message, Table, Typography, Button } from "antd";
 import { bookService } from "../services";
-import { Book } from "../types";
+import { Book, Sale } from "../types";
+import ReceiptModal from "./ReceiptModal";
 
 const { Title } = Typography;
 
@@ -29,7 +30,10 @@ const BookDetails = () => {
     totalSales: 0,
     topBookshops: [],
   });
+  const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedSaleId, setSelectedSaleId] = useState<number | null>(null);
+  const [isReceiptModalVisible, setIsReceiptModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -38,6 +42,8 @@ const BookDetails = () => {
         setBook(bookResponse);
         const statsResponse = await bookService.getBookStats(id!);
         setStats(statsResponse);
+        const salesResponse = await bookService.getBookSales(id!);
+        setSales(salesResponse);
       } catch (error) {
         message.error("Failed to fetch book details");
       } finally {
@@ -69,6 +75,40 @@ const BookDetails = () => {
       dataIndex: "date",
       key: "date",
       render: (text: string) => new Date(text).toLocaleDateString(),
+    },
+  ];
+
+  const salesColumns = [
+    { title: "Sale ID", dataIndex: "id", key: "id" },
+    { title: "Bookshop", dataIndex: ["bookshop", "name"], key: "bookshop" },
+    {
+      title: "Quantity",
+      key: "quantity",
+      render: (_: unknown, record: Sale) => {
+        const bookItem = record.books.find((b) => b.id === Number(id));
+        return bookItem?.SaleItem?.quantity || 0;
+      },
+    },
+    {
+      title: "Date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (val: string) => new Date(val).toLocaleString(),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: unknown, record: Sale) => (
+        <Button
+          type="link"
+          onClick={() => {
+            setSelectedSaleId(record.id);
+            setIsReceiptModalVisible(true);
+          }}
+        >
+          View Receipt
+        </Button>
+      ),
     },
   ];
 
@@ -110,6 +150,17 @@ const BookDetails = () => {
         columns={topBookshopsColumns}
         dataSource={stats.topBookshops}
         rowKey={(record) => record.bookshop.id}
+      />
+
+      <Title level={4} style={{ marginTop: "24px" }}>
+        Recent Sales
+      </Title>
+      <Table columns={salesColumns} dataSource={sales} rowKey="id" />
+
+      <ReceiptModal
+        saleId={selectedSaleId}
+        visible={isReceiptModalVisible}
+        onClose={() => setIsReceiptModalVisible(false)}
       />
     </div>
   );

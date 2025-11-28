@@ -1,5 +1,5 @@
 import api from "../utils/api";
-import { Book } from "../types";
+import { Book, Sale } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
@@ -32,6 +32,13 @@ export const bookService = {
    */
   async getBookStats(id: string | number): Promise<BookStats> {
     return await api.fetch<BookStats>(`${API_URL}/books/${id}/stats`);
+  },
+
+  /**
+   * Get sales for a specific book
+   */
+  async getBookSales(id: string | number): Promise<Sale[]> {
+    return await api.fetch<Sale[]>(`${API_URL}/books/${id}/sales`);
   },
 
   /**
