@@ -394,6 +394,12 @@ const PosPage = () => {
     setEditingItem(null);
   };
 
+  const handleClearCart = (): void => {
+    setCart([]);
+    setCartDiscountInput(0);
+    setCartDiscountType("Fixed");
+  };
+
   // --- UI Rendering & Columns ---
   const cartColumns = [
     { title: "Book", dataIndex: "name", key: "name" },
@@ -658,16 +664,26 @@ const PosPage = () => {
                   Total: {formatCurrency(total)}
                 </Title>
               </div>
-              <Button
-                type="primary"
-                block
-                size="large"
-                disabled={cart.length === 0}
-                onClick={() => setIsCheckoutVisible(true)}
-                className="mt-4"
-              >
-                Checkout
-              </Button>
+              <div className="flex gap-2 mt-4">
+                <Button
+                  danger
+                  size="large"
+                  disabled={cart.length === 0}
+                  onClick={handleClearCart}
+                  className="flex-1"
+                >
+                  Clear Cart
+                </Button>
+                <Button
+                  type="primary"
+                  size="large"
+                  disabled={cart.length === 0}
+                  onClick={() => setIsCheckoutVisible(true)}
+                  className="flex-3"
+                >
+                  Checkout
+                </Button>
+              </div>
             </div>
           </div>
         </Sider>
