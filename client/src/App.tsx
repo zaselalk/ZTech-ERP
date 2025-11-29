@@ -152,22 +152,19 @@ const MainLayout = () => {
   ];
 
   return (
-    <Layout className="min-h-screen">
+    <Layout className="h-screen overflow-hidden">
       <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={setCollapsed}
-        className="bg-linear-to-b! from-[#667eea]! to-[#764ba2]! shadow-[2px_0_8px_rgba(0,0,0,0.1)] min-h-screen"
+        className="bg-linear-to-b! from-[#667eea]! to-[#764ba2]! shadow-[2px_0_8px_rgba(0,0,0,0.1)] h-screen overflow-y-auto"
         width={250}
-        collapsedWidth={80}
       >
         <div
-          className={`h-16 flex items-center text-white text-xl font-semibold border-b border-white/10 mb-2 ${
-            collapsed ? "justify-center px-0" : "justify-start px-6"
-          }`}
+          className={`h-16 flex items-center text-white bg-white text-xl font-semibold border-b border-white/10 mb-2 py-12 `}
         >
-          <BookOutlined className={`text-2xl ${collapsed ? "mr-0" : "mr-3"}`} />
-          {!collapsed && "Bookshop Manager"}
+          <img
+            src="/logo/storyflix-logo.png"
+            alt="Bookshop Logo"
+            className="mx-auto mb-4 h-16"
+          />
         </div>
         <Menu
           theme="dark"
@@ -175,12 +172,12 @@ const MainLayout = () => {
           selectedKeys={[selectedKey]}
           onClick={handleMenuClick}
           items={items}
-          className="bg-transparent border-none text-white"
+          className="bg-transparent border-none text-white "
         />
       </Sider>
-      <Layout>
+      <Layout className="flex flex-col h-screen overflow-hidden">
         {/* Header section */}
-        <Header className="bg-white! px-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex items-center justify-between">
+        <Header className="bg-white! px-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex items-center justify-between shrink-0">
           <div className="flex items-center">
             Today is: {currentTime.toDateString()} | Time:{" "}
             {currentTime.toLocaleTimeString()}
@@ -209,7 +206,7 @@ const MainLayout = () => {
             </Dropdown>
           </div>
         </Header>
-        <Content className="m-6 p-6 bg-[#f5f6fa] rounded-lg">
+        <Content className="m-6 p-6 bg-[#f5f6fa] rounded-lg overflow-y-auto flex-1">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/sales" element={<Sales />} />

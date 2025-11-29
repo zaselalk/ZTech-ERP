@@ -44,10 +44,7 @@ export const DashboardStatCards = () => {
           <div className="flex justify-between items-start">
             <div>
               <Text className="text-white/80 text-xs block">Today's Sales</Text>
-              <Title
-                level={2}
-                className="text-white my-2 text-[30px] font-bold"
-              >
+              <Title level={3} className="text-white font-bold">
                 {formatCurrency(stats.totalSalesToday)}
               </Title>
             </div>
@@ -60,11 +57,8 @@ export const DashboardStatCards = () => {
         <Card className="bg-linear-to-br from-[#0f6f56ff] to-[#1a9977ff] border-none rounded-2xl shadow-[0_8px_24px_rgba(6,214,160,0.3)] text-white h-[160px]">
           <div className="flex justify-between items-start">
             <div>
-              <Text className="text-white/80 text-sm block">This Week</Text>
-              <Title
-                level={2}
-                className="text-white my-2 text-[30px] font-bold"
-              >
+              <Text className="text-white/80 block">This Week</Text>
+              <Title level={3} className="text-white font-bold">
                 {formatCurrency(stats.totalSalesWeek)}
               </Title>
             </div>
@@ -77,11 +71,8 @@ export const DashboardStatCards = () => {
         <Card className="bg-linear-to-br from-[#8b5cf6] to-[#a855f7] border-none rounded-2xl shadow-[0_8px_24px_rgba(139,92,246,0.3)] text-white h-[160px]">
           <div className="flex justify-between items-start">
             <div>
-              <Text className="text-white/80 text-sm block">This Month</Text>
-              <Title
-                level={2}
-                className="text-white my-2 text-[30px] font-bold"
-              >
+              <Text className="text-white/80 block">This Month</Text>
+              <Title level={3} className="text-white font-bold">
                 {formatCurrency(stats.totalSalesMonth)}
               </Title>
             </div>
@@ -98,7 +89,7 @@ export const DashboardStatCards = () => {
                 Total Consignment
               </Text>
               <Title
-                level={2}
+                level={3}
                 className="text-white my-2 text-[32px] font-bold"
               >
                 {formatCurrency(stats.totalConsignment)}

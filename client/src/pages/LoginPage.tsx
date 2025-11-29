@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, Form, Input, Button, Typography, message } from "antd";
-import { UserOutlined, LockOutlined, BookOutlined } from "@ant-design/icons";
+import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { authService } from "../services";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const LoginPage = () => {
   const [username, setUsername] = useState("");
@@ -46,17 +46,14 @@ const LoginPage = () => {
         className="p-32"
       >
         <div className="text-center mb-8">
-          <div className="bg-linear-to-br from-[#4285f4] to-[#346ecbff] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_4px_16px_rgba(66,133,244,0.3)]">
-            <BookOutlined className="text-[32px] text-white" />
-          </div>
-          <Title
-            level={2}
-            className="text-[#2c3e50] mb-2 text-[28px] font-bold"
-          >
-            Welcome Back
-          </Title>
+          <img
+            src="/logo/storyflix-logo.png"
+            alt="Bookshop Logo"
+            className="mx-auto mb-4  h-16"
+          />
+
           <Text className="text-base text-[#7f8c8d] block">
-            Sign in to your bookshop account
+            Sign in to your account
           </Text>
         </div>
 
