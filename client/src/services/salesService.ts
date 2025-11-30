@@ -22,8 +22,17 @@ export const salesService = {
   /**
    * Get all sales
    */
-  async getSales(): Promise<Sale[]> {
-    return await api.fetch<Sale[]>(`${API_URL}/sales`);
+  async getSales(startDate?: string, endDate?: string): Promise<Sale[]> {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `${API_URL}/sales?${queryString}`
+      : `${API_URL}/sales`;
+
+    return await api.fetch<Sale[]>(url);
   },
 
   /**

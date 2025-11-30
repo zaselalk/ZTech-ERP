@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import nodemailer from "nodemailer";
+import { Op } from "sequelize";
 const db = require("../db/models");
 const { sequelize, Sale, SaleItem, Book, Bookshop } = db;
 
@@ -31,8 +32,23 @@ interface EmailRequestBody {
 // Get all sales
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
+    const { startDate, endDate } = req.query;
+    const whereClause: any = {};
+
+    if (startDate && endDate) {
+      const start = new Date(startDate as string);
+      const end = new Date(endDate as string);
+      end.setHours(23, 59, 59, 999);
+
+      whereClause.createdAt = {
+        [Op.between]: [start, end],
+      };
+    }
+
     const sales = await Sale.findAll({
+      where: whereClause,
       include: ["bookshop", { model: Book, as: "books" }],
+      order: [["createdAt", "DESC"]],
     });
     res.json(sales);
   } catch (err) {

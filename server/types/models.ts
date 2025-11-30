@@ -5,6 +5,7 @@ export interface UserAttributes {
   id: number;
   username: string;
   password: string;
+  role: "admin" | "staff";
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -59,6 +60,17 @@ export interface SaleItemAttributes {
   updatedAt?: Date;
 }
 
+// ConsignmentPayment attributes
+export interface ConsignmentPaymentAttributes {
+  id: number;
+  bookshopId: number;
+  amount: number;
+  paymentDate: Date;
+  note?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 // Creation attributes (id is auto-generated)
 export interface UserCreationAttributes
   extends Optional<UserAttributes, "id"> {}
@@ -70,6 +82,8 @@ export interface SaleCreationAttributes
   extends Optional<SaleAttributes, "id"> {}
 export interface SaleItemCreationAttributes
   extends Optional<SaleItemAttributes, "id"> {}
+export interface ConsignmentPaymentCreationAttributes
+  extends Optional<ConsignmentPaymentAttributes, "id"> {}
 
 // Model classes
 export class User
@@ -79,6 +93,7 @@ export class User
   public id!: number;
   public username!: string;
   public password!: string;
+  public role!: "admin" | "staff";
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -137,6 +152,22 @@ export class SaleItem
   public price!: number;
   public discount!: number;
   public discount_type!: "Fixed" | "Percentage";
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+export class ConsignmentPayment
+  extends Model<
+    ConsignmentPaymentAttributes,
+    ConsignmentPaymentCreationAttributes
+  >
+  implements ConsignmentPaymentAttributes
+{
+  public id!: number;
+  public bookshopId!: number;
+  public amount!: number;
+  public paymentDate!: Date;
+  public note!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }

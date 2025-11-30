@@ -1,12 +1,13 @@
 import express, { Request, Response } from "express";
 import { Op } from "sequelize";
 const db = require("../db/models");
-const { Book, SaleItem } = db;
+const { Book, SaleItem, Sale, Bookshop } = db;
 
 const router = express.Router();
 
 interface BooksQueryParams {
   search?: string;
+  type?: "name" | "barcode";
 }
 
 // Get all books
@@ -17,15 +18,19 @@ router.get(
     res: Response
   ): Promise<void> => {
     try {
-      const { search } = req.query;
+      const { search, type } = req.query;
       let where = {};
       if (search) {
-        where = {
-          [Op.or]: [
-            { name: { [Op.like]: `%${search}%` } },
-            { author: { [Op.like]: `%${search}%` } },
-          ],
-        };
+        if (type === "barcode") {
+          where = { barcode: { [Op.like]: `%${search}%` } };
+        } else {
+          where = {
+            [Op.or]: [
+              { name: { [Op.like]: `%${search}%` } },
+              { author: { [Op.like]: `%${search}%` } },
+            ],
+          };
+        }
       }
       const books = await Book.findAll({ where });
       res.json(books);
@@ -92,9 +97,45 @@ router.get("/:id/stats", async (req: Request, res: Response): Promise<void> => {
       where: { BookId: bookId },
     });
 
+    // Calculate top bookshops
+    const topBookshopsData = await SaleItem.findAll({
+      where: { BookId: bookId },
+      attributes: [
+        [
+          db.sequelize.fn("SUM", db.sequelize.col("SaleItem.quantity")),
+          "total_quantity",
+        ],
+        [db.sequelize.fn("MAX", db.sequelize.col("sale.createdAt")), "date"],
+      ],
+      include: [
+        {
+          model: Sale,
+          as: "sale",
+          attributes: [],
+          include: [
+            {
+              model: Bookshop,
+              as: "bookshop",
+              attributes: ["id", "name"],
+            },
+          ],
+        },
+      ],
+      group: ["sale.BookshopId", "sale->bookshop.id", "sale->bookshop.name"],
+      order: [[db.sequelize.literal("total_quantity"), "DESC"]],
+      raw: true,
+      nest: true,
+    });
+
+    const topBookshops = topBookshopsData.map((item: any) => ({
+      bookshop: item.sale.bookshop,
+      total_quantity: item.total_quantity,
+      date: item.date,
+    }));
+
     res.json({
       totalSales: totalSales || 0,
-      topBookshops: [],
+      topBookshops: topBookshops,
     });
   } catch (err) {
     const error = err as Error;
@@ -142,6 +183,35 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
     } else {
       res.status(404).json({ message: "Book not found" });
     }
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get sales for a single book
+router.get("/:id/sales", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const bookId = req.params.id;
+    const sales = await Sale.findAll({
+      include: [
+        {
+          model: Book,
+          as: "books",
+          where: { id: bookId },
+          through: {
+            attributes: ["quantity", "price", "discount"],
+          },
+        },
+        {
+          model: Bookshop,
+          as: "bookshop",
+          attributes: ["name"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+    res.json(sales);
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ message: error.message });

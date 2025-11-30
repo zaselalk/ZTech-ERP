@@ -3,7 +3,6 @@ import { Bookshop } from "../types";
 import { Table, Button, Modal, Form, Input, message } from "antd";
 import { Link } from "react-router-dom";
 import { bookshopService } from "../services";
-import { format } from "path";
 import { formatCurrency } from "../utils";
 
 const Bookshops = () => {

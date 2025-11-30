@@ -13,15 +13,16 @@ import {
   Form,
   Select,
   InputNumber,
-  Divider,
   Space,
+  Switch,
 } from "antd";
+import type { InputRef } from "antd";
 import { useNavigate } from "react-router-dom";
-import { useReactToPrint } from "react-to-print";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { bookService, bookshopService, salesService } from "../services";
 import { Book, Sale, Bookshop } from "../types";
 import type { FormInstance } from "antd/es/form";
+import ReceiptModal from "../components/ReceiptModal";
 
 const { Header, Content, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -29,112 +30,6 @@ const { Search } = Input;
 const { Option } = Select;
 
 // --- Re-usable sub-components ---
-
-interface ReceiptProps {
-  sale: Sale | null;
-  onDone: () => void;
-  onEmail: () => void;
-  visible: boolean;
-}
-const Receipt = ({ sale, onDone, onEmail, visible }: ReceiptProps) => {
-  const componentRef = useRef<HTMLDivElement | null>(null);
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-  } as any);
-  if (!sale) return null;
-
-  const subtotal = sale.books.reduce(
-    (acc, book) =>
-      acc + (book.SaleItem?.price || 0) * (book.SaleItem?.quantity || 0),
-    0
-  );
-
-  return (
-    <Modal
-      title="Sale Successful"
-      // visible={visible}
-      open={visible}
-      onCancel={onDone}
-      footer={[
-        <Button key="back" onClick={onDone}>
-          New Sale
-        </Button>,
-        <Button key="submit" type="primary" onClick={handlePrint}>
-          Print Receipt
-        </Button>,
-        <Button key="email" onClick={onEmail}>
-          Email Receipt
-        </Button>,
-      ]}
-    >
-      <div ref={componentRef} className="p-5">
-        <Title level={4}>Receipt - Sale #{sale.id}</Title>
-        {sale.bookshop && (
-          <>
-            <Text>
-              <strong>Bookshop:</strong> {sale.bookshop.name}
-            </Text>
-            <br />
-          </>
-        )}
-        <Text>
-          <strong>Date:</strong> {new Date(sale.createdAt).toLocaleString()}
-        </Text>
-        <br />
-        <Text>
-          <strong>Payment Method:</strong> {sale.payment_method}
-        </Text>
-        <Divider />
-        <Table
-          dataSource={sale.books}
-          columns={[
-            { title: "Item", dataIndex: "name", key: "name" },
-            {
-              title: "Qty",
-              dataIndex: ["SaleItem", "quantity"],
-              key: "quantity",
-            },
-            {
-              title: "Price",
-              dataIndex: ["SaleItem", "price"],
-              key: "price",
-              render: (val) => formatCurrency(val),
-            },
-            {
-              title: "Discount",
-              dataIndex: ["SaleItem"],
-              key: "discount",
-              render: (si) =>
-                si.discount > 0
-                  ? `${si.discount} ${
-                      si.discount_type === "Fixed" ? "LKR" : "%"
-                    }`
-                  : "-",
-            },
-            {
-              title: "Total",
-              key: "total",
-              render: (_, record) =>
-                formatCurrency(
-                  (record.SaleItem?.price || 0) *
-                    (record.SaleItem?.quantity || 0)
-                ),
-            },
-          ]}
-          pagination={false}
-          size="small"
-        />
-        <div className="text-right mt-4">
-          <Text>Subtotal: {formatCurrency(subtotal)}</Text>
-          <br />
-          <Text>Cart Discount: {formatCurrency(sale.discount ?? 0)}</Text>
-          <br />
-          <Title level={5}>Total: {formatCurrency(sale.total_amount)}</Title>
-        </div>
-      </div>
-    </Modal>
-  );
-};
 
 interface ItemDiscountModalProps {
   item: CartItem;
@@ -189,44 +84,6 @@ const ItemDiscountModal = ({
   );
 };
 
-interface EmailReceiptModalProps {
-  visible: boolean;
-  onSend: (email: string) => void;
-  onCancel: () => void;
-}
-const EmailReceiptModal = ({
-  visible,
-  onSend,
-  onCancel,
-}: EmailReceiptModalProps) => {
-  const [form] = Form.useForm();
-
-  const handleSend = () => {
-    form.validateFields().then((values) => {
-      onSend(values.email);
-    });
-  };
-
-  return (
-    <Modal
-      title="Email Receipt"
-      open={visible}
-      onOk={handleSend}
-      onCancel={onCancel}
-    >
-      <Form form={form} layout="vertical">
-        <Form.Item
-          label="Recipient Email"
-          name="email"
-          rules={[{ required: true, type: "email" }]}
-        >
-          <Input />
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
-};
-
 interface CartItem extends Book {
   quantity: number;
   availableStock: number;
@@ -246,14 +103,27 @@ const PosPage = () => {
   const [editingItem, setEditingItem] = useState<CartItem | null>(null);
   const navigate = useNavigate();
   const [searchResults, setSearchResults] = useState<Book[] | null>(null);
-  const [isEmailModalVisible, setIsEmailModalVisible] =
-    useState<boolean>(false);
+  const [searchType, setSearchType] = useState<"name" | "barcode">("name");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const searchTimeout = useRef<number | null>(null);
+  const searchInputRef = useRef<InputRef>(null);
+  const cartRef = useRef<CartItem[]>(cart);
 
   // --- Data Fetching ---
   useEffect(() => {
     fetchTopSellers();
   }, []);
+
+  useEffect(() => {
+    cartRef.current = cart;
+  }, [cart]);
+
+  useEffect(() => {
+    if (searchQuery) {
+      handleSearch(searchQuery);
+    }
+  }, [searchType]);
+
   const fetchTopSellers = async (): Promise<void> => {
     try {
       const data = await bookService.getTopSellers();
@@ -264,9 +134,25 @@ const PosPage = () => {
   };
 
   const handleSearch = async (query: string): Promise<void> => {
+    if (searchTimeout.current) {
+      window.clearTimeout(searchTimeout.current);
+      searchTimeout.current = null;
+    }
+
     if (query) {
       try {
-        const data = await bookService.searchBooks(query);
+        const data = await bookService.searchBooks(query, searchType);
+
+        if (searchType === "barcode" && data.length === 1) {
+          const book = data[0];
+          handleAddToCart(book);
+          message.success(`Added ${book.name} to cart`);
+          setSearchQuery("");
+          setSearchResults(null);
+          searchInputRef.current?.focus();
+          return;
+        }
+
         setSearchResults(data);
       } catch (e) {
         message.error("Failed to search for books");
@@ -277,6 +163,7 @@ const PosPage = () => {
   };
 
   const debouncedSearch = (query: string): void => {
+    setSearchQuery(query);
     if (searchTimeout.current) {
       window.clearTimeout(searchTimeout.current);
     }
@@ -285,28 +172,16 @@ const PosPage = () => {
     }, 300);
   };
 
-  const handleSendEmail = async (email: string): Promise<void> => {
-    try {
-      if (!completedSale) {
-        throw new Error("No completed sale to email");
-      }
-      await salesService.sendReceiptEmail(completedSale.id, email);
-      message.success("Receipt sent successfully");
-      setIsEmailModalVisible(false);
-    } catch (error) {
-      message.error((error as Error).message);
-    }
-  };
-
   // --- Cart & Discount Logic ---
   const handleAddToCart = (book: Book): void => {
+    const currentCart = cartRef.current;
     const availableQuantity = book.quantity ?? 0;
     if (availableQuantity <= 0) {
       message.warning(`${book.name} is out of stock`);
       return;
     }
 
-    const existing = cart.find((item) => item.id === book.id);
+    const existing = currentCart.find((item) => item.id === book.id);
     if (existing) {
       if (existing.quantity >= existing.availableStock) {
         message.warning(
@@ -315,13 +190,13 @@ const PosPage = () => {
         return;
       }
       setCart(
-        cart.map((item) =>
+        currentCart.map((item) =>
           item.id === book.id ? { ...item, quantity: item.quantity + 1 } : item
         )
       );
     } else {
       setCart([
-        ...cart,
+        ...currentCart,
         {
           ...book,
           quantity: 1,
@@ -394,6 +269,12 @@ const PosPage = () => {
     setEditingItem(null);
   };
 
+  const handleClearCart = (): void => {
+    setCart([]);
+    setCartDiscountInput(0);
+    setCartDiscountType("Fixed");
+  };
+
   // --- UI Rendering & Columns ---
   const cartColumns = [
     { title: "Book", dataIndex: "name", key: "name" },
@@ -463,11 +344,34 @@ const PosPage = () => {
       </Header>
       <Layout className="h-[calc(100vh-64px)]">
         <Content className="p-6 flex-1 flex flex-col">
-          <Search
-            placeholder="Search for books..."
-            onChange={(e) => debouncedSearch(e.target.value)}
-            style={{ marginBottom: 24, flexShrink: 0 }}
-          />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: 24,
+              gap: 16,
+            }}
+          >
+            <Search
+              ref={searchInputRef}
+              placeholder={`Search for books by ${searchType}...`}
+              value={searchQuery}
+              onChange={(e) => debouncedSearch(e.target.value)}
+              onSearch={(value) => handleSearch(value)}
+              style={{ flex: 1 }}
+            />
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Text>Search by:</Text>
+              <Switch
+                checkedChildren="Barcode"
+                unCheckedChildren="Name"
+                checked={searchType === "barcode"}
+                onChange={(checked) =>
+                  setSearchType(checked ? "barcode" : "name")
+                }
+              />
+            </div>
+          </div>
           <div
             style={{
               flex: 1,
@@ -658,16 +562,26 @@ const PosPage = () => {
                   Total: {formatCurrency(total)}
                 </Title>
               </div>
-              <Button
-                type="primary"
-                block
-                size="large"
-                disabled={cart.length === 0}
-                onClick={() => setIsCheckoutVisible(true)}
-                className="mt-4"
-              >
-                Checkout
-              </Button>
+              <div className="flex gap-2 mt-4">
+                <Button
+                  danger
+                  size="large"
+                  disabled={cart.length === 0}
+                  onClick={handleClearCart}
+                  className="flex-1"
+                >
+                  Clear Cart
+                </Button>
+                <Button
+                  type="primary"
+                  size="large"
+                  disabled={cart.length === 0}
+                  onClick={() => setIsCheckoutVisible(true)}
+                  className="flex-3"
+                >
+                  Checkout
+                </Button>
+              </div>
             </div>
           </div>
         </Sider>
@@ -694,18 +608,10 @@ const PosPage = () => {
         />
       )}
       {completedSale && (
-        <Receipt
-          sale={completedSale}
+        <ReceiptModal
+          saleId={completedSale.id}
           visible={!!completedSale}
-          onDone={resetSale}
-          onEmail={() => setIsEmailModalVisible(true)}
-        />
-      )}
-      {isEmailModalVisible && (
-        <EmailReceiptModal
-          visible={isEmailModalVisible}
-          onSend={handleSendEmail}
-          onCancel={() => setIsEmailModalVisible(false)}
+          onClose={resetSale}
         />
       )}
     </Layout>
@@ -787,8 +693,11 @@ interface PaymentFormProps {
 }
 const PaymentForm = ({ form, total, bookshops }: PaymentFormProps) => {
   const paymentMethod = Form.useWatch("payment_method", form);
+  const bookshopId = Form.useWatch("BookshopId", form);
   const [amountTendered, setAmountTendered] = useState<number>(0);
   const change = amountTendered - total;
+
+  const selectedBookshop = bookshops.find((b) => b.id === bookshopId);
 
   return (
     <>
@@ -817,6 +726,27 @@ const PaymentForm = ({ form, total, bookshops }: PaymentFormProps) => {
           <Option value="Consignment">Consignment</Option>
         </Select>
       </Form.Item>
+
+      {paymentMethod === "Consignment" && selectedBookshop && (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: 10,
+            background: "#f5f5f5",
+            borderRadius: 4,
+          }}
+        >
+          <Text>
+            Current Consignment Balance:{" "}
+            <strong>{formatCurrency(selectedBookshop.consignment || 0)}</strong>
+          </Text>
+          <br />
+          <Text type="secondary">
+            This sale will increase the balance by {formatCurrency(total)}
+          </Text>
+        </div>
+      )}
+
       {paymentMethod === "Cash" && (
         <Row gutter={16}>
           <Col span={12}>

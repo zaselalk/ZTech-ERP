@@ -1,7 +1,19 @@
 import { useState, useEffect } from "react";
-import { Table, Typography, message, Row, Col, Card } from "antd";
+import {
+  Table,
+  Typography,
+  message,
+  Row,
+  Col,
+  Card,
+  Button,
+  DatePicker,
+} from "antd";
+import { EyeOutlined } from "@ant-design/icons";
+import { Dayjs } from "dayjs";
 import { salesService } from "../services";
 import { Sale, ChartDataShape } from "../types";
+import ReceiptModal from "./ReceiptModal";
 import type { ChartOptions } from "chart.js";
 import {
   Chart as ChartJS,
@@ -34,6 +46,7 @@ ChartJS.register(
 );
 
 const { Title, Text } = Typography;
+const { RangePicker } = DatePicker;
 
 interface SalesProps {
   refreshKey?: number | string;
@@ -41,12 +54,17 @@ interface SalesProps {
 
 const Sales = ({ refreshKey }: SalesProps) => {
   const [sales, setSales] = useState<Sale[]>([]);
+  const [dateRange, setDateRange] = useState<
+    [Dayjs | null, Dayjs | null] | null
+  >(null);
   const [chartData, setChartData] = useState<ChartDataShape>({
     dailySales: [],
     bookshopSales: [],
     paymentMethods: [],
   });
   const [totalSales, setTotalSales] = useState<number>(0);
+  const [selectedSaleId, setSelectedSaleId] = useState<number | null>(null);
+  const [receiptVisible, setReceiptVisible] = useState(false);
 
   useEffect(() => {
     const total = sales.reduce((sum, sale) => {
@@ -61,12 +79,16 @@ const Sales = ({ refreshKey }: SalesProps) => {
 
   useEffect(() => {
     fetchSales();
-    processChartData();
-  }, [refreshKey]); // Refetch when the refreshKey changes
+  }, [refreshKey, dateRange]); // Refetch when the refreshKey or dateRange changes
 
   const fetchSales = async (): Promise<void> => {
     try {
-      const salesData = await salesService.getSales();
+      let startStr, endStr;
+      if (dateRange && dateRange[0] && dateRange[1]) {
+        startStr = dateRange[0].format("YYYY-MM-DD");
+        endStr = dateRange[1].format("YYYY-MM-DD");
+      }
+      const salesData = await salesService.getSales(startStr, endStr);
       setSales(salesData);
       processChartData(salesData);
     } catch (e) {
@@ -118,8 +140,24 @@ const Sales = ({ refreshKey }: SalesProps) => {
     });
   };
 
+  const handleViewReceipt = (saleId: number) => {
+    setSelectedSaleId(saleId);
+    setReceiptVisible(true);
+  };
+
+  const handleCloseReceipt = () => {
+    setReceiptVisible(false);
+    setSelectedSaleId(null);
+  };
+
   const salesColumns = [
-    { title: "ID", dataIndex: "id", key: "id" },
+    {
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
+      sorter: (a: Sale, b: Sale) => a.id - b.id,
+      defaultSortOrder: "descend" as const,
+    },
     { title: "Bookshop", dataIndex: ["bookshop", "name"], key: "bookshop" },
     {
       title: "Total Amount",
@@ -134,6 +172,18 @@ const Sales = ({ refreshKey }: SalesProps) => {
       dataIndex: "createdAt",
       key: "createdAt",
       render: (val: string) => new Date(val).toLocaleDateString(),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: unknown, record: Sale) => (
+        <Button
+          icon={<EyeOutlined />}
+          onClick={() => handleViewReceipt(record.id)}
+        >
+          View Receipt
+        </Button>
+      ),
     },
   ];
 
@@ -235,6 +285,14 @@ const Sales = ({ refreshKey }: SalesProps) => {
           <Text className="text-base text-[#7f8c8d]">
             Comprehensive sales data and insights
           </Text>
+        </div>
+        <div>
+          <RangePicker
+            onChange={(dates) =>
+              setDateRange(dates as [Dayjs | null, Dayjs | null] | null)
+            }
+            className="w-64"
+          />
         </div>
       </div>
 
@@ -386,6 +444,12 @@ const Sales = ({ refreshKey }: SalesProps) => {
           }}
         />
       </Card>
+
+      <ReceiptModal
+        saleId={selectedSaleId}
+        visible={receiptVisible}
+        onClose={handleCloseReceipt}
+      />
     </div>
   );
 };

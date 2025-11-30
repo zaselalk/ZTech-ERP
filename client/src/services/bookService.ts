@@ -1,5 +1,5 @@
 import api from "../utils/api";
-import { Book } from "../types";
+import { Book, Sale } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
@@ -35,10 +35,22 @@ export const bookService = {
   },
 
   /**
+   * Get sales for a specific book
+   */
+  async getBookSales(id: string | number): Promise<Sale[]> {
+    return await api.fetch<Sale[]>(`${API_URL}/books/${id}/sales`);
+  },
+
+  /**
    * Search books by query
    */
-  async searchBooks(query: string): Promise<Book[]> {
-    return await api.fetch<Book[]>(`${API_URL}/books?search=${query}`);
+  async searchBooks(
+    query: string,
+    type: "name" | "barcode" = "name"
+  ): Promise<Book[]> {
+    return await api.fetch<Book[]>(
+      `${API_URL}/books?search=${query}&type=${type}`
+    );
   },
 
   /**

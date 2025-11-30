@@ -42,3 +42,32 @@ Build and run (production):
 npm run build
 npm start
 ```
+
+Build docker image in server
+
+```
+docker build -t bookshop-server -f .Dockerfile .
+```
+
+## Create a mysql container with shared network
+
+### Create a network
+
+```
+docker network create pos-network
+```
+
+### Create a mysql container on same network
+
+Tempory we expose the port to outside
+
+```
+docker run -d --name MySQL --network pos-network -v mysql-data:/var/lib/mysql -p 3306:3306 -e  MYSQL_ROOT_PASSWORD=password mysql:8
+
+```
+
+### Run the container on same network
+
+```
+docker run --env-file .env -p 5000:5000 --network pos-network  bookshop-server
+```
