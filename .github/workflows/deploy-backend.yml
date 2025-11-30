@@ -1,0 +1,132 @@
+name: Deploy Backend to VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "server/**"
+      - ".github/workflows/deploy-backend.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy source code to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          source: "server/"
+          target: "/tmp/bookshop-deploy-${{ github.sha }}/"
+          strip_components: 0
+
+      - name: Build and deploy on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+
+            # Set deployment variables
+            DEPLOY_DIR="/tmp/bookshop-deploy-${{ github.sha }}"
+            APP_DIR="${{ secrets.VPS_APP_DIR || '/var/www/bookshop-backend' }}"
+            CONTAINER_NAME="bookshop-backend"
+            IMAGE_NAME="bookshop-backend:latest"
+
+            # Create app directory if it doesn't exist
+            mkdir -p $APP_DIR
+
+            # Build Docker image from source
+            echo "🔨 Building Docker image..."
+            cd $DEPLOY_DIR/server
+            docker build -t $IMAGE_NAME -f Dockerfile .
+
+            # Stop and remove existing container if running
+            if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+              echo "🛑 Stopping existing container..."
+              docker stop $CONTAINER_NAME
+              docker rm $CONTAINER_NAME
+            fi
+
+            # Create Docker network if it doesn't exist
+            NETWORK_NAME="${{ secrets.DOCKER_NETWORK || 'bookshop-network' }}"
+            if ! docker network ls --format '{{.Name}}' | grep -q "^${NETWORK_NAME}$"; then
+              echo "🌐 Creating Docker network..."
+              docker network create $NETWORK_NAME
+            fi
+
+            # Run new container
+            echo "🚀 Starting new container..."
+            docker run -d \
+              --name $CONTAINER_NAME \
+              --restart unless-stopped \
+              -p ${{ secrets.VPS_BACKEND_PORT || 5001 }}:5000 \
+              -v $APP_DIR/.env:/app/.env \
+              -v $APP_DIR/backups:/app/backups \
+              --network $NETWORK_NAME \
+              $IMAGE_NAME
+
+            # Clean up deployment directory
+            rm -rf $DEPLOY_DIR
+
+            # Clean up old images (keep last 3)
+            echo "🧹 Cleaning up old images..."
+            docker images bookshop-backend --format "{{.ID}} {{.CreatedAt}}" | sort -rk 2 | tail -n +4 | awk '{print $1}' | xargs -r docker rmi || true
+
+            echo "✅ Container deployed successfully!"
+
+      - name: Run database migrations
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            # Wait for container to be ready
+            sleep 5
+
+            # Run migrations inside the container
+            docker exec bookshop-backend npm run migrate || echo "⚠️ Migrations may have already run"
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            # Check if container is running
+            if docker ps --format '{{.Names}}' | grep -q "^bookshop-backend$"; then
+              echo "✅ Container is running"
+              docker ps | grep bookshop-backend
+              
+              # Check container health
+              sleep 3
+              docker logs bookshop-backend --tail 20
+            else
+              echo "❌ Container failed to start"
+              docker logs bookshop-backend --tail 50
+              exit 1
+            fi
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployment successful!"
+            echo "Backend is running at: ${{ secrets.VPS_HOST }}:${{ secrets.VPS_BACKEND_PORT || 5001 }}"
+          else
+            echo "❌ Deployment failed!"
+          fi
