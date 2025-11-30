@@ -39,7 +39,7 @@ jobs:
 
             # Set deployment variables
             DEPLOY_DIR="/tmp/bookshop-deploy-${{ github.sha }}"
-            APP_DIR="${{ secrets.VPS_APP_DIR || '/var/www/bookshop-backend' }}"
+            APP_DIR="${{ secrets.VPS_APP_DIR || '/home/asela/pos-api' }}"
             CONTAINER_NAME="bookshop-backend"
             IMAGE_NAME="bookshop-backend:latest"
 
