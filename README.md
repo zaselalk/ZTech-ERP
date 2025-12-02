@@ -66,6 +66,12 @@ docker run -d --name MySQL --network pos-network -v mysql-data:/var/lib/mysql -p
 
 ```
 
+login to container and create database
+
+```
+docker exec -it <container_id> bash
+```
+
 ### Run the container on same network
 
 ```
