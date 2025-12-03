@@ -143,20 +143,34 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
     const tableRows: any[] = [];
 
     sale.books.forEach((book) => {
+      if (!book.SaleItem) return;
       const saleItem = book.SaleItem;
-      const price = saleItem?.price || 0;
+      let last_price = saleItem?.price || 0;
+      const quantity_price = saleItem.price || 0;
       const quantity = saleItem?.quantity || 0;
       const discount = saleItem?.discount
         ? `${saleItem.discount} ${
-            saleItem.discountType === "Fixed" ? "LKR" : "%"
+            saleItem.discount_type === "Fixed" ? "LKR" : "%"
           }`
         : "-";
-      const total = price * quantity;
+
+      //  calculate price after discount when fixed
+      if (saleItem.discount > 0 && saleItem.discount_type == "Fixed") {
+        last_price = last_price - saleItem.discount;
+      }
+
+      //  calculate price after discount when percentage
+      if (saleItem.discount > 0 && saleItem.discount_type == "Percentage") {
+        last_price = last_price - (last_price * saleItem.discount) / 100;
+        console.log(last_price);
+      }
+
+      const total = last_price * quantity;
 
       const row = [
         book.name,
         quantity,
-        formatCurrency(price),
+        formatCurrency(quantity_price),
         discount,
         formatCurrency(total),
       ];
@@ -431,11 +445,21 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
                 key: "total",
                 align: "right",
                 width: "22%",
-                render: (_: unknown, record: Sale["books"][number]) =>
-                  formatCurrency(
-                    (record.SaleItem?.price || 0) *
-                      (record.SaleItem?.quantity || 0)
-                  ),
+                render: (_: unknown, record: Sale["books"][number]) => {
+                  const discountType = record.SaleItem?.discount_type;
+                  const discountValue = record.SaleItem?.discount || 0;
+                  let price = record.SaleItem?.price || 0;
+                  const quantity = record.SaleItem?.quantity || 0;
+
+                  if (discountValue > 0) {
+                    if (discountType === "Fixed") {
+                      price = price - discountValue;
+                    } else if (discountType === "Percentage") {
+                      price = price - (price * discountValue) / 100;
+                    }
+                  }
+                  return formatCurrency(price * quantity);
+                },
               },
             ]}
           />
