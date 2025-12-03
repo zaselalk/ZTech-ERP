@@ -18,8 +18,8 @@ export interface SaleItem {
   bookId: number;
   quantity: number;
   price: number;
-  discount?: number; // per item discount value
-  discountType?: "Fixed" | "Percentage";
+  discount: number; // per item discount value
+  discount_type?: "Fixed" | "Percentage";
 }
 
 export interface Book {
