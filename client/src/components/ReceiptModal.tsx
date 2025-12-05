@@ -15,11 +15,10 @@ import {
   DownloadOutlined,
 } from "@ant-design/icons";
 import { useReactToPrint } from "react-to-print";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { formatCurrency } from "../utils";
 import { salesService } from "../services";
-import { Sale } from "../types";
+import { bookWithSaleItem, Sale } from "../types";
+import { buildReceiptHtml } from "../utils/ReceiptBuilder";
 
 const { Title, Text } = Typography;
 
@@ -66,213 +65,7 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
   const handleDownloadPDF = () => {
     if (!sale) return;
 
-    const doc = new jsPDF();
-
-    // Load and add logo
-    const img = new Image();
-    img.src = "/logo/storyflix-logo.png";
-
-    // Add logo (20x20 size at position 14, 15)
-    doc.addImage(img, "PNG", 14, 15, 40, 25);
-
-    // Company Header (right side of logo)
-    doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(41, 128, 185); // Blue color
-    doc.text("Storyflix Pvt Ltd", 105, 25, { align: "center" });
-
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80, 80, 80);
-    doc.text("267B, Pahala Yagoda, Ganemulla", 105, 32, { align: "center" });
-    doc.text(
-      "Tel: 0773549230 / 0762208912 | Email: storyflix2022@gmail.com",
-      105,
-      37,
-      { align: "center" }
-    );
-
-    // Separator line
-    doc.setDrawColor(41, 128, 185);
-    doc.setLineWidth(0.8);
-    doc.line(14, 45, 196, 45);
-
-    // Receipt Title with background
-    doc.setFillColor(41, 128, 185);
-    doc.rect(70, 50, 70, 10, "F");
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(255, 255, 255);
-    doc.text("SALES RECEIPT", 105, 57, { align: "center" });
-
-    // Info section with better layout
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    let yPos = 68;
-
-    // Left column
-    doc.setFont("helvetica", "bold");
-    doc.text(`Invoice No:`, 14, yPos);
-    doc.setFont("helvetica", "normal");
-    doc.text(`${String(sale.id).padStart(3, "0")}`, 45, yPos);
-
-    // Right column
-    doc.setFont("helvetica", "bold");
-    doc.text(`Invoice Date:`, 140, yPos);
-    doc.setFont("helvetica", "normal");
-    doc.text(`${new Date(sale.createdAt).toLocaleDateString()}`, 170, yPos);
-    yPos += 7;
-
-    if (sale.bookshop) {
-      doc.setFont("helvetica", "bold");
-      doc.text(`Customer:`, 14, yPos);
-      doc.setFont("helvetica", "normal");
-      doc.text(`${sale.bookshop.name}`, 45, yPos);
-      yPos += 7;
-    }
-
-    doc.setFont("helvetica", "bold");
-    doc.text(`Payment:`, 14, yPos);
-    doc.setFont("helvetica", "normal");
-    doc.text(`${sale.payment_method}`, 45, yPos);
-    yPos += 12;
-
-    // Table
-    const tableColumn = ["Item", "Qty", "Price", "Discount", "Total"];
-    const tableRows: any[] = [];
-
-    sale.books.forEach((book) => {
-      if (!book.SaleItem) return;
-      const saleItem = book.SaleItem;
-      let last_price = saleItem?.price || 0;
-      const quantity_price = saleItem.price || 0;
-      const quantity = saleItem?.quantity || 0;
-      const discount = saleItem?.discount
-        ? `${saleItem.discount} ${
-            saleItem.discount_type === "Fixed" ? "LKR" : "%"
-          }`
-        : "-";
-
-      //  calculate price after discount when fixed
-      if (saleItem.discount > 0 && saleItem.discount_type == "Fixed") {
-        last_price = last_price - saleItem.discount;
-      }
-
-      //  calculate price after discount when percentage
-      if (saleItem.discount > 0 && saleItem.discount_type == "Percentage") {
-        last_price = last_price - (last_price * saleItem.discount) / 100;
-        console.log(last_price);
-      }
-
-      const total = last_price * quantity;
-
-      const row = [
-        book.name,
-        quantity,
-        formatCurrency(quantity_price),
-        discount,
-        formatCurrency(total),
-      ];
-      tableRows.push(row);
-    });
-
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: yPos,
-      theme: "grid",
-      headStyles: {
-        fillColor: [41, 128, 185],
-        textColor: [255, 255, 255],
-        fontSize: 10,
-        fontStyle: "bold",
-        halign: "center",
-      },
-      bodyStyles: {
-        fontSize: 9,
-        cellPadding: 3,
-      },
-      columnStyles: {
-        0: { halign: "left" },
-        1: { halign: "center" },
-        2: { halign: "right" },
-        3: { halign: "center" },
-        4: { halign: "right" },
-      },
-      alternateRowStyles: { fillColor: [248, 249, 250] },
-      margin: { left: 14, right: 14 },
-    });
-
-    // Totals
-    // @ts-ignore
-    const finalY = doc.lastAutoTable.finalY || yPos;
-
-    const subtotal = sale.books.reduce(
-      (acc: number, book) =>
-        acc + (book.SaleItem?.price || 0) * (book.SaleItem?.quantity || 0),
-      0
-    );
-
-    // Totals section with box
-    const totalsStartY = finalY + 10;
-
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Subtotal:`, 140, totalsStartY);
-    doc.text(formatCurrency(subtotal), 195, totalsStartY, { align: "right" });
-
-    doc.text(`Discount:`, 140, totalsStartY + 7);
-    doc.setTextColor(220, 53, 69); // Red for discount
-    doc.text(`-${formatCurrency(sale.discount ?? 0)}`, 195, totalsStartY + 7, {
-      align: "right",
-    });
-
-    // Total with background
-    doc.setFillColor(41, 128, 185);
-    doc.rect(135, totalsStartY + 12, 61, 10, "F");
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(255, 255, 255);
-    doc.text(`Total:`, 140, totalsStartY + 19);
-    doc.text(formatCurrency(sale.total_amount), 195, totalsStartY + 19, {
-      align: "right",
-    });
-
-    // Footer
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "italic");
-    doc.text("Thank you for your business!", 105, totalsStartY + 35, {
-      align: "center",
-    });
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.text(
-      "Please keep this receipt for your records.",
-      105,
-      totalsStartY + 41,
-      {
-        align: "center",
-      }
-    );
-
-    // Promotional footer
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.3);
-    doc.line(14, totalsStartY + 48, 196, totalsStartY + 48);
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text(
-      "Need a Tailored Software Solution? We’re Just a Call Away: 077 124 2254 (Asela)",
-      105,
-      totalsStartY + 54,
-      {
-        align: "center",
-      }
-    );
-
+    const doc = buildReceiptHtml(sale);
     doc.save(`receipt-${sale.id}.pdf`);
     message.success("PDF downloaded successfully");
   };
@@ -289,11 +82,23 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
     }
   };
 
-  const subtotal = sale?.books.reduce(
-    (acc: number, book) =>
-      acc + (book.SaleItem?.price || 0) * (book.SaleItem?.quantity || 0),
-    0
-  );
+  const subtotal = sale?.books.reduce((acc: number, book: bookWithSaleItem) => {
+    const saleItem = book.SaleItem;
+    let itemPrice = parseFloat(saleItem.price) || 0;
+    const qty = saleItem.quantity || 0;
+
+    // Apply item level discount logic again to get accurate subtotal
+    if (parseFloat(saleItem.discount) > 0) {
+      if (saleItem.discount_type === "Fixed") {
+        itemPrice -= parseFloat(saleItem.discount);
+      } else if (saleItem.discount_type === "Percentage") {
+        itemPrice -= (itemPrice * parseFloat(saleItem.discount)) / 100;
+      }
+    }
+    return acc + itemPrice * qty;
+  }, 0);
+
+  // console.log("Rerender");
 
   return (
     <Modal
@@ -435,9 +240,9 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
                 width: "15%",
                 render: (si: any) =>
                   si?.discount > 0
-                    ? `${si.discount} ${
-                        si.discount_type === "Fixed" ? "LKR" : "%"
-                      }`
+                    ? ` ${si.discount_type === "Fixed" ? "Rs." : ""} ${
+                        si.discount
+                      } ${si.discount_type === "Percentage" ? "%" : ""}`
                     : "-",
               },
               {
@@ -447,9 +252,10 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
                 width: "22%",
                 render: (_: unknown, record: Sale["books"][number]) => {
                   const discountType = record.SaleItem?.discount_type;
-                  const discountValue = record.SaleItem?.discount || 0;
-                  let price = record.SaleItem?.price || 0;
-                  const quantity = record.SaleItem?.quantity || 0;
+                  const discountValue =
+                    parseFloat(record.SaleItem.discount) || 0;
+                  let price = parseFloat(record.SaleItem.price) || 0;
+                  const quantity = record.SaleItem.quantity || 0;
 
                   if (discountValue > 0) {
                     if (discountType === "Fixed") {
