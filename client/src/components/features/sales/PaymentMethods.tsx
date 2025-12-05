@@ -9,6 +9,11 @@ interface paymentMethodOverview {
   totalSales: number;
 }
 
+interface PaymentMethodsProps {
+  startDate?: string;
+  endDate?: string;
+}
+
 const doughnutOptions: ChartOptions<"doughnut"> = {
   responsive: true,
   maintainAspectRatio: false,
@@ -26,7 +31,7 @@ const doughnutOptions: ChartOptions<"doughnut"> = {
   },
 };
 
-export const PaymentMethods = () => {
+export const PaymentMethods = ({ startDate, endDate }: PaymentMethodsProps) => {
   const [paymentMethods, setPaymentMethods] = useState<paymentMethodOverview[]>(
     []
   );
@@ -36,7 +41,10 @@ export const PaymentMethods = () => {
     (async () => {
       try {
         setIsLoading(true);
-        const data = await salesService.getPaymentMethodsOverView();
+        const data = await salesService.getPaymentMethodsOverView(
+          startDate,
+          endDate
+        );
         setPaymentMethods(data);
       } catch (error) {
         message.error("Error loding daily sales");
@@ -44,7 +52,7 @@ export const PaymentMethods = () => {
         setIsLoading(false);
       }
     })();
-  }, []);
+  }, [startDate, endDate]);
 
   const paymentMethodsChartData = {
     labels: paymentMethods.map((method) => method.payment_method),

@@ -146,6 +146,101 @@ router.get(
   }
 );
 
+// get sales by bookshop
+router.get(
+  "/sales-by-bookshop",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { startDate, endDate } = req.query;
+
+      const whereClause: any = {};
+
+      if (startDate && endDate) {
+        const start = new Date(startDate as string);
+        const end = new Date(endDate as string);
+        end.setHours(23, 59, 59, 999);
+
+        whereClause.createdAt = {
+          [Op.between]: [start, end],
+        };
+      }
+
+      // otherwise set last month as default
+      whereClause.createdAt = whereClause.createdAt || {
+        [Op.between]: [
+          new Date(new Date().setDate(new Date().getDate() - 30)),
+          new Date(),
+        ],
+      };
+
+      const sales = await Sale.findAll({
+        where: whereClause,
+        include: [
+          {
+            model: Bookshop,
+            as: "bookshop",
+            attributes: ["name"],
+          },
+        ],
+        group: ["BookshopId", "bookshop.id"],
+        attributes: [
+          [fn("SUM", col("total_amount")), "totalSales"],
+          "BookshopId",
+        ],
+      });
+
+      res.send(sales);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+      console.log(error);
+    }
+  }
+);
+
+// get sales summary
+router.get(
+  "/sales-summary",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { startDate, endDate } = req.query;
+
+      const whereClause: any = {};
+
+      if (startDate && endDate) {
+        const start = new Date(startDate as string);
+        const end = new Date(endDate as string);
+        end.setHours(23, 59, 59, 999);
+
+        whereClause.createdAt = {
+          [Op.between]: [start, end],
+        };
+      }
+
+      // otherwise set last month as default
+      whereClause.createdAt = whereClause.createdAt || {
+        [Op.between]: [
+          new Date(new Date().setDate(new Date().getDate() - 30)),
+          new Date(),
+        ],
+      };
+
+      const result = await Sale.findOne({
+        where: whereClause,
+        attributes: [
+          [fn("SUM", col("total_amount")), "totalSales"],
+          [fn("COUNT", col("id")), "totalTransactions"],
+          [fn("AVG", col("total_amount")), "averageSale"],
+        ],
+      });
+
+      res.send(result);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+      console.log(error);
+    }
+  }
+);
+
 // Get a single sale
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   try {

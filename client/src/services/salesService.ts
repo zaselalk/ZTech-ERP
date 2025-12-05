@@ -71,6 +71,38 @@ export const salesService = {
   },
 
   /**
+   * Get sales by bookshop
+   */
+  async getSalesByBookshop(startDate?: string, endDate?: string): Promise<any> {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `${API_URL}/sales/sales-by-bookshop?${queryString}`
+      : `${API_URL}/sales/sales-by-bookshop`;
+
+    return await api.fetch<any>(url);
+  },
+
+  /**
+   * Get sales summary
+   */
+  async getSalesSummary(startDate?: string, endDate?: string): Promise<any> {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `${API_URL}/sales/sales-summary?${queryString}`
+      : `${API_URL}/sales/sales-summary`;
+
+    return await api.fetch<any>(url);
+  },
+
+  /**
    * Get a single sale by ID
    */
   async getSaleById(id: string | number): Promise<Sale> {

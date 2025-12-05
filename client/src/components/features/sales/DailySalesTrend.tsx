@@ -27,7 +27,15 @@ interface DailySaleItem {
   totalSales: string;
 }
 
-export const DailySalesTrend = () => {
+interface DailySalesTrendProps {
+  startDate?: string;
+  endDate?: string;
+}
+
+export const DailySalesTrend = ({
+  startDate,
+  endDate,
+}: DailySalesTrendProps) => {
   const [dailySalesTrend, sendDailySalesTrend] = useState<DailySaleItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -35,7 +43,7 @@ export const DailySalesTrend = () => {
     (async () => {
       try {
         setIsLoading(true);
-        const data = await salesService.getDailySalesTrend();
+        const data = await salesService.getDailySalesTrend(startDate, endDate);
         sendDailySalesTrend(data);
       } catch (error) {
         message.error("Error loding daily sales");
@@ -43,7 +51,7 @@ export const DailySalesTrend = () => {
         setIsLoading(false);
       }
     })();
-  }, []);
+  }, [startDate, endDate]);
 
   const dailySalesChartData = {
     labels: dailySalesTrend.map((item) => item.date),
