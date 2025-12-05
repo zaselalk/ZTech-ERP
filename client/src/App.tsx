@@ -7,7 +7,7 @@ import {
   Drawer,
   type MenuProps,
 } from "antd";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
   DashboardOutlined,
@@ -37,6 +37,7 @@ import Backups from "./components/Backups";
 import Issues from "./components/Issues";
 import Users from "./components/Users";
 import { authService } from "./services";
+import { DateTime } from "./components/layout/Header/DateTime";
 
 const { Header, Content, Sider } = Layout;
 
@@ -44,14 +45,6 @@ const { Header, Content, Sider } = Layout;
 const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   // Determine selected key from path, default to '1' (Dashboard)
   const pathMap: Record<string, string> = {
@@ -220,17 +213,8 @@ const MainLayout = () => {
       <Layout className="flex flex-col h-screen overflow-hidden">
         {/* Header section */}
         <Header className="bg-white! px-3 sm:px-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* Mobile Menu Button */}
-
-            <div className="hidden md:flex items-center text-xs sm:text-sm">
-              Today is: {currentTime.toDateString()} | Time:{" "}
-              {currentTime.toLocaleTimeString()}
-            </div>
-            <div className="md:hidden text-xs">
-              {currentTime.toLocaleTimeString()}
-            </div>
-          </div>
+          {/* DateTime Component */}
+          <DateTime />
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden sm:block text-[#666] text-xs sm:text-sm">
               Welcome back!
