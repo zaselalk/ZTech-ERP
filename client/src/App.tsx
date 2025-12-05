@@ -38,6 +38,7 @@ import Issues from "./components/Issues";
 import Users from "./components/Users";
 import { authService } from "./services";
 import { DateTime } from "./components/layout/Header/DateTime";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const { Header, Content, Sider } = Layout;
 
@@ -278,9 +279,23 @@ const MainLayout = () => {
 const App = () => {
   return (
     <Routes>
-      <Route path="/pos" element={<PosPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/*" element={<MainLayout />} />
+      <Route
+        path="/pos"
+        element={
+          <ProtectedRoute>
+            <PosPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/*"
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 };
