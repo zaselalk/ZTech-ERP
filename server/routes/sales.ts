@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import nodemailer from "nodemailer";
-import { Op } from "sequelize";
+import { col, fn, literal, Op } from "sequelize";
 const db = require("../db/models");
 const { sequelize, Sale, SaleItem, Book, Bookshop } = db;
 
@@ -56,6 +56,95 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: error.message });
   }
 });
+
+// Get daily sales
+router.get(
+  "/daily-sales-trend",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { startDate, endDate } = req.query;
+
+      const whereClause: any = {};
+
+      if (startDate && endDate) {
+        const start = new Date(startDate as string);
+        const end = new Date(endDate as string);
+        end.setHours(23, 59, 59, 999);
+
+        whereClause.createdAt = {
+          [Op.between]: [start, end],
+        };
+      }
+
+      // otherwise set last month as default
+      whereClause.createdAt = whereClause.createdAt || {
+        [Op.between]: [
+          new Date(new Date().setDate(new Date().getDate() - 30)),
+          new Date(),
+        ],
+      };
+
+      const sales = await Sale.findAll({
+        where: whereClause,
+        group: [literal("DATE(createdAt)")],
+        attributes: [
+          [literal("DATE(createdAt)"), "date"],
+          [fn("SUM", col("total_amount")), "totalSales"],
+        ],
+        order: [[literal("DATE(createdAt)"), "ASC"]],
+      });
+
+      res.send(sales);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+      console.log(error);
+    }
+  }
+);
+
+// get sales payment method
+router.get(
+  "/sales-payment",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { startDate, endDate } = req.query;
+
+      const whereClause: any = {};
+
+      if (startDate && endDate) {
+        const start = new Date(startDate as string);
+        const end = new Date(endDate as string);
+        end.setHours(23, 59, 59, 999);
+
+        whereClause.createdAt = {
+          [Op.between]: [start, end],
+        };
+      }
+
+      // otherwise set last month as default
+      whereClause.createdAt = whereClause.createdAt || {
+        [Op.between]: [
+          new Date(new Date().setDate(new Date().getDate() - 30)),
+          new Date(),
+        ],
+      };
+
+      const sales = await Sale.findAll({
+        where: whereClause,
+        group: [literal("payment_method")],
+        attributes: [
+          [fn("SUM", col("total_amount")), "totalSales"],
+          [literal("payment_method"), "payment_method"],
+        ],
+      });
+
+      res.send(sales);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+      console.log(error);
+    }
+  }
+);
 
 // Get a single sale
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {

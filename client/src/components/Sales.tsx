@@ -28,8 +28,10 @@ import {
   ArcElement,
   Filler,
 } from "chart.js";
-import { Line, Bar, Doughnut } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import { formatCurrency } from "../utils";
+import { DailySalesTrend } from "./features/sales/DailySalesTrend";
+import { PaymentMethods } from "./features/sales/PaymentMethods";
 
 // Register Chart.js components
 ChartJS.register(
@@ -220,58 +222,6 @@ const Sales = ({ refreshKey }: SalesProps) => {
     ],
   };
 
-  const paymentMethodsChartData = {
-    labels: chartData.paymentMethods.map(([method]) => method),
-    datasets: [
-      {
-        data: chartData.paymentMethods.map(([, amount]) => amount),
-        backgroundColor: [
-          "rgba(34, 197, 94, 0.8)",
-          "rgba(59, 130, 246, 0.8)",
-          "rgba(168, 85, 247, 0.8)",
-          "rgba(245, 158, 11, 0.8)",
-        ],
-        borderWidth: 2,
-        borderColor: "#fff",
-      },
-    ],
-  };
-
-  const chartOptions: ChartOptions<"line"> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top",
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          callback: (value: number | string) => `LKR ${value}`,
-        },
-      },
-    },
-  };
-
-  const doughnutOptions: ChartOptions<"doughnut"> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "bottom",
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            return `${context.label}: LKR ${context.parsed}`;
-          },
-        },
-      },
-    },
-  };
-
   return (
     <div className="p-0">
       <div className="mb-8 flex justify-between items-center">
@@ -296,44 +246,9 @@ const Sales = ({ refreshKey }: SalesProps) => {
         </div>
       </div>
 
-      {/* Charts Section */}
       <Row gutter={[24, 24]} className="mb-8">
-        <Col xs={24} lg={16}>
-          <Card
-            title="Daily Sales Trend"
-            className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] border-none"
-          >
-            <div className="h-[300px]">
-              {chartData.dailySales.length > 0 ? (
-                <Line data={dailySalesChartData} options={chartOptions} />
-              ) : (
-                <div className="flex justify-center items-center h-full text-[#999]">
-                  No sales data available
-                </div>
-              )}
-            </div>
-          </Card>
-        </Col>
-
-        <Col xs={24} lg={8}>
-          <Card
-            title="Payment Methods"
-            className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] border-none"
-          >
-            <div className="h-[300px]">
-              {chartData.paymentMethods.length > 0 ? (
-                <Doughnut
-                  data={paymentMethodsChartData}
-                  options={doughnutOptions}
-                />
-              ) : (
-                <div className="flex justify-center items-center h-full text-[#999]">
-                  No payment data available
-                </div>
-              )}
-            </div>
-          </Card>
-        </Col>
+        <DailySalesTrend />
+        <PaymentMethods />
       </Row>
 
       <Row gutter={[24, 24]} className="mb-8">
