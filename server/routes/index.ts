@@ -1,7 +1,5 @@
 import type { Express } from "express";
 import passport from "../auth/passport";
-import { requireAuth } from "../middleware/requireAuth";
-
 import authRoutes from "./auth";
 import bookshopRoutes from "./bookshops";
 import bookRoutes from "./books";
@@ -11,7 +9,9 @@ import dashboardRoutes from "./dashboard";
 import backupsRoutes from "./backups";
 import issuesRoutes from "./issues";
 import usersRoutes from "./users";
+
 import { requireAdmin } from "../middleware/requireAdmin";
+import { requireAuth } from "../middleware/requireAuth";
 
 export function registerRoutes(app: Express): void {
   app.use(passport.initialize());
