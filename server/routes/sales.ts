@@ -27,6 +27,7 @@ interface CreateSaleRequestBody {
 
 interface EmailRequestBody {
   email: string;
+  pdfData?: string;
 }
 
 // Get all sales
@@ -387,6 +388,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+import { generateReceiptPdf } from "../utils/receiptGenerator";
+
 // Send receipt email
 router.post(
   "/:id/email",
@@ -410,6 +413,9 @@ router.post(
         return;
       }
 
+      // Generate PDF
+      const pdfBuffer = await generateReceiptPdf(sale);
+
       // Generate HTML for the receipt
       const subtotal = sale.books.reduce(
         (acc: number, book: any) =>
@@ -418,63 +424,104 @@ router.post(
       );
 
       const receiptHtml = `
-      <h1>Receipt - Sale #${sale.id}</h1>
-      ${
-        sale.bookshop
-          ? `<p><strong>Bookshop:</strong> ${sale.bookshop.name}</p>`
-          : ""
-      }
-      <p><strong>Date:</strong> ${new Date(sale.createdAt).toLocaleString()}</p>
-      <p><strong>Payment Method:</strong> ${sale.payment_method}</p>
-      <hr />
-      <table border="1" cellpadding="5" cellspacing="0" style="width: 100%; border-collapse: collapse;">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Qty</th>
-            <th>Price</th>
-            <th>Discount</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${sale.books
-            .map(
-              (book: any) => `
-            <tr>
-              <td>${book.name}</td>
-              <td>${book.SaleItem.quantity}</td>
-              <td>LKR ${parseFloat(book.SaleItem.price).toFixed(2)}</td>
-              <td>${
-                book.SaleItem.discount > 0
-                  ? `${book.SaleItem.discount} ${
-                      book.SaleItem.discount_type === "Fixed" ? "LKR" : "%"
-                    }`
-                  : "-"
-              }</td>
-              <td>LKR ${(book.SaleItem.price * book.SaleItem.quantity).toFixed(
-                2
-              )}</td>
-            </tr>
-          `
-            )
-            .join("")}
-        </tbody>
-      </table>
-      <div style="text-align: right; margin-top: 16px;">
-        <p>Subtotal: LKR ${subtotal.toFixed(2)}</p>
-        <p>Cart Discount: LKR ${parseFloat(String(sale.discount)).toFixed(
-          2
-        )}</p>
-        <h3>Total: LKR ${parseFloat(String(sale.total_amount)).toFixed(2)}</h3>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.6; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }
+          .header { text-align: center; margin-bottom: 20px; }
+          .header h1 { color: #2980b9; margin: 0; }
+          .header p { margin: 5px 0; color: #777; font-size: 0.9em; }
+          .receipt-info { margin-bottom: 20px; padding: 15px; background: #fff; border-radius: 5px; border-left: 4px solid #2980b9; }
+          .receipt-info p { margin: 5px 0; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: #fff; }
+          th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+          th { background-color: #2980b9; color: #fff; }
+          .totals { text-align: right; margin-top: 20px; }
+          .totals p { margin: 5px 0; }
+          .totals h3 { color: #2980b9; margin: 10px 0 0; }
+          .footer { text-align: center; margin-top: 30px; font-size: 0.8em; color: #aaa; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Storyflix Pvt Ltd</h1>
+            <p>267B, Pahala Yagoda, Ganemulla</p>
+            <p>Tel: 0773549230 / 0762208912 | Email: storyflix2022@gmail.com</p>
+          </div>
+          
+          <div class="receipt-info">
+            <h2>Receipt for Sale #${sale.id}</h2>
+            ${
+              sale.bookshop
+                ? `<p><strong>Customer:</strong> ${sale.bookshop.name}</p>`
+                : ""
+            }
+            <p><strong>Date:</strong> ${new Date(
+              sale.createdAt
+            ).toLocaleString()}</p>
+            <p><strong>Payment Method:</strong> ${sale.payment_method}</p>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sale.books
+                .map(
+                  (book: any) => `
+                <tr>
+                  <td>${book.name}</td>
+                  <td>${book.SaleItem.quantity}</td>
+                  <td>LKR ${parseFloat(book.SaleItem.price).toFixed(2)}</td>
+                  <td>LKR ${(
+                    book.SaleItem.price * book.SaleItem.quantity
+                  ).toFixed(2)}</td>
+                </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+          </table>
+
+          <div class="totals">
+            <p>Subtotal: LKR ${subtotal.toFixed(2)}</p>
+            <p>Cart Discount: LKR ${parseFloat(String(sale.discount)).toFixed(
+              2
+            )}</p>
+            <h3>Total: LKR ${parseFloat(String(sale.total_amount)).toFixed(
+              2
+            )}</h3>
+          </div>
+
+          <div class="footer">
+            <p>Thank you for your purchase!</p>
+            <p>&copy; ${new Date().getFullYear()} Storyflix Pvt Ltd. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
     `;
 
-      const mailOptions = {
+      const mailOptions: any = {
         from: process.env.EMAIL_FROM, // sender address
         to: email, // list of receivers
         subject: `Your receipt for Sale #${sale.id}`, // Subject line
         html: receiptHtml, // html body
+        attachments: [
+          {
+            filename: `Receipt-${sale.id}.pdf`,
+            content: pdfBuffer,
+          },
+        ],
       };
 
       await transporter.sendMail(mailOptions);

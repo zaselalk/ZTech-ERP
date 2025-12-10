@@ -32,6 +32,7 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
   const [sale, setSale] = useState<Sale | null>(null);
   const [loading, setLoading] = useState(false);
   const [emailModalVisible, setEmailModalVisible] = useState(false);
+  const [isEmailSending, setIsEmailSending] = useState(false);
   const [form] = Form.useForm();
   const componentRef = useRef<HTMLDivElement>(null);
 
@@ -73,12 +74,15 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
   const handleEmailReceipt = async (email: string) => {
     if (!saleId) return;
     try {
+      setIsEmailSending(true);
       await salesService.sendReceiptEmail(saleId, email);
       message.success("Receipt sent successfully to " + email);
       setEmailModalVisible(false);
       form.resetFields();
     } catch (e) {
       message.error("Failed to send email. " + (e as Error).message);
+    } finally {
+      setIsEmailSending(false);
     }
   };
 
@@ -325,6 +329,8 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
             handleEmailReceipt(values.email);
           });
         }}
+        confirmLoading={isEmailSending}
+        okText="Send"
         onCancel={() => {
           setEmailModalVisible(false);
           form.resetFields();

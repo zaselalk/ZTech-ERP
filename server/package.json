@@ -34,6 +34,8 @@
     "octokit": "^5.0.5",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "pdfkit": "^0.17.2",
+    "pdfkit-table": "^0.1.99",
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
@@ -47,6 +49,7 @@
     "@types/nodemailer": "^7.0.4",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
+    "@types/pdfkit": "^0.17.4",
     "@types/validator": "^13.15.10",
     "nodemon": "^3.1.10",
     "sequelize-cli": "^6.6.3",
