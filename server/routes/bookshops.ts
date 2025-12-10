@@ -108,11 +108,9 @@ router.post(
 
     // Validate amount is a positive number and not zero
     if (typeof amount !== "number" || isNaN(amount) || amount <= 0) {
-      res
-        .status(400)
-        .json({
-          message: "Amount must be a positive number greater than zero",
-        });
+      res.status(400).json({
+        message: "Amount must be a positive number greater than zero",
+      });
       return;
     }
 
@@ -158,7 +156,15 @@ router.post(
         return;
       }
 
-      // Assuming 'consignment' is the amount OWED by the bookshop.
+      // make sure that consignment does not go negative
+      if (bookshop.consignment < amount) {
+        await t.rollback();
+        res
+          .status(400)
+          .json({ message: "Payment amount exceeds consignment balance" });
+        return;
+      }
+
       // So a payment REDUCES this amount.
       await bookshop.decrement("consignment", { by: amount, transaction: t });
 
