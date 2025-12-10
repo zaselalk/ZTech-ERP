@@ -10,9 +10,7 @@ const { User } = db;
 const jwtSecret = process.env.JWT_SECRET;
 
 if (!jwtSecret) {
-  console.warn(
-    "⚠️  WARNING: JWT_SECRET is not defined in environment variables. Using default (INSECURE - only for development)"
-  );
+  throw new Error("JWT_SECRET environment variable is not set");
 }
 
 const opts: StrategyOptions = {
