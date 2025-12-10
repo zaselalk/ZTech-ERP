@@ -1,7 +1,9 @@
 import mysqldump from "mysqldump";
 import fs from "fs-extra";
 import path from "path";
-import { exec } from "child_process";
+import os from "os";
+import crypto from "crypto";
+import { spawn } from "child_process";
 import { env } from "../config/env";
 
 const BACKUP_DIR = path.join(__dirname, "../../backups");
@@ -78,27 +80,92 @@ export const backupService = {
       throw new Error("Backup file not found");
     }
 
-    // Construct the mysql command
-    // Note: This requires 'mysql' to be in the system PATH
-    const command = `mysql -h ${env.DB_HOST} -u ${env.DB_USER} -p ${env.DB_PASSWORD} ${env.DB_NAME} < "${filePath}"`;
+    // Create a temporary MySQL configuration file with secure permissions
+    // This prevents password exposure in process listings
+    const configContent = `[client]
+host=${env.DB_HOST}
+user=${env.DB_USER}
+password=${env.DB_PASSWORD}
+`;
 
-    /**
-     * This should be change to send more useful message on error to client, instead of just console logging.
-     * this also explore the username and password to the client in mysql server
-     */
-    return new Promise((resolve, reject) => {
-      exec(command, (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Restore error: ${error.message}`);
+    // Generate a unique temporary filename using random bytes to prevent race conditions
+    const randomSuffix = crypto.randomBytes(8).toString("hex");
+    const tmpConfig = path.join(os.tmpdir(), `mysql-${Date.now()}-${randomSuffix}.cnf`);
+    
+    try {
+      // Write config file with restricted permissions (readable only by owner)
+      await fs.writeFile(tmpConfig, configContent, { mode: 0o600 });
+
+      // Execute mysql command using the secure config file
+      // Note: This requires 'mysql' to be in the system PATH
+      await new Promise<string>((resolve, reject) => {
+        const mysql = spawn("mysql", [
+          `--defaults-file=${tmpConfig}`,
+          env.DB_NAME,
+        ]);
+
+        let stdout = "";
+        let stderr = "";
+
+        mysql.stdout.on("data", (data) => {
+          stdout += data.toString();
+        });
+
+        mysql.stderr.on("data", (data) => {
+          stderr += data.toString();
+        });
+
+        mysql.on("error", (error) => {
           reject(error);
-          return;
+        });
+
+        mysql.on("close", (code) => {
+          if (code !== 0) {
+            console.error(`Restore error: mysql exited with code ${code}`);
+            console.error(`stderr: ${stderr}`);
+            reject(new Error(`mysql process exited with code ${code}`));
+          } else {
+            if (stderr) {
+              // mysql command might output warnings to stderr, which isn't necessarily a failure
+              console.warn(`Restore stderr: ${stderr}`);
+            }
+            resolve(stdout);
+          }
+        });
+
+        // Pipe the backup file to mysql stdin
+        const fileStream = fs.createReadStream(filePath);
+        
+        // Register error handler before piping to prevent race conditions
+        fileStream.on("error", (error) => {
+          reject(error);
+        });
+
+        // End stdin when file stream is done to signal EOF to mysql process
+        fileStream.on("end", () => {
+          mysql.stdin.end();
+        });
+
+        try {
+          fileStream.pipe(mysql.stdin);
+        } catch (pipeError) {
+          reject(pipeError);
         }
-        if (stderr) {
-          // mysql command might output warnings to stderr, which isn't necessarily a failure
-          console.warn(`Restore stderr: ${stderr}`);
-        }
-        resolve(stdout);
       });
-    });
+
+      return "Database restored successfully";
+    } catch (error) {
+      console.error(`Restore error:`, error);
+      throw error;
+    } finally {
+      // Always clean up the temporary config file
+      try {
+        if (await fs.pathExists(tmpConfig)) {
+          await fs.unlink(tmpConfig);
+        }
+      } catch (cleanupError) {
+        console.error("Failed to clean up temporary config file:", cleanupError);
+      }
+    }
   },
 };
