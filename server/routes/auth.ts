@@ -19,6 +19,12 @@ router.post(
   ): Promise<void> => {
     const { username, password } = req.body;
 
+    // return 400 if username or password is missing
+    if (!username || !password) {
+      res.status(400).json({ message: "Username and password are required" });
+      return;
+    }
+
     try {
       const user = await User.findOne({ where: { username } });
 
