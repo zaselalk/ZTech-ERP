@@ -47,6 +47,16 @@ export = (
         allowNull: false,
         defaultValue: 10,
       },
+      discount: {
+        type: dataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0,
+      },
+      discount_type: {
+        type: dataTypes.ENUM("Fixed", "Percentage"),
+        allowNull: false,
+        defaultValue: "Fixed",
+      },
     },
     {
       sequelize,

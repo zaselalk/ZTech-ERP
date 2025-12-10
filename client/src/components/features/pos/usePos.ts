@@ -129,8 +129,8 @@ export const usePos = () => {
           ...book,
           quantity: 1,
           availableStock: availableQuantity,
-          discountValue: 0,
-          discountType: "Fixed",
+          discountValue: book.discount ?? 0,
+          discountType: book.discount_type ?? "Fixed",
         },
       ]);
     }

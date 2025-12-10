@@ -32,6 +32,8 @@ export interface BookAttributes {
   quantity: number;
   price: number;
   reorder_threshold: number;
+  discount: number;
+  discount_type: "Fixed" | "Percentage";
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -153,6 +155,8 @@ export class Book
   public quantity!: number;
   public price!: number;
   public reorder_threshold!: number;
+  public discount!: number;
+  public discount_type!: "Fixed" | "Percentage";
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }

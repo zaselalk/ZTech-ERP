@@ -11,8 +11,17 @@ const Books = () => {
   const [form] = Form.useForm();
 
   const showModal = (book: Book | null = null): void => {
+    // Ensure numeric fields are properly typed
+    const bookDetails = {
+      ...book,
+      price: book?.price ? parseFloat(book.price.toString()) : undefined,
+      discount: book?.discount
+        ? parseFloat(book.discount.toString())
+        : undefined,
+    };
+
     setEditingBook(book);
-    form.setFieldsValue(book || {});
+    form.setFieldsValue(bookDetails || {});
     setIsModalVisible(true);
   };
 

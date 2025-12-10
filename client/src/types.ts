@@ -52,6 +52,8 @@ export interface Book {
   author?: string;
   price: number;
   quantity?: number;
+  discount?: number;
+  discount_type?: "Fixed" | "Percentage";
   consignment?: boolean;
   SaleItem?: SaleItem; // present in sale responses
 }
