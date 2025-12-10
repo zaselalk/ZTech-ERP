@@ -1,338 +1,60 @@
-import { formatCurrency } from "../utils";
-import { useState, useEffect, useRef } from "react";
-import {
-  Layout,
-  Input,
-  Row,
-  Col,
-  Typography,
-  Table,
-  Button,
-  message,
-  Modal,
-  Form,
-  Select,
-  InputNumber,
-  Space,
-  Switch,
-} from "antd";
-import type { InputRef } from "antd";
+import { Layout, Typography, Button, Space } from "antd";
 import { useNavigate } from "react-router-dom";
-import { EditOutlined, PlusOutlined } from "@ant-design/icons";
-import { bookService, bookshopService, salesService } from "../services";
-import { Book, Sale, Bookshop } from "../types";
-import type { FormInstance } from "antd/es/form";
+import { FileTextOutlined } from "@ant-design/icons";
 import ReceiptModal from "../components/ReceiptModal";
+import ItemDiscountModal from "../components/features/pos/ItemDiscountModal";
+import PosSearch from "../components/features/pos/PosSearch";
+import PosBookList from "../components/features/pos/PosBookList";
+import PosCart from "../components/features/pos/PosCart";
+import CheckoutModal from "../components/features/pos/CheckoutModal";
+import QuotationModal from "../components/features/pos/QuotationModal";
+import QuotationListModal from "../components/features/pos/QuotationListModal";
+import ConvertQuotationModal from "../components/features/pos/ConvertQuotationModal";
+import { usePos } from "../components/features/pos/usePos";
 
 const { Header, Content, Sider } = Layout;
-const { Title, Text } = Typography;
-const { Search } = Input;
-const { Option } = Select;
+const { Title } = Typography;
 
-// --- Re-usable sub-components ---
-
-interface ItemDiscountModalProps {
-  item: CartItem;
-  visible: boolean;
-  onApply: (
-    id: number,
-    values: { discountValue: number; discountType: "Fixed" | "Percentage" }
-  ) => void;
-  onCancel: () => void;
-}
-const ItemDiscountModal = ({
-  item,
-  visible,
-  onApply,
-  onCancel,
-}: ItemDiscountModalProps) => {
-  const [form] = Form.useForm();
-  useEffect(() => {
-    if (visible) {
-      form.setFieldsValue({
-        discountValue: item.discountValue || 0,
-        discountType: item.discountType || "Fixed",
-      });
-    }
-  }, [visible, item, form]);
-
-  const handleApply = () => {
-    form.validateFields().then((values) => {
-      onApply(item.id, values);
-    });
-  };
-
-  return (
-    <Modal
-      title={`Discount for ${item.name}`}
-      open={visible}
-      onOk={handleApply}
-      onCancel={onCancel}
-    >
-      <Form form={form} layout="vertical">
-        <Form.Item label="Discount Value" name="discountValue">
-          <InputNumber min={0} className="w-full" />
-        </Form.Item>
-        <Form.Item label="Discount Type" name="discountType">
-          <Select>
-            <Option value="Fixed">Fixed (LKR)</Option>
-            <Option value="Percentage">Percentage (%)</Option>
-          </Select>
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
-};
-
-interface CartItem extends Book {
-  quantity: number;
-  availableStock: number;
-  discountValue: number;
-  discountType: "Fixed" | "Percentage";
-}
 const PosPage = () => {
-  // --- State Management ---
-  const [topSellers, setTopSellers] = useState<Book[]>([]);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [cartDiscountInput, setCartDiscountInput] = useState<number>(0);
-  const [cartDiscountType, setCartDiscountType] = useState<
-    "Fixed" | "Percentage"
-  >("Fixed");
-  const [isCheckoutVisible, setIsCheckoutVisible] = useState<boolean>(false);
-  const [completedSale, setCompletedSale] = useState<Sale | null>(null);
-  const [editingItem, setEditingItem] = useState<CartItem | null>(null);
   const navigate = useNavigate();
-  const [searchResults, setSearchResults] = useState<Book[] | null>(null);
-  const [searchType, setSearchType] = useState<"name" | "barcode">("name");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const searchTimeout = useRef<number | null>(null);
-  const searchInputRef = useRef<InputRef>(null);
-  const cartRef = useRef<CartItem[]>(cart);
-
-  // --- Data Fetching ---
-  useEffect(() => {
-    fetchTopSellers();
-  }, []);
-
-  useEffect(() => {
-    cartRef.current = cart;
-  }, [cart]);
-
-  useEffect(() => {
-    if (searchQuery) {
-      handleSearch(searchQuery);
-    }
-  }, [searchType]);
-
-  const fetchTopSellers = async (): Promise<void> => {
-    try {
-      const data = await bookService.getTopSellers();
-      setTopSellers(data);
-    } catch (e) {
-      message.error("Failed to load top sellers");
-    }
-  };
-
-  const handleSearch = async (query: string): Promise<void> => {
-    if (searchTimeout.current) {
-      window.clearTimeout(searchTimeout.current);
-      searchTimeout.current = null;
-    }
-
-    if (query) {
-      try {
-        const data = await bookService.searchBooks(query, searchType);
-
-        if (searchType === "barcode" && data.length === 1) {
-          const book = data[0];
-          handleAddToCart(book);
-          message.success(`Added ${book.name} to cart`);
-          setSearchQuery("");
-          setSearchResults(null);
-          searchInputRef.current?.focus();
-          return;
-        }
-
-        setSearchResults(data);
-      } catch (e) {
-        message.error("Failed to search for books");
-      }
-    } else {
-      setSearchResults(null);
-    }
-  };
-
-  const debouncedSearch = (query: string): void => {
-    setSearchQuery(query);
-    if (searchTimeout.current) {
-      window.clearTimeout(searchTimeout.current);
-    }
-    searchTimeout.current = window.setTimeout(() => {
-      handleSearch(query);
-    }, 300);
-  };
-
-  // --- Cart & Discount Logic ---
-  const handleAddToCart = (book: Book): void => {
-    const currentCart = cartRef.current;
-    const availableQuantity = book.quantity ?? 0;
-    if (availableQuantity <= 0) {
-      message.warning(`${book.name} is out of stock`);
-      return;
-    }
-
-    const existing = currentCart.find((item) => item.id === book.id);
-    if (existing) {
-      if (existing.quantity >= existing.availableStock) {
-        message.warning(
-          `Only ${existing.availableStock} available for ${book.name}`
-        );
-        return;
-      }
-      setCart(
-        currentCart.map((item) =>
-          item.id === book.id ? { ...item, quantity: item.quantity + 1 } : item
-        )
-      );
-    } else {
-      setCart([
-        ...currentCart,
-        {
-          ...book,
-          quantity: 1,
-          availableStock: availableQuantity,
-          discountValue: 0,
-          discountType: "Fixed",
-        },
-      ]);
-    }
-  };
-
-  const handleQuantityChange = (bookId: number, quantity: number): void => {
-    const cartItem = cart.find((item) => item.id === bookId);
-    let finalQuantity = quantity;
-    if (cartItem && quantity > cartItem.availableStock) {
-      message.warning(
-        `Only ${cartItem.availableStock} available for ${cartItem.name}`
-      );
-      finalQuantity = cartItem.availableStock;
-    }
-    setCart(
-      cart
-        .map((item) =>
-          item.id === bookId ? { ...item, quantity: finalQuantity } : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
-  };
-
-  const handleItemDiscountApply = (
-    bookId: number,
-    discount: { discountValue: number; discountType: "Fixed" | "Percentage" }
-  ): void => {
-    setCart(
-      cart.map((item) => (item.id === bookId ? { ...item, ...discount } : item))
-    );
-    setEditingItem(null);
-  };
-
-  const calculateItemTotal = (item: CartItem): number => {
-    let priceAfterDiscount = item.price;
-    if (item.discountType === "Fixed") {
-      priceAfterDiscount -= item.discountValue;
-    } else if (item.discountType === "Percentage") {
-      priceAfterDiscount *= 1 - item.discountValue / 100;
-    }
-    return Math.max(0, priceAfterDiscount) * item.quantity;
-  };
-
-  const subtotal = cart.reduce(
-    (acc: number, item) => acc + item.price * item.quantity,
-    0
-  );
-  const subtotalAfterItemDiscounts = cart.reduce(
-    (acc, item) => acc + calculateItemTotal(item),
-    0
-  );
-  const finalCartDiscount =
-    cartDiscountType === "Fixed"
-      ? cartDiscountInput
-      : (subtotalAfterItemDiscounts * cartDiscountInput) / 100;
-  const total = Math.max(0, subtotalAfterItemDiscounts - finalCartDiscount);
-
-  const resetSale = (): void => {
-    setCart([]);
-    setCartDiscountInput(0);
-    setCartDiscountType("Fixed");
-    setIsCheckoutVisible(false);
-    setCompletedSale(null);
-    setEditingItem(null);
-  };
-
-  const handleClearCart = (): void => {
-    setCart([]);
-    setCartDiscountInput(0);
-    setCartDiscountType("Fixed");
-  };
-
-  // --- UI Rendering & Columns ---
-  const cartColumns = [
-    { title: "Book", dataIndex: "name", key: "name" },
-    {
-      title: "Price",
-      dataIndex: "price",
-      key: "price",
-      render: (val: number | string) => formatCurrency(val),
-    },
-    {
-      title: "Qty",
-      dataIndex: "quantity",
-      key: "quantity",
-      width: 80,
-      render: (text: number, record: CartItem) => (
-        <InputNumber
-          size="small"
-          min={0}
-          max={record.availableStock}
-          value={text}
-          onChange={(val) => handleQuantityChange(record.id, Number(val))}
-        />
-      ),
-    },
-    {
-      title: "Discount",
-      key: "discount",
-      render: (_: unknown, record: CartItem) => (
-        <Button
-          icon={<EditOutlined />}
-          size="small"
-          onClick={() => setEditingItem(record)}
-        >
-          {record.discountValue > 0
-            ? `${record.discountValue}${
-                record.discountType === "Fixed" ? "" : "%"
-              }`
-            : "Add"}
-        </Button>
-      ),
-    },
-    {
-      title: "Subtotal",
-      key: "subtotal",
-      render: (_: unknown, record: CartItem) =>
-        formatCurrency(calculateItemTotal(record)),
-    },
-  ];
-
-  const cartDiscountSelector = (
-    <Select
-      value={cartDiscountType}
-      onChange={(val: "Fixed" | "Percentage") => setCartDiscountType(val)}
-    >
-      <Option value="Fixed">LKR</Option>
-      <Option value="Percentage">%</Option>
-    </Select>
-  );
+  const {
+    topSellers,
+    cart,
+    cartDiscountInput,
+    cartDiscountType,
+    isCheckoutVisible,
+    isQuotationModalVisible,
+    isQuotationListVisible,
+    completedSale,
+    completedQuotation,
+    editingItem,
+    searchResults,
+    searchType,
+    searchQuery,
+    searchInputRef,
+    loadingTopSellers,
+    loadingSearch,
+    subtotal,
+    subtotalAfterItemDiscounts,
+    total,
+    setCartDiscountInput,
+    setCartDiscountType,
+    setIsCheckoutVisible,
+    setIsQuotationModalVisible,
+    setIsQuotationListVisible,
+    setCompletedSale,
+    setCompletedQuotation,
+    setEditingItem,
+    setSearchType,
+    handleSearch,
+    debouncedSearch,
+    handleAddToCart,
+    handleQuantityChange,
+    handleItemDiscountApply,
+    resetSale,
+    handleClearCart,
+    refreshBookData,
+  } = usePos();
 
   return (
     <Layout className="min-h-screen">
@@ -340,38 +62,28 @@ const PosPage = () => {
         <Title level={3} style={{ color: "white", margin: 0 }}>
           Point of Sale
         </Title>
-        <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
+        <Space>
+          <Button
+            icon={<FileTextOutlined />}
+            onClick={() => {
+              setIsQuotationListVisible(true);
+            }}
+          >
+            View Quotations
+          </Button>
+          <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
+        </Space>
       </Header>
       <Layout className="h-[calc(100vh-64px)]">
         <Content className="p-6 flex-1 flex flex-col">
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: 24,
-              gap: 16,
-            }}
-          >
-            <Search
-              ref={searchInputRef}
-              placeholder={`Search for books by ${searchType}...`}
-              value={searchQuery}
-              onChange={(e) => debouncedSearch(e.target.value)}
-              onSearch={(value) => handleSearch(value)}
-              style={{ flex: 1 }}
-            />
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Text>Search by:</Text>
-              <Switch
-                checkedChildren="Barcode"
-                unCheckedChildren="Name"
-                checked={searchType === "barcode"}
-                onChange={(checked) =>
-                  setSearchType(checked ? "barcode" : "name")
-                }
-              />
-            </div>
-          </div>
+          <PosSearch
+            searchQuery={searchQuery}
+            searchType={searchType}
+            onSearchQueryChange={debouncedSearch}
+            onSearchTypeChange={setSearchType}
+            onSearch={handleSearch}
+            searchInputRef={searchInputRef}
+          />
           <div
             style={{
               flex: 1,
@@ -381,140 +93,13 @@ const PosPage = () => {
               padding: "16px",
             }}
           >
-            {/* <List
-              dataSource={searchResults !== null ? searchResults : topSellers}
-              renderItem={(book) => {
-                const availableQuantity = book.quantity ?? 0;
-                const isOutOfStock = availableQuantity <= 0;
-                const cartItem = cart.find((item) => item.id === book.id);
-                const cartQuantity = cartItem ? cartItem.quantity : 0;
-                const canAddToCart = !isOutOfStock && cartQuantity < availableQuantity;
-
-                return (
-                  <List.Item
-                    actions={[
-                      isOutOfStock ? (
-                        <Button
-                          key="out-of-stock"
-                          disabled
-                          size="large"
-                        >
-                          Out of Stock
-                        </Button>
-                      ) : (
-                        <Button
-                          key="add"
-                          type="primary"
-                          icon={<PlusOutlined />}
-                          onClick={() => handleAddToCart(book)}
-                          size="large"
-                          disabled={!canAddToCart}
-                        >
-                          {canAddToCart ? "Add to Cart" : "Max in Cart"}
-                        </Button>
-                      ),
-                    ]}
-                  >
-                    <List.Item.Meta
-                      title={
-                        <span className="text-base font-bold">{book.name}</span>
-                      }
-                      description={
-                        <div>
-                          <Text strong className="text-sm text-[#52c41a]">
-                            {formatCurrency(book.price)}
-                          </Text>
-                          <div className="mt-1">
-                            <Text
-                              type={isOutOfStock ? "danger" : "secondary"}
-                              strong={isOutOfStock}
-                            >
-                              {isOutOfStock
-                                ? "Out of Stock"
-                                : `Available: ${availableQuantity}`}
-                            </Text>
-                          </div>
-                          {book.author && (
-                            <div className="mt-1">
-                              <Text type="secondary">by {book.author}</Text>
-                            </div>
-                          )}
-                        </div>
-                      }
-                    />
-                  </List.Item>
-                );
-              }}
-              pagination={false}
-            /> */}
-
-            <Table
-              rowKey="id"
-              pagination={false}
-              dataSource={searchResults !== null ? searchResults : topSellers}
-              columns={[
-                {
-                  title: "Book",
-                  dataIndex: "name",
-                  key: "name",
-                  render: (name: string, book) => (
-                    <div>
-                      <span className="text-base font-bold">{name}</span>
-                      <div>
-                        <Typography.Text
-                          strong
-                          className="text-sm text-[#52c41a]"
-                        >
-                          {formatCurrency(book.price)}
-                        </Typography.Text>
-                        {book.author && (
-                          <div className="mt-1">
-                            <Typography.Text type="secondary">
-                              by {book.author}
-                            </Typography.Text>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ),
-                },
-                {
-                  title: "Quantity",
-                  dataIndex: "quantity",
-                  key: "quantity",
-                },
-                {
-                  title: "Action",
-                  key: "action",
-                  width: 200,
-                  render: (_: unknown, book) => {
-                    const availableQuantity = book.quantity ?? 0;
-                    const isOutOfStock = availableQuantity <= 0;
-                    const cartItem = cart.find((item) => item.id === book.id);
-                    const cartQuantity = cartItem ? cartItem.quantity : 0;
-                    const canAddToCart =
-                      !isOutOfStock && cartQuantity < availableQuantity;
-
-                    return isOutOfStock ? (
-                      <Button key="out-of-stock" disabled size="large">
-                        Out of Stock
-                      </Button>
-                    ) : (
-                      <Button
-                        key="add"
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={() => handleAddToCart(book)}
-                        size="large"
-                        disabled={!canAddToCart}
-                      >
-                        {canAddToCart ? "Add to Cart" : "Max in Cart"}
-                      </Button>
-                    );
-                  },
-                },
-              ]}
-              size="small"
+            <PosBookList
+              books={searchResults !== null ? searchResults : topSellers}
+              cart={cart}
+              onAddToCart={handleAddToCart}
+              loading={
+                searchResults !== null ? loadingSearch : loadingTopSellers
+              }
             />
           </div>
         </Content>
@@ -523,67 +108,21 @@ const PosPage = () => {
           theme="light"
           className="p-0 border-l border-[#f0f0f0] flex-1"
         >
-          <div className="h-full flex flex-col p-6">
-            <Title level={4} className="mb-4">
-              Cart
-            </Title>
-            <div className="max-h-[calc(100vh-350px)] overflow-y-auto mb-4">
-              <Table
-                columns={cartColumns}
-                dataSource={cart}
-                rowKey="id"
-                pagination={false}
-                size="small"
-                /* removed invalid scroll prop */
-              />
-            </div>
-            <div className="mt-auto pt-4 border-t border-[#f0f0f0]">
-              <div className="text-right">
-                <Text strong>Subtotal: {formatCurrency(subtotal)}</Text>
-                <br />
-                <Text type="secondary">
-                  Subtotal (after item discounts):{" "}
-                  {formatCurrency(subtotalAfterItemDiscounts)}
-                </Text>
-                <div className="flex justify-end items-center mt-2">
-                  <Text strong className="mr-2">
-                    Cart Discount:
-                  </Text>
-                  <Space.Compact>
-                    <InputNumber
-                      value={cartDiscountInput}
-                      onChange={(val) => setCartDiscountInput(val ?? 0)}
-                      min={0}
-                    />
-                    {cartDiscountSelector}
-                  </Space.Compact>
-                </div>
-                <Title level={4} className="mt-2">
-                  Total: {formatCurrency(total)}
-                </Title>
-              </div>
-              <div className="flex gap-2 mt-4">
-                <Button
-                  danger
-                  size="large"
-                  disabled={cart.length === 0}
-                  onClick={handleClearCart}
-                  className="flex-1"
-                >
-                  Clear Cart
-                </Button>
-                <Button
-                  type="primary"
-                  size="large"
-                  disabled={cart.length === 0}
-                  onClick={() => setIsCheckoutVisible(true)}
-                  className="flex-3"
-                >
-                  Checkout
-                </Button>
-              </div>
-            </div>
-          </div>
+          <PosCart
+            cart={cart}
+            subtotal={subtotal}
+            subtotalAfterItemDiscounts={subtotalAfterItemDiscounts}
+            total={total}
+            cartDiscountInput={cartDiscountInput}
+            cartDiscountType={cartDiscountType}
+            onQuantityChange={handleQuantityChange}
+            onEditItem={setEditingItem}
+            onCartDiscountChange={setCartDiscountInput}
+            onCartDiscountTypeChange={setCartDiscountType}
+            onClearCart={handleClearCart}
+            onSaveQuotation={() => setIsQuotationModalVisible(true)}
+            onCheckout={() => setIsCheckoutVisible(true)}
+          />
         </Sider>
       </Layout>
       {isCheckoutVisible && (
@@ -592,9 +131,48 @@ const PosPage = () => {
           onClose={() => setIsCheckoutVisible(false)}
           cart={cart}
           total={total}
-          cartDiscount={{ type: cartDiscountType, value: cartDiscountInput }}
-          onSaleComplete={(sale) => {
+          cartDiscountInput={cartDiscountInput}
+          cartDiscountType={cartDiscountType}
+          onSuccess={async (sale) => {
             setIsCheckoutVisible(false);
+            setCompletedSale(sale);
+            handleClearCart();
+            await refreshBookData();
+          }}
+        />
+      )}
+      {isQuotationModalVisible && (
+        <QuotationModal
+          visible={isQuotationModalVisible}
+          onClose={() => setIsQuotationModalVisible(false)}
+          cart={cart}
+          total={total}
+          cartDiscountInput={cartDiscountInput}
+          cartDiscountType={cartDiscountType}
+          onSuccess={(quotation) => {
+            setIsQuotationModalVisible(false);
+            setCompletedQuotation(quotation);
+            handleClearCart();
+          }}
+        />
+      )}
+      {isQuotationListVisible && (
+        <QuotationListModal
+          visible={isQuotationListVisible}
+          onClose={() => setIsQuotationListVisible(false)}
+          onConvert={(quotation) => {
+            setIsQuotationListVisible(false);
+            setCompletedQuotation(quotation);
+          }}
+        />
+      )}
+      {completedQuotation && !isQuotationListVisible && (
+        <ConvertQuotationModal
+          visible={!!completedQuotation}
+          quotation={completedQuotation}
+          onClose={() => setCompletedQuotation(null)}
+          onSuccess={(sale) => {
+            setCompletedQuotation(null);
             setCompletedSale(sale);
           }}
         />
@@ -615,158 +193,6 @@ const PosPage = () => {
         />
       )}
     </Layout>
-  );
-};
-
-interface CheckoutModalProps {
-  visible: boolean;
-  onClose: () => void;
-  cart: CartItem[];
-  total: number;
-  cartDiscount: { type: "Fixed" | "Percentage"; value: number };
-  onSaleComplete: (sale: Sale) => void;
-}
-
-const CheckoutModal = ({
-  visible,
-  onClose,
-  cart,
-  total,
-  cartDiscount,
-  onSaleComplete,
-}: CheckoutModalProps) => {
-  const [form] = Form.useForm();
-  const [bookshops, setBookshops] = useState<Bookshop[]>([]);
-
-  useEffect(() => {
-    if (visible) fetchBookshops();
-  }, [visible]);
-
-  const fetchBookshops = async (): Promise<void> => {
-    try {
-      const data = await bookshopService.getBookshops();
-      setBookshops(data);
-    } catch (e) {
-      message.error("Failed to fetch bookshops");
-    }
-  };
-
-  const handleFinalizeSale = async (): Promise<void> => {
-    try {
-      const values = await form.validateFields();
-      const saleData = {
-        ...values,
-        items: cart.map((item) => ({
-          BookId: item.id,
-          quantity: item.quantity,
-          discount: item.discountValue,
-          discount_type: item.discountType,
-        })),
-        cartDiscount,
-      };
-      const createdSale = await salesService.createSale(saleData);
-      onSaleComplete(createdSale);
-    } catch (error) {
-      message.error((error as Error).message);
-    }
-  };
-
-  return (
-    <Modal
-      title="Finalize Sale"
-      // visible={visible}
-      open={visible}
-      onOk={handleFinalizeSale}
-      onCancel={onClose}
-    >
-      <Form form={form} layout="vertical">
-        <PaymentForm form={form} total={total} bookshops={bookshops} />
-      </Form>
-    </Modal>
-  );
-};
-
-interface PaymentFormProps {
-  form: FormInstance;
-  total: number;
-  bookshops: Bookshop[];
-}
-const PaymentForm = ({ form, total, bookshops }: PaymentFormProps) => {
-  const paymentMethod = Form.useWatch("payment_method", form);
-  const bookshopId = Form.useWatch("BookshopId", form);
-  const [amountTendered, setAmountTendered] = useState<number>(0);
-  const change = amountTendered - total;
-
-  const selectedBookshop = bookshops.find((b) => b.id === bookshopId);
-
-  return (
-    <>
-      <Title level={4}>Total Due: {formatCurrency(total)}</Title>
-      <Form.Item
-        name="BookshopId"
-        label="Bookshop"
-        rules={[{ required: true }]}
-      >
-        <Select placeholder="Select a bookshop">
-          {bookshops.map((shop) => (
-            <Option key={shop.id} value={shop.id}>
-              {shop.name}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
-      <Form.Item
-        name="payment_method"
-        label="Payment Method"
-        rules={[{ required: true }]}
-      >
-        <Select placeholder="Select a payment method">
-          <Option value="Cash">Cash</Option>
-          <Option value="Card">Card</Option>
-          <Option value="Consignment">Consignment</Option>
-        </Select>
-      </Form.Item>
-
-      {paymentMethod === "Consignment" && selectedBookshop && (
-        <div
-          style={{
-            marginBottom: 16,
-            padding: 10,
-            background: "#f5f5f5",
-            borderRadius: 4,
-          }}
-        >
-          <Text>
-            Current Consignment Balance:{" "}
-            <strong>{formatCurrency(selectedBookshop.consignment || 0)}</strong>
-          </Text>
-          <br />
-          <Text type="secondary">
-            This sale will increase the balance by {formatCurrency(total)}
-          </Text>
-        </div>
-      )}
-
-      {paymentMethod === "Cash" && (
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item label="Amount Tendered">
-              <InputNumber
-                min={total}
-                className="w-full"
-                value={amountTendered}
-                onChange={(val) => setAmountTendered(val ?? 0)}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Title level={5} className="pt-[30px]">
-              Change: {formatCurrency(change > 0 ? change : 0)}
-            </Title>
-          </Col>
-        </Row>
-      )}
-    </>
   );
 };
 

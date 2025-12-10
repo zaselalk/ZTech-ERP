@@ -103,6 +103,27 @@ export interface ConsignmentPayment {
   createdAt: string;
 }
 
+export interface QuotationItem {
+  id: number;
+  BookId: number;
+  quantity: number;
+  price: number;
+  discount: number;
+  discount_type: "Fixed" | "Percentage";
+  book?: Book;
+}
+
+export interface Quotation {
+  id: number;
+  bookshop: Bookshop;
+  items: QuotationItem[];
+  total_amount: number;
+  discount: number;
+  expiresAt: string;
+  status: "Active" | "Converted";
+  createdAt: string;
+}
+
 export interface Backup {
   filename: string;
   size: number;

@@ -1,28 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Bookshop } from "../types";
-import { Table, Button, Modal, Form, Input, message } from "antd";
-import { Link } from "react-router-dom";
+import { Button, Form, message } from "antd";
 import { bookshopService } from "../services";
-import { formatCurrency } from "../utils";
+import { BookshopForm, BookshopTable } from "./features/bookshops";
 
 const Bookshops = () => {
-  const [bookshops, setBookshops] = useState<Bookshop[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingBookshop, setEditingBookshop] = useState<Bookshop | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [form] = Form.useForm();
-
-  useEffect(() => {
-    fetchBookshops();
-  }, []);
-
-  const fetchBookshops = async (): Promise<void> => {
-    try {
-      const data = await bookshopService.getBookshops();
-      setBookshops(data);
-    } catch (error) {
-      message.error("Failed to fetch bookshops");
-    }
-  };
 
   const showModal = (bookshop: Bookshop | null = null): void => {
     setEditingBookshop(bookshop);
@@ -51,7 +37,7 @@ const Bookshops = () => {
       message.success(
         `Bookshop ${editingBookshop ? "updated" : "created"} successfully`
       );
-      fetchBookshops();
+      setRefreshTrigger((prev) => prev + 1);
       handleCancel();
     } catch (error) {
       message.error((error as Error).message);
@@ -62,40 +48,10 @@ const Bookshops = () => {
     try {
       await bookshopService.deleteBookshop(id);
       message.success("Bookshop deleted successfully");
-      fetchBookshops();
     } catch (error) {
       message.error((error as Error).message);
     }
   };
-
-  const columns = [
-    { title: "Name", dataIndex: "name", key: "name" },
-    { title: "Location", dataIndex: "location", key: "location" },
-    { title: "Contact", dataIndex: "contact", key: "contact" },
-    {
-      title: "Consignment",
-      dataIndex: "consignment",
-      key: "consignment",
-      render: (consignment: number) => `${formatCurrency(consignment)}`,
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (_: unknown, record: Bookshop) => (
-        <span>
-          <Button type="link" onClick={() => showModal(record)}>
-            Edit
-          </Button>
-          <Button type="link" danger onClick={() => handleDelete(record.id)}>
-            Delete
-          </Button>
-          <Link to={`/bookshops/${record.id}`}>
-            <Button type="link">View Details</Button>
-          </Link>
-        </span>
-      ),
-    },
-  ];
 
   return (
     <div>
@@ -106,40 +62,18 @@ const Bookshops = () => {
       >
         Add Bookshop
       </Button>
-      <Table columns={columns} dataSource={bookshops} rowKey="id" />
-      <Modal
-        title={editingBookshop ? "Edit Bookshop" : "Add Bookshop"}
-        open={isModalVisible}
+      <BookshopTable
+        onEdit={showModal}
+        onDelete={handleDelete}
+        refreshTrigger={refreshTrigger}
+      />
+      <BookshopForm
+        visible={isModalVisible}
+        editingBookshop={editingBookshop}
+        form={form}
         onOk={handleOk}
         onCancel={handleCancel}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="location"
-            label="Location"
-            rules={[{ required: true }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="contact"
-            label="Contact"
-            rules={[{ required: true }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="consignment"
-            label="Consignment"
-            rules={[{ required: true }]}
-          >
-            <Input />
-          </Form.Item>
-        </Form>
-      </Modal>
+      />
     </div>
   );
 };

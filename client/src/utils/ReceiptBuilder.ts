@@ -7,6 +7,9 @@ export const buildReceiptHtml = (sale: any) => {
   const doc = new jsPDF();
   let subTotal: number = 0;
 
+  // Determine if this is a quotation or a sale
+  const isQuotation = !!sale.status || !!sale.items;
+
   // construct date time string
   const dateTime: string = `${new Date(
     sale.createdAt
@@ -47,7 +50,9 @@ export const buildReceiptHtml = (sale: any) => {
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
-  doc.text("SALES RECEIPT", 105, 57, { align: "center" });
+  doc.text(isQuotation ? "QUOTATION" : "SALES RECEIPT", 105, 57, {
+    align: "center",
+  });
 
   // Info section with better layout
   doc.setTextColor(0, 0, 0);
@@ -57,16 +62,24 @@ export const buildReceiptHtml = (sale: any) => {
 
   // Left column
   doc.setFont("helvetica", "bold");
-  doc.text(`Invoice No:`, 14, yPos);
+  doc.text(isQuotation ? `Quotation No:` : `Invoice No:`, 14, yPos);
   doc.setFont("helvetica", "normal");
   doc.text(`${String(sale.id).padStart(3, "0")}`, 45, yPos);
 
   // Right column
   doc.setFont("helvetica", "bold");
-  doc.text(`Invoice Date:`, 140, yPos);
+  doc.text(`Date:`, 140, yPos);
   doc.setFont("helvetica", "normal");
   doc.text(dateTime, 165, yPos);
   yPos += 7;
+
+  if (sale.expiresAt) {
+    doc.setFont("helvetica", "bold");
+    doc.text(`Expires:`, 140, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(new Date(sale.expiresAt).toLocaleDateString(), 165, yPos);
+    yPos += 7;
+  }
 
   // add bookshop name if exists
   if (sale.bookshop) {
@@ -77,38 +90,49 @@ export const buildReceiptHtml = (sale: any) => {
     yPos += 7;
   }
 
-  // Payment Method
-  doc.setFont("helvetica", "bold");
-  doc.text(`Payment:`, 14, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.text(`${sale.payment_method}`, 45, yPos);
-  yPos += 12;
+  // Payment Method (Only for Sales)
+  if (!isQuotation) {
+    doc.setFont("helvetica", "bold");
+    doc.text(`Payment:`, 14, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${sale.payment_method}`, 45, yPos);
+    yPos += 12;
+  } else {
+    yPos += 5;
+  }
 
   // Table
   const tableColumn = ["Item", "Qty", "Price", "Discount", "Total"];
   const tableRows: any[] = [];
 
-  sale.books.forEach((book: bookWithSaleItem) => {
-    if (!book.SaleItem) return;
+  // Handle both Sale (books array) and Quotation (items array) structures
+  const items = sale.books || sale.items || [];
 
-    const saleItem = book.SaleItem;
-    const quantity_price = parseFloat(saleItem.price) || 0;
-    const quantity = saleItem.quantity || 0;
+  items.forEach((item: any) => {
+    // For Sale, item is bookWithSaleItem and has SaleItem property
+    // For Quotation, item is QuotationItem and has book property
 
-    let last_price = parseFloat(saleItem.price) || 0;
+    const isSaleItem = !!item.SaleItem;
+    const detailItem = isSaleItem ? item.SaleItem : item;
+    const bookName = isSaleItem ? item.name : item.book?.name || "Unknown Book";
+
+    const quantity_price = parseFloat(detailItem.price) || 0;
+    const quantity = detailItem.quantity || 0;
+
+    let last_price = parseFloat(detailItem.price) || 0;
 
     // check if discount is applied
     const isDiscountApplied: boolean =
-      parseFloat(saleItem.discount) > 0 ? true : false;
+      parseFloat(detailItem.discount) > 0 ? true : false;
 
     // calculate last price after discount
     if (isDiscountApplied) {
-      switch (saleItem.discount_type) {
+      switch (detailItem.discount_type) {
         case "Fixed":
-          last_price -= parseFloat(saleItem.discount);
+          last_price -= parseFloat(detailItem.discount);
           break;
         case "Percentage":
-          last_price -= (last_price * parseFloat(saleItem.discount)) / 100;
+          last_price -= (last_price * parseFloat(detailItem.discount)) / 100;
           break;
       }
     }
@@ -118,14 +142,14 @@ export const buildReceiptHtml = (sale: any) => {
 
     // format discount display
     const discount =
-      isDiscountApplied && saleItem.discount
-        ? `${saleItem.discount} ${
-            saleItem.discount_type === "Fixed" ? "LKR" : "%"
+      isDiscountApplied && detailItem.discount
+        ? `${detailItem.discount} ${
+            detailItem.discount_type === "Fixed" ? "LKR" : "%"
           }`
         : "-";
 
     const row = [
-      book.name,
+      bookName,
       quantity,
       formatCurrency(quantity_price),
       discount,
@@ -198,6 +222,7 @@ export const buildReceiptHtml = (sale: any) => {
   doc.text("Thank you for your business!", 105, totalsStartY + 35, {
     align: "center",
   });
+
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.text(

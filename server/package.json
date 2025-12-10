@@ -10,7 +10,7 @@
     "dev": "ts-node index.ts",
     "dev:watch": "nodemon --exec ts-node index.ts",
     "migrate": "sequelize-cli db:migrate",
-    "migrate:undo": "sequelize-cli db:migrate:undo",
+    "migrate:undo": "sequelize-cli db:migrate:undo --name",
     "seed": "sequelize-cli db:seed --seed",
     "seed:all": "sequelize-cli db:seed:all",
     "seed:undo": "sequelize-cli db:seed:undo:all"

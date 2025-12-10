@@ -7,3 +7,4 @@ export { authService } from "./authService";
 export { backupService } from "./backupService";
 export { issueService } from "./issueService";
 export { userService } from "./userService";
+export { quotationService } from "./quotationService";

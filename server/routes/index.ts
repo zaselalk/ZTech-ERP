@@ -9,6 +9,7 @@ import dashboardRoutes from "./dashboard";
 import backupsRoutes from "./backups";
 import issuesRoutes from "./issues";
 import usersRoutes from "./users";
+import quotationsRoutes from "./quotations";
 
 import { requireAdmin } from "../middleware/requireAdmin";
 import { requireAuth } from "../middleware/requireAuth";
@@ -25,6 +26,7 @@ export function registerRoutes(app: Express): void {
   app.use("/api/backups", requireAuth, backupsRoutes);
   app.use("/api/issues", requireAuth, issuesRoutes);
   app.use("/api/users", requireAuth, requireAdmin, usersRoutes);
+  app.use("/api/quotations", requireAuth, quotationsRoutes);
 
   app.get("/", (_req, res) => {
     res.send("Bookshop API is running...");

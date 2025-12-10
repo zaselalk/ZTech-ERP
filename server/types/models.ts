@@ -71,6 +71,31 @@ export interface ConsignmentPaymentAttributes {
   updatedAt?: Date;
 }
 
+// Quotation attributes
+export interface QuotationAttributes {
+  id: number;
+  total_amount: number;
+  BookshopId: number;
+  discount: number;
+  expiresAt: Date;
+  status: "Active" | "Converted";
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// QuotationItem attributes
+export interface QuotationItemAttributes {
+  id: number;
+  QuotationId: number;
+  BookId: number;
+  quantity: number;
+  price: number;
+  discount: number;
+  discount_type: "Fixed" | "Percentage";
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 // Creation attributes (id is auto-generated)
 export interface UserCreationAttributes
   extends Optional<UserAttributes, "id"> {}
@@ -84,6 +109,10 @@ export interface SaleItemCreationAttributes
   extends Optional<SaleItemAttributes, "id"> {}
 export interface ConsignmentPaymentCreationAttributes
   extends Optional<ConsignmentPaymentAttributes, "id"> {}
+export interface QuotationCreationAttributes
+  extends Optional<QuotationAttributes, "id"> {}
+export interface QuotationItemCreationAttributes
+  extends Optional<QuotationItemAttributes, "id"> {}
 
 // Model classes
 export class User
@@ -168,6 +197,35 @@ export class ConsignmentPayment
   public amount!: number;
   public paymentDate!: Date;
   public note!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+export class Quotation
+  extends Model<QuotationAttributes, QuotationCreationAttributes>
+  implements QuotationAttributes
+{
+  public id!: number;
+  public total_amount!: number;
+  public BookshopId!: number;
+  public discount!: number;
+  public expiresAt!: Date;
+  public status!: "Active" | "Converted";
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+export class QuotationItem
+  extends Model<QuotationItemAttributes, QuotationItemCreationAttributes>
+  implements QuotationItemAttributes
+{
+  public id!: number;
+  public QuotationId!: number;
+  public BookId!: number;
+  public quantity!: number;
+  public price!: number;
+  public discount!: number;
+  public discount_type!: "Fixed" | "Percentage";
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
