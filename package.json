@@ -9,5 +9,12 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "pdfkit": "^0.17.2",
+    "pdfkit-table": "^0.1.99"
+  },
+  "devDependencies": {
+    "@types/pdfkit": "^0.17.4"
+  }
 }

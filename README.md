@@ -12,10 +12,68 @@ To get started, you'll need to have Node.js and npm installed.
     npm install
     ```
 
-2.  Run the development servers:
+2.  Configure backend environment variables:
+
+    - Copy `server/.env.example` to `server/.env` and set values:
+      - `JWT_SECRET` (required)
+      - `PORT` (default `5001`)
+      - `CORS_ORIGIN` (e.g., `http://localhost:5173`)
+      - `DB_*` (MySQL connection settings)
+
+3.  Run the development servers:
 
     ```bash
     npm run dev
     ```
 
 This will start the backend server on port 5001 and the frontend development server on port 5173.
+
+### Backend Only
+
+From `server/`:
+
+```bash
+npm run dev
+```
+
+Build and run (production):
+
+```bash
+npm run build
+npm start
+```
+
+Build docker image in server
+
+```
+docker build -t bookshop-server -f .Dockerfile .
+```
+
+## Create a mysql container with shared network
+
+### Create a network
+
+```
+docker network create pos-network
+```
+
+### Create a mysql container on same network
+
+Tempory we expose the port to outside
+
+```
+docker run -d --name MySQL --network pos-network -v mysql-data:/var/lib/mysql -p 3306:3306 -e  MYSQL_ROOT_PASSWORD=password mysql:8
+
+```
+
+login to container and create database
+
+```
+docker exec -it <container_id> bash
+```
+
+### Run the container on same network
+
+```
+docker run --env-file .env -p 5000:5000 --network pos-network  bookshop-server
+```
