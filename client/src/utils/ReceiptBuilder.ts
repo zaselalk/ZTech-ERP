@@ -1,7 +1,6 @@
 import jsPDF from "jspdf";
 import { formatCurrency } from "../utils";
 import autoTable from "jspdf-autotable";
-import { bookWithSaleItem } from "../types";
 
 export const buildReceiptHtml = (sale: any) => {
   const doc = new jsPDF();
