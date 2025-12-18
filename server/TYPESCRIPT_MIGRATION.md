@@ -9,7 +9,7 @@ The entire server codebase has been converted from JavaScript to TypeScript, pro
 - **Type Safety**: Compile-time type checking to catch errors early
 - **Better IDE Support**: Enhanced IntelliSense and code completion
 - **Improved Maintainability**: Self-documenting code with type annotations
-- **Modern Development**: ES modules, async/await, and latest ECMAScript features
+- **Modern Development**: ES modules, async/await, and latest ECMAScript features.
 
 ## Project Structure
 
