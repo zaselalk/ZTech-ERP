@@ -45,7 +45,7 @@ server/
 └── package.json           # Updated with TS scripts
 ```
 
-## Key Changess
+## Key Changes
 
 ### 1. TypeScript Configuration
 
