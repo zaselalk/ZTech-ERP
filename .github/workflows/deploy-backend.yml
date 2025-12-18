@@ -2,7 +2,7 @@ name: Deploy Backend (Registry Style)
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths: ["server/**"]
 
 jobs:
