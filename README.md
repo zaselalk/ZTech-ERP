@@ -7,11 +7,12 @@ This is a simple bookshop management system with a React frontend and a Node.js 
 To get started, you'll need to have Node.js and npm installed.
 
 1.  Install the dependencies for both the client and server:
+
     ```bash
     npm install
     ```
 
-2.  Configure backend environment variables:
+3.  Configure backend environment variables:
 
     - Copy `server/.env.example` to `server/.env` and set values:
       - `JWT_SECRET` (required)
@@ -19,7 +20,7 @@ To get started, you'll need to have Node.js and npm installed.
       - `CORS_ORIGIN` (e.g., `http://localhost:5173`)
       - `DB_*` (MySQL connection settings)
 
-3.  Run the development servers:
+4.  Run the development servers:
 
     ```bash
     npm run dev
