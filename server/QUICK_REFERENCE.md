@@ -389,4 +389,4 @@ npm run build
 5. **Keep types organized**
    - Shared types go in `types/` directory
    - Route-specific types can be defined in route files
-   - Model types go in `types/models.ts`
+   - Model types go in `types/models.ts`.
