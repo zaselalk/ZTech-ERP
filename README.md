@@ -73,7 +73,6 @@ docker exec -it <container_id> bash
 ```
 
 ### Run the container on same network
-
 ```
 docker run --env-file .env -p 5000:5000 --network pos-network  bookshop-server
 ```
