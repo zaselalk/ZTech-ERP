@@ -49,16 +49,16 @@ jobs:
             docker pull ghcr.io/${{ github.repository }}:latest
 
             # 3. Restart the container
-            docker stop bookshop-backend || true
-            docker rm bookshop-backend || true
-            
+            docker stop yatadola-storyflix-api || true
+            docker rm yatadola-storyflix-api || true
+
             docker run -d \
-              --name bookshop-backend \
+              --name yatadola-storyflix-api \
               --restart unless-stopped \
               -p 5001:5000 \
               --network pos-network \
-              -v /home/asela/pos-api/.env:/app/.env \
-              -v /home/asela/pos-api/backups:/app/backups \
+              -v /home/asela/yatadola-storyflix-api/.env:/app/.env \
+              -v /home/asela/yatadola-storyflix-api/backups:/app/backups \
               ghcr.io/${{ github.repository }}:latest
 
             # 4. Cleanup old images to save disk space
