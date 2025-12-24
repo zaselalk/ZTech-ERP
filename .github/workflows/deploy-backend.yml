@@ -61,5 +61,8 @@ jobs:
               -v /home/asela/yatadola-storyflix-api/backups:/app/backups \
               ghcr.io/${{ github.repository }}:latest
 
+            #4 run migrations
+            docker exec -it yatadola-storyflix-api npm run migrate
+
             # 4. Cleanup old images to save disk space
             docker image prune -f
