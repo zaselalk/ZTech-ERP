@@ -12,7 +12,7 @@ To get started, you'll need to have Node.js and npm installed.
     npm install
     ```
 
-3.  Configure backend environment variables:
+2.  Configure backend environment variables:
 
     - Copy `server/.env.example` to `server/.env` and set values:
       - `JWT_SECRET` (required)
@@ -20,7 +20,7 @@ To get started, you'll need to have Node.js and npm installed.
       - `CORS_ORIGIN` (e.g., `http://localhost:5173`)
       - `DB_*` (MySQL connection settings)
 
-4.  Run the development servers:
+3.  Run the development servers:
 
     ```bash
     npm run dev
@@ -73,6 +73,23 @@ docker exec -it <container_id> bash
 ```
 
 ### Run the container on same network
+
 ```
 docker run --env-file .env -p 5000:5000 --network pos-network  bookshop-server
+```
+
+### restart application after env changes
+
+```
+docker stop yatadola-storyflix-api
+docker rm yatadola-storyflix-api
+
+docker run -d \
+  --name yatadola-storyflix-api \
+  --restart unless-stopped \
+  -p 5000:5000 \
+  --network pos-network \
+  -v /home/asela/yatadola-storyflix-api/.env:/app/.env \
+  -v /home/asela/yatadola-storyflix-api/backups:/app/backups \
+  ghcr.io/zaselalk/storyflix-yatadola:latest
 ```
