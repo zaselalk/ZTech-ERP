@@ -14,6 +14,7 @@ export const env = {
   DB_USER: process.env.DB_USER || "root",
   DB_PASSWORD: process.env.DB_PASSWORD || "",
   DB_NAME: process.env.DB_NAME || "bookshop_db",
+  MYSQL_DOCKER_CONTAINER: process.env.MYSQL_DOCKER_CONTAINER, // Docker container name for MySQL
   GITHUB_TOKEN: process.env.GITHUB_TOKEN,
   GITHUB_REPO_OWNER: process.env.GITHUB_REPO_OWNER,
   GITHUB_REPO_NAME: process.env.GITHUB_REPO_NAME,
