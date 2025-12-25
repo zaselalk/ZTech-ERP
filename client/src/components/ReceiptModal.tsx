@@ -60,7 +60,7 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
     documentTitle: `Receipt-${sale?.id || "Unknown"}`,
-    onAfterPrint: () => message.success("Receipt printed successfully"),
+    // onAfterPrint: () => message.success("Receipt printed successfully"),
   });
 
   const handleDownloadPDF = () => {
