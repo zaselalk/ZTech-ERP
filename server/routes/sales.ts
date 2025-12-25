@@ -448,8 +448,8 @@ router.post(
         <div class="container">
           <div class="header">
             <h1>Storyflix Pvt Ltd</h1>
-            <p>267B, Pahala Yagoda, Ganemulla</p>
-            <p>Tel: 0773549230 / 0762208912 | Email: storyflix2022@gmail.com</p>
+            <p> No.09, Sunhill Gardens, Yatadola, Matugama.</p>
+            <p>Tel: +94706995585(WhatsApp) / +94712114841 | Email: storyflix2022@gmail.com</p>
           </div>
           
           <div class="receipt-info">

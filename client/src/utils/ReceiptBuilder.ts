@@ -30,9 +30,11 @@ export const buildReceiptHtml = (sale: any) => {
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(80, 80, 80);
-  doc.text("267B, Pahala Yagoda, Ganemulla", 105, 32, { align: "center" });
+  doc.text(" No.09, Sunhill Gardens, Yatadola, Matugama.", 105, 32, {
+    align: "center",
+  });
   doc.text(
-    "Tel: 0773549230 / 0762208912 | Email: storyflix2022@gmail.com",
+    "Tel: +94706995585(WhatsApp) / +94712114841 | Email: storyflix2022@gmail.com",
     105,
     37,
     { align: "center" }

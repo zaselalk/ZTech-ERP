@@ -159,10 +159,10 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
                   Storyflix Pvt Ltd
                 </Title>
                 <Text className="block text-gray-600 text-sm">
-                  267B, Pahala Yagoda, Ganemulla
+                  No.09, Sunhill Gardens, Yatadola, Matugama.
                 </Text>
                 <Text className="block text-gray-600 text-sm">
-                  Tel: 0773549230 / 0762208912
+                  Tel: +94706995585(WhatsApp) / +94712114841
                 </Text>
                 <Text className="block text-gray-600 text-sm">
                   Email: storyflix2022@gmail.com

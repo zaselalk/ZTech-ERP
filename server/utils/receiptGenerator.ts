@@ -60,9 +60,11 @@ export const generateReceiptPdf = (sale: Sale): Promise<Buffer> => {
       .fontSize(9)
       .font("Helvetica")
       .fillColor("#505050")
-      .text("267B, Pahala Yagoda, Ganemulla", 0, 45, { align: "center" });
+      .text(" No.09, Sunhill Gardens, Yatadola, Matugama.", 0, 45, {
+        align: "center",
+      });
     doc.text(
-      "Tel: 0773549230 / 0762208912 | Email: storyflix2022@gmail.com",
+      "Tel: +94706995585(WhatsApp) / +94712114841 | Email: storyflix2022@gmail.com",
       0,
       58,
       { align: "center" }
