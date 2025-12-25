@@ -148,25 +148,27 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
         <div ref={componentRef} className="p-8 bg-white">
           {/* Company Header with Logo */}
           <div className="flex items-start justify-between mb-6 pb-4 border-b-2 border-blue-500">
-            <div className="flex justify-between items-center w-full">
+            <div className="flex flex-col md:flex-row justify-center md:justify-between items-center w-full flex-wrap gap-4">
               <img
                 src="/logo/storyflix-logo.png"
                 alt="Storyflix Logo"
                 className=" h-16 mr-4"
               />
               <div>
-                <Title level={2} className="mb-1! text-blue-600">
-                  Storyflix Pvt Ltd
-                </Title>
-                <Text className="block text-gray-600 text-sm">
-                  No.09, Sunhill Gardens, Yatadola, Matugama.
-                </Text>
-                <Text className="block text-gray-600 text-sm">
-                  Tel: +94706995585(WhatsApp) / +94712114841
-                </Text>
-                <Text className="block text-gray-600 text-sm">
-                  Email: digital@storyflix.lk
-                </Text>
+                <div className="text-center md:text-right">
+                  <Title level={2} className="mb-1! text-blue-600">
+                    Storyflix Pvt Ltd
+                  </Title>
+                  <Text className="block text-gray-600 text-sm">
+                    No.09, Sunhill Gardens, Yatadola, Matugama.
+                  </Text>
+                  <Text className="block text-gray-600 text-sm">
+                    Tel: +94706995585(WhatsApp) / +94712114841
+                  </Text>
+                  <Text className="block text-gray-600 text-sm">
+                    Email: digital@storyflix.lk
+                  </Text>
+                </div>
               </div>
             </div>
           </div>
@@ -194,15 +196,15 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
               </Text>{" "}
               <Text>{new Date(sale.createdAt).toLocaleDateString()}</Text>
             </div>
-            {sale.bookshop && (
+            {/* {sale.bookshop && (
               <div>
                 <Text strong className="text-gray-700">
                   Customer:
                 </Text>{" "}
                 <Text>{sale.bookshop.name}</Text>
               </div>
-            )}
-            <div className={sale.bookshop ? "text-right" : ""}>
+            )} */}
+            <div>
               <Text strong>Payment:</Text> <Text>{sale.payment_method}</Text>
             </div>
           </div>
@@ -311,7 +313,7 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
           </div>
 
           <div className="text-center mt-4 pt-3 border-t border-gray-200">
-            <p className="block text-gray-300 text-xs">
+            <p className="block text-gray-700 text-xs">
               Need a Tailored Software Solution? We’re Just a Call Away:{" "}
               <strong>077 124 2254 (Asela)</strong>
             </p>
