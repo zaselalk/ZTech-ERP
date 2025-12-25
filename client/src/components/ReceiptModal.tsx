@@ -165,7 +165,7 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
                   Tel: +94706995585(WhatsApp) / +94712114841
                 </Text>
                 <Text className="block text-gray-600 text-sm">
-                  Email: storyflix2022@gmail.com
+                  Email: digital@storyflix.lk
                 </Text>
               </div>
             </div>

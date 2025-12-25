@@ -34,7 +34,7 @@ export const buildReceiptHtml = (sale: any) => {
     align: "center",
   });
   doc.text(
-    "Tel: +94706995585(WhatsApp) / +94712114841 | Email: storyflix2022@gmail.com",
+    "Tel: +94706995585(WhatsApp) / +94712114841 | Email: digital@storyflix.lk",
     105,
     37,
     { align: "center" }

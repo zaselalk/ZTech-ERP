@@ -449,7 +449,7 @@ router.post(
           <div class="header">
             <h1>Storyflix Pvt Ltd</h1>
             <p> No.09, Sunhill Gardens, Yatadola, Matugama.</p>
-            <p>Tel: +94706995585(WhatsApp) / +94712114841 | Email: storyflix2022@gmail.com</p>
+            <p>Tel: +94706995585(WhatsApp) / +94712114841 | Email: digital@storyflix.lk</p>
           </div>
           
           <div class="receipt-info">
