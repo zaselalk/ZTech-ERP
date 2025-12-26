@@ -11,12 +11,14 @@ import QuotationModal from "../components/features/pos/QuotationModal";
 import QuotationListModal from "../components/features/pos/QuotationListModal";
 import ConvertQuotationModal from "../components/features/pos/ConvertQuotationModal";
 import { usePos } from "../components/features/pos/usePos";
+import { authService } from "../services";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
 
 const PosPage = () => {
   const navigate = useNavigate();
+  const userRole = authService.getRole();
   const {
     topSellers,
     cart,
@@ -71,7 +73,9 @@ const PosPage = () => {
           >
             View Quotations
           </Button>
-          <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
+          {userRole === "admin" && (
+            <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
+          )}
         </Space>
       </Header>
       <Layout className="h-[calc(100vh-64px)]">
