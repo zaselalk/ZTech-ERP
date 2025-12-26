@@ -24,11 +24,11 @@ export interface BookshopAttributes {
 // Book attributes
 export interface BookAttributes {
   id: number;
-  barcode: string;
+  barcode: string | null;
   name: string;
-  author: string;
-  publisher: string;
-  genre: string;
+  author: string | null;
+  publisher: string | null;
+  genre: string | null;
   quantity: number;
   price: number;
   reorder_threshold: number;

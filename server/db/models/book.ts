@@ -14,7 +14,7 @@ export = (
       },
       barcode: {
         type: dataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
         unique: true,
       },
       name: {
@@ -23,15 +23,15 @@ export = (
       },
       author: {
         type: dataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       publisher: {
         type: dataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       genre: {
         type: dataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       quantity: {
         type: dataTypes.INTEGER,
@@ -41,11 +41,12 @@ export = (
       price: {
         type: dataTypes.DECIMAL(10, 2),
         allowNull: false,
+        defaultValue: 0,
       },
       reorder_threshold: {
         type: dataTypes.INTEGER,
         allowNull: false,
-        defaultValue: 10,
+        defaultValue: 1,
       },
       discount: {
         type: dataTypes.DECIMAL(10, 2),
