@@ -8,7 +8,13 @@ import {
   type MenuProps,
 } from "antd";
 import { useState } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import {
   DashboardOutlined,
   ShoppingCartOutlined,
@@ -65,6 +71,11 @@ const MainLayout = () => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
   const userRole = authService.getRole();
   const username = authService.getUsername();
+
+  // Redirect staff to POS if they try to access dashboard
+  if (userRole === "staff") {
+    return <Navigate to="/pos" replace />;
+  }
 
   const handleMenuClick = (e: { key: string }) => {
     setSelectedKey(e.key);

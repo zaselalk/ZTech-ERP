@@ -21,10 +21,10 @@ export function registerRoutes(app: Express): void {
   app.use("/api/bookshops", requireAuth, bookshopRoutes);
   app.use("/api/books", requireAuth, bookRoutes);
   app.use("/api/sales", requireAuth, salesRoutes);
-  app.use("/api/reports", requireAuth, reportsRoutes);
-  app.use("/api/dashboard", requireAuth, dashboardRoutes);
-  app.use("/api/backups", requireAuth, backupsRoutes);
-  app.use("/api/issues", requireAuth, issuesRoutes);
+  app.use("/api/reports", requireAuth, requireAdmin, reportsRoutes);
+  app.use("/api/dashboard", requireAuth, requireAdmin, dashboardRoutes);
+  app.use("/api/backups", requireAuth, requireAdmin, backupsRoutes);
+  app.use("/api/issues", requireAuth, requireAdmin, issuesRoutes);
   app.use("/api/users", requireAuth, requireAdmin, usersRoutes);
   app.use("/api/quotations", requireAuth, quotationsRoutes);
 

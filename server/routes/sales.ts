@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import nodemailer from "nodemailer";
 import { col, fn, literal, Op } from "sequelize";
+import { requireAdmin } from "../middleware/requireAdmin";
 const db = require("../db/models");
 const { sequelize, Sale, SaleItem, Book, Bookshop } = db;
 
@@ -31,36 +32,41 @@ interface EmailRequestBody {
 }
 
 // Get all sales
-router.get("/", async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { startDate, endDate } = req.query;
-    const whereClause: any = {};
+router.get(
+  "/",
+  requireAdmin,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { startDate, endDate } = req.query;
+      const whereClause: any = {};
 
-    if (startDate && endDate) {
-      const start = new Date(startDate as string);
-      const end = new Date(endDate as string);
-      end.setHours(23, 59, 59, 999);
+      if (startDate && endDate) {
+        const start = new Date(startDate as string);
+        const end = new Date(endDate as string);
+        end.setHours(23, 59, 59, 999);
 
-      whereClause.createdAt = {
-        [Op.between]: [start, end],
-      };
+        whereClause.createdAt = {
+          [Op.between]: [start, end],
+        };
+      }
+
+      const sales = await Sale.findAll({
+        where: whereClause,
+        include: ["bookshop", { model: Book, as: "books" }],
+        order: [["createdAt", "DESC"]],
+      });
+      res.json(sales);
+    } catch (err) {
+      const error = err as Error;
+      res.status(500).json({ message: error.message });
     }
-
-    const sales = await Sale.findAll({
-      where: whereClause,
-      include: ["bookshop", { model: Book, as: "books" }],
-      order: [["createdAt", "DESC"]],
-    });
-    res.json(sales);
-  } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ message: error.message });
   }
-});
+);
 
 // Get daily sales
 router.get(
   "/daily-sales-trend",
+  requireAdmin,
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { startDate, endDate } = req.query;
@@ -106,6 +112,7 @@ router.get(
 // get sales payment method
 router.get(
   "/sales-payment",
+  requireAdmin,
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { startDate, endDate } = req.query;
@@ -150,6 +157,7 @@ router.get(
 // get sales by bookshop
 router.get(
   "/sales-by-bookshop",
+  requireAdmin,
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { startDate, endDate } = req.query;
