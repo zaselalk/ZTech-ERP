@@ -1,6 +1,6 @@
 import { Layout, Typography, Button, Space } from "antd";
 import { useNavigate } from "react-router-dom";
-import { FileTextOutlined, LogoutOutlined } from "@ant-design/icons";
+import { FileTextOutlined } from "@ant-design/icons";
 import ReceiptModal from "../components/ReceiptModal";
 import ItemDiscountModal from "../components/features/pos/ItemDiscountModal";
 import PosSearch from "../components/features/pos/PosSearch";
