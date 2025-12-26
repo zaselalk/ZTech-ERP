@@ -33,9 +33,52 @@ export const generateReceiptPdf = (sale: Sale): Promise<Buffer> => {
     const doc = new PDFDocument({ margin: 30, size: "A4" });
     const buffers: Buffer[] = [];
 
+    // Register Fonts
+    let fontPathRegular = path.join(
+      __dirname,
+      "../fonts/NotoSansSinhala-Regular.ttf"
+    );
+    if (!fs.existsSync(fontPathRegular)) {
+      fontPathRegular = path.join(
+        __dirname,
+        "../../fonts/NotoSansSinhala-Regular.ttf"
+      );
+    }
+
+    let fontPathBold = path.join(
+      __dirname,
+      "../fonts/NotoSansSinhala-Bold.ttf"
+    );
+    if (!fs.existsSync(fontPathBold)) {
+      fontPathBold = path.join(
+        __dirname,
+        "../../fonts/NotoSansSinhala-Bold.ttf"
+      );
+    }
+
+    if (fs.existsSync(fontPathRegular)) {
+      doc.registerFont("NotoSansSinhala", fontPathRegular);
+    } else {
+      console.warn(
+        `Regular font not found at ${fontPathRegular}, falling back to Helvetica`
+      );
+      doc.registerFont("NotoSansSinhala", "Helvetica");
+    }
+
+    if (fs.existsSync(fontPathBold)) {
+      doc.registerFont("NotoSansSinhala-Bold", fontPathBold);
+    } else {
+      console.warn(
+        `Bold font not found at ${fontPathBold}, falling back to Helvetica-Bold`
+      );
+      doc.registerFont("NotoSansSinhala-Bold", "Helvetica-Bold");
+    }
+
     doc.on("data", (buffer: any) => buffers.push(buffer));
     doc.on("end", () => resolve(Buffer.concat(buffers)));
     doc.on("error", (err: any) => reject(err));
+
+    const hasSinhala = (text: string) => /[\u0D80-\u0DFF]/.test(text);
 
     // --- Header Section ---
     // Logo
@@ -107,7 +150,11 @@ export const generateReceiptPdf = (sale: Sale): Promise<Buffer> => {
     // Customer (if exists)
     if (sale.bookshop) {
       doc.font("Helvetica-Bold").text("Customer:", 14, yPos);
-      doc.font("Helvetica").text(sale.bookshop.name, 80, yPos);
+      const customerName = sale.bookshop.name;
+      const customerFont = hasSinhala(customerName)
+        ? "NotoSansSinhala"
+        : "Helvetica";
+      doc.font(customerFont).text(customerName, 80, yPos);
       yPos += 15;
     }
 
@@ -157,7 +204,17 @@ export const generateReceiptPdf = (sale: Sale): Promise<Buffer> => {
         rectRow?: any,
         rectCell?: any
       ) => {
-        doc.font("Helvetica").fontSize(10);
+        doc.fontSize(10);
+        if (indexColumn === 0) {
+          const text = row[0];
+          if (hasSinhala(text)) {
+            doc.font("NotoSansSinhala");
+          } else {
+            doc.font("Helvetica");
+          }
+        } else {
+          doc.font("Helvetica");
+        }
         return doc;
       },
       x: 14,

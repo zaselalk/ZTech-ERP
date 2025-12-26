@@ -63,10 +63,10 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
     // onAfterPrint: () => message.success("Receipt printed successfully"),
   });
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!sale) return;
 
-    const doc = buildReceiptHtml(sale);
+    const doc = await buildReceiptHtml(sale);
     doc.save(`receipt-${sale.id}.pdf`);
     message.success("PDF downloaded successfully");
   };

@@ -2,9 +2,37 @@ import jsPDF from "jspdf";
 import { formatCurrency } from "../utils";
 import autoTable from "jspdf-autotable";
 
-export const buildReceiptHtml = (sale: any) => {
+const loadFont = async (url: string): Promise<string> => {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64data = (reader.result as string).split(",")[1];
+      resolve(base64data);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+const hasSinhala = (text: string) => /[\u0D80-\u0DFF]/.test(text);
+
+export const buildReceiptHtml = async (sale: any) => {
   const doc = new jsPDF();
   let subTotal: number = 0;
+
+  try {
+    const fontRegular = await loadFont("/fonts/NotoSansSinhala-Regular.ttf");
+    const fontBold = await loadFont("/fonts/NotoSansSinhala-Bold.ttf");
+
+    doc.addFileToVFS("NotoSansSinhala-Regular.ttf", fontRegular);
+    doc.addFileToVFS("NotoSansSinhala-Bold.ttf", fontBold);
+
+    doc.addFont("NotoSansSinhala-Regular.ttf", "NotoSansSinhala", "normal");
+    doc.addFont("NotoSansSinhala-Bold.ttf", "NotoSansSinhala", "bold");
+  } catch (error) {
+    console.error("Error loading fonts:", error);
+  }
 
   // Determine if this is a quotation or a sale
   const isQuotation = !!sale.status || !!sale.items;
@@ -181,6 +209,18 @@ export const buildReceiptHtml = (sale: any) => {
       2: { halign: "right" },
       3: { halign: "center" },
       4: { halign: "right" },
+    },
+    didParseCell: (data) => {
+      if (data.section === "body" && data.column.index === 0) {
+        const text = data.cell.raw as string;
+        if (hasSinhala(text)) {
+          data.cell.styles.font = "NotoSansSinhala";
+        } else {
+          data.cell.styles.font = "helvetica";
+        }
+      } else {
+        data.cell.styles.font = "helvetica";
+      }
     },
     alternateRowStyles: { fillColor: [248, 249, 250] },
     margin: { left: 14, right: 14 },
