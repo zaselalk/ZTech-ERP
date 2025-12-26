@@ -22,7 +22,11 @@ const LoginPage = () => {
       } = await authService.login(username, password);
       authService.storeToken(token, role, user);
       message.success("Login successful!");
-      navigate("/");
+      if (role === "staff") {
+        navigate("/pos");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       message.error("Invalid credentials..! Please try again.");
     } finally {
