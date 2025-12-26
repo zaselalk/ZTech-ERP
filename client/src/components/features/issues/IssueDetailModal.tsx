@@ -31,14 +31,6 @@ const IssueDetailModal = ({ issue, onClose }: IssueDetailModalProps) => {
         <Button key="close" onClick={onClose}>
           Close
         </Button>,
-        <Button
-          key="github"
-          type="primary"
-          href={issue?.html_url}
-          target="_blank"
-        >
-          View on GitHub
-        </Button>,
       ]}
       width={700}
     >
