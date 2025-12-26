@@ -96,8 +96,8 @@ const QuotationListModal = ({
         <Space>
           <Button
             icon={<DownloadOutlined />}
-            onClick={() => {
-              const doc = buildReceiptHtml(record);
+            onClick={async () => {
+              const doc = await buildReceiptHtml(record);
               doc.save(`quotation-${record.id}.pdf`);
             }}
           >
