@@ -36,11 +36,11 @@ export interface bookWithSaleItem {
   };
   name: string;
   id: number;
-  author: string;
-  barcode: string;
+  author?: string | null;
+  barcode?: string | null;
   price: number;
   quantity: number;
-  publisher: string;
+  publisher?: string | null;
   reorder_threshold: number;
   updatedAt: string;
 }

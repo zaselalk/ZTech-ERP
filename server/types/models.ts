@@ -15,8 +15,8 @@ export interface BookshopAttributes {
   id: number;
   name: string;
   consignment: number;
-  location: string;
-  contact: string;
+  location: string | null;
+  contact: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -102,9 +102,12 @@ export interface QuotationItemAttributes {
 export interface UserCreationAttributes
   extends Optional<UserAttributes, "id"> {}
 export interface BookshopCreationAttributes
-  extends Optional<BookshopAttributes, "id"> {}
+  extends Optional<BookshopAttributes, "id" | "location" | "contact"> {}
 export interface BookCreationAttributes
-  extends Optional<BookAttributes, "id"> {}
+  extends Optional<
+    BookAttributes,
+    "id" | "barcode" | "author" | "publisher" | "genre"
+  > {}
 export interface SaleCreationAttributes
   extends Optional<SaleAttributes, "id"> {}
 export interface SaleItemCreationAttributes
@@ -136,8 +139,8 @@ export class Bookshop
   public id!: number;
   public name!: string;
   public consignment!: number;
-  public location!: string;
-  public contact!: string;
+  public location!: string | null;
+  public contact!: string | null;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -147,11 +150,11 @@ export class Book
   implements BookAttributes
 {
   public id!: number;
-  public barcode!: string;
+  public barcode!: string | null;
   public name!: string;
-  public author!: string;
-  public publisher!: string;
-  public genre!: string;
+  public author!: string | null;
+  public publisher!: string | null;
+  public genre!: string | null;
   public quantity!: number;
   public price!: number;
   public reorder_threshold!: number;
