@@ -1,6 +1,6 @@
 import { Layout, Typography, Button, Space } from "antd";
 import { useNavigate } from "react-router-dom";
-import { FileTextOutlined } from "@ant-design/icons";
+import { FileTextOutlined, LogoutOutlined } from "@ant-design/icons";
 import ReceiptModal from "../components/ReceiptModal";
 import ItemDiscountModal from "../components/features/pos/ItemDiscountModal";
 import PosSearch from "../components/features/pos/PosSearch";
@@ -75,6 +75,21 @@ const PosPage = () => {
           </Button>
           {userRole === "admin" && (
             <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
+          )}
+          {/* show logout button for staff users */}
+          {userRole === "staff" && (
+            <Button
+              danger
+              onClick={() => {
+                // ask for confirmation before logout
+                if (window.confirm("Are you sure you want to logout?")) {
+                  authService.removeToken();
+                  navigate("/login");
+                }
+              }}
+            >
+              Logout
+            </Button>
           )}
         </Space>
       </Header>
