@@ -131,21 +131,6 @@ const MainLayout = () => {
 
   const userMenuItems: MenuProps["items"] = [
     {
-      key: "profile",
-      icon: <UserOutlined />,
-      label: "Profile",
-      disabled: true, // Can enable later when profile page is ready
-    },
-    {
-      key: "settings",
-      icon: <SettingOutlined />,
-      label: "Settings",
-      disabled: true, // Can enable later when settings page is ready
-    },
-    {
-      type: "divider",
-    },
-    {
       key: "logout",
       icon: <LogoutOutlined />,
       label: "Logout",
