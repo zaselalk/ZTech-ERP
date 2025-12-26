@@ -9,10 +9,10 @@ import ReceiptModal from "./ReceiptModal";
 const { Title } = Typography;
 
 interface ExtendedBook extends Book {
-  genre?: string;
+  genre?: string | null;
   quantity?: number;
   price: number;
-  author?: string;
+  author?: string | null;
   name: string;
 }
 

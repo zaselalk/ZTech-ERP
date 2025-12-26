@@ -35,10 +35,19 @@ const Books = () => {
     try {
       const values = await form.validateFields();
 
+      // Sanitize optional fields: convert empty strings to null
+      const sanitizedValues = {
+        ...values,
+        barcode: values.barcode ? values.barcode : null,
+        author: values.author ? values.author : null,
+        publisher: values.publisher ? values.publisher : null,
+        genre: values.genre ? values.genre : null,
+      };
+
       if (editingBook) {
-        await bookService.updateBook(editingBook.id, values);
+        await bookService.updateBook(editingBook.id, sanitizedValues);
       } else {
-        await bookService.createBook(values);
+        await bookService.createBook(sanitizedValues);
       }
 
       message.success(

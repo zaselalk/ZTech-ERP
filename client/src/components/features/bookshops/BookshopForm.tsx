@@ -28,20 +28,16 @@ export const BookshopForm = ({
           <Input />
         </Form.Item>
         <Form.Item
-          name="location"
-          label="Location"
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item name="contact" label="Contact" rules={[{ required: true }]}>
-          <Input />
-        </Form.Item>
-        <Form.Item
           name="consignment"
           label="Consignment"
           rules={[{ required: true }]}
         >
+          <Input />
+        </Form.Item>
+        <Form.Item name="location" label="Location">
+          <Input />
+        </Form.Item>
+        <Form.Item name="contact" label="Contact">
           <Input />
         </Form.Item>
       </Form>

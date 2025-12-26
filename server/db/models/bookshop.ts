@@ -23,11 +23,11 @@ export = (
       },
       location: {
         type: dataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       contact: {
         type: dataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
     },
     {

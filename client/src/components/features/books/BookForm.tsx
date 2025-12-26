@@ -33,56 +33,6 @@ export const BookForm = ({
           </Col>
           <Col span={12}>
             <Form.Item
-              name="author"
-              label="Author"
-              rules={[{ required: true }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="barcode"
-              label="Barcode"
-              rules={[{ required: true }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="publisher"
-              label="Publisher"
-              rules={[{ required: true }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item name="genre" label="Genre" rules={[{ required: true }]}>
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="price"
-              label="Price"
-              rules={[{ required: true, type: "number" }]}
-            >
-              <InputNumber style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
               name="quantity"
               label="Quantity"
               rules={[{ required: true, type: "integer" }]}
@@ -90,11 +40,51 @@ export const BookForm = ({
               <InputNumber style={{ width: "100%" }} />
             </Form.Item>
           </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="price"
+              label="Price (Rs.)"
+              rules={[{ required: true, type: "number" }]}
+            >
+              <InputNumber style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+
+          <Col span={12}>
+            <Form.Item name="publisher" label="Publisher">
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="genre" label="Genre">
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="barcode" label="Barcode">
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="author" label="Author">
+              <Input />
+            </Form.Item>
+          </Col>
           <Col span={12}>
             <Form.Item
               name="reorder_threshold"
               label="Reorder Threshold"
-              rules={[{ required: true, type: "integer" }]}
+              initialValue={1}
+              rules={[{ type: "integer" }]}
             >
               <InputNumber style={{ width: "100%" }} />
             </Form.Item>
@@ -107,7 +97,7 @@ export const BookForm = ({
               name="discount"
               label="Discount"
               initialValue={0}
-              rules={[{ required: true, type: "number" }]}
+              rules={[{ type: "number" }]}
             >
               <InputNumber
                 style={{ width: "100%" }}
@@ -121,7 +111,6 @@ export const BookForm = ({
               name="discount_type"
               label="Discount Type"
               initialValue="Fixed"
-              rules={[{ required: true }]}
             >
               <Select>
                 <Select.Option value="Fixed">Fixed Amount (Rs.)</Select.Option>
