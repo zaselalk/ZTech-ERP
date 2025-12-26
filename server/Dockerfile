@@ -16,6 +16,9 @@ COPY . .
 # build step 
 RUN npm run build
 
+#install mysql client for backup scripts
+RUN apk add --no-cache mysql-client mariadb-connector-c
+
 # Expose the port your backend runs on (e.g., 5000)
 EXPOSE 5000
 
