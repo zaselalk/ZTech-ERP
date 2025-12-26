@@ -1,0 +1,20 @@
+services:
+  api:
+    image: yatadola-pos
+    container_name: yatadola-pos-api
+    # Override the default start command to use nodemon
+    command: npm run dev:watch
+    ports:
+      - "5000:5000"
+    networks:
+      - pos-network
+    volumes:
+      # 1. Sync your source code
+      - ./:/app
+      # 2. PREVENT your local node_modules from breaking the container
+      - /app/node_modules
+      # 3. Mount your env file (optional if mapped in step 1, but good for safety)
+      # - ./.env:/app/.env
+networks:
+  pos-network:
+    external: true

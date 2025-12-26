@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node index.ts",
-    "dev:watch": "nodemon --exec ts-node index.ts",
+    "dev:watch": "nodemon -L --exec ts-node index.ts",
     "migrate": "sequelize-cli db:migrate",
     "migrate:undo": "sequelize-cli db:migrate:undo --name",
     "seed": "sequelize-cli db:seed --seed",

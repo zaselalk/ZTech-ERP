@@ -46,6 +46,8 @@ const PaymentForm = ({ form, total, bookshops }: PaymentFormProps) => {
           <Option value="Cash">Cash</Option>
           <Option value="Card">Card</Option>
           <Option value="Consignment">Consignment</Option>
+          <Option value="Paid">Paid</Option>
+          <Option value="Cash On Delivery">Cash On Delivery</Option>
         </Select>
       </Form.Item>
 

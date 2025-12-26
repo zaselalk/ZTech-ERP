@@ -17,7 +17,13 @@ export = (
         allowNull: false,
       },
       payment_method: {
-        type: dataTypes.ENUM("Cash", "Card", "Consignment"),
+        type: dataTypes.ENUM(
+          "Cash",
+          "Card",
+          "Consignment",
+          "Paid",
+          "Cash On Delivery"
+        ),
         allowNull: false,
       },
       BookshopId: {
