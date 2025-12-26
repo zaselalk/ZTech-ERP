@@ -70,7 +70,7 @@ server/
     └── seeders/         # DB seeders (JS)
 ```
 
-## Adding a New Route
+## Adding a New Route.
 
 1. Create route file: `routes/myroute.ts`
 
