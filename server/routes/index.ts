@@ -10,6 +10,7 @@ import backupsRoutes from "./backups";
 import issuesRoutes from "./issues";
 import usersRoutes from "./users";
 import quotationsRoutes from "./quotations";
+import settingsRoutes from "./settings";
 
 import { requireAdmin } from "../middleware/requireAdmin";
 import { requireAuth } from "../middleware/requireAuth";
@@ -27,4 +28,5 @@ export function registerRoutes(app: Express): void {
   app.use("/api/issues", requireAuth, requireAdmin, issuesRoutes);
   app.use("/api/users", requireAuth, requireAdmin, usersRoutes);
   app.use("/api/quotations", requireAuth, quotationsRoutes);
+  app.use("/api/settings", requireAuth, settingsRoutes);
 }

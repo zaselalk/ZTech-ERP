@@ -42,6 +42,7 @@ import LoginPage from "./pages/LoginPage";
 import Backups from "./components/Backups";
 import Issues from "./components/Issues";
 import Users from "./components/Users";
+import Settings from "./components/Settings";
 import { authService } from "./services";
 import { DateTime } from "./components/layout/Header/DateTime";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -64,6 +65,7 @@ const MainLayout = () => {
     "/backups": "7",
     "/issues": "8",
     "/users": "9",
+    "/settings": "10",
   };
   const [selectedKey, setSelectedKey] = useState(
     pathMap[location.pathname] || "1"
@@ -132,6 +134,11 @@ const MainLayout = () => {
       key: "9",
       icon: <UserOutlined />,
       label: "Users",
+    });
+    items.push({
+      key: "10",
+      icon: <SettingOutlined />,
+      label: "Settings",
     });
   }
 
@@ -264,6 +271,7 @@ const MainLayout = () => {
             <Route path="/backups" element={<Backups />} />
             <Route path="/issues" element={<Issues />} />
             <Route path="/users" element={<Users />} />
+            <Route path="/settings" element={<Settings />} />
           </Routes>
         </Content>
       </Layout>

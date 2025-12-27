@@ -8,6 +8,7 @@ import {
   ConsignmentPayment,
   Quotation,
   QuotationItem,
+  Settings,
 } from "../../types/models";
 
 const fs = require("fs");
@@ -28,6 +29,7 @@ interface DB {
   ConsignmentPayment: ModelStatic<ConsignmentPayment>;
   Quotation: ModelStatic<Quotation>;
   QuotationItem: ModelStatic<QuotationItem>;
+  Settings: ModelStatic<Settings>;
 }
 
 const db = {} as DB;

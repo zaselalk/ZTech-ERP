@@ -19,6 +19,7 @@ import { formatCurrency } from "../utils";
 import { salesService } from "../services";
 import { Sale, SaleItemResponse } from "../types";
 import { buildReceiptHtml } from "../utils/ReceiptBuilder";
+import { settingsService, Settings } from "../services/settingsService";
 
 const { Title, Text } = Typography;
 
@@ -35,6 +36,19 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
   const [isEmailSending, setIsEmailSending] = useState(false);
   const [form] = Form.useForm();
   const componentRef = useRef<HTMLDivElement>(null);
+  const [settings, setSettings] = useState<Settings | undefined>(undefined);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const data = await settingsService.getSettings();
+        setSettings(data);
+      } catch (error) {
+        console.error("Failed to load settings", error);
+      }
+    };
+    loadSettings();
+  }, []);
 
   useEffect(() => {
     if (visible && saleId) {
@@ -66,7 +80,7 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
   const handleDownloadPDF = async () => {
     if (!sale) return;
 
-    const doc = await buildReceiptHtml(sale);
+    const doc = await buildReceiptHtml(sale, settings);
     doc.save(`receipt-${sale.id}.pdf`);
     message.success("PDF downloaded successfully");
   };
@@ -159,16 +173,21 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
               <div>
                 <div className="text-center md:text-right">
                   <Title level={2} className="mb-1! text-blue-600">
-                    Storyflix Pvt Ltd
+                    {settings?.businessName || "Storyflix Pvt Ltd"}
                   </Title>
                   <Text className="block text-gray-600 text-sm">
-                    No.09, Sunhill Gardens, Yatadola, Matugama.
+                    {settings?.address ||
+                      "No.09, Sunhill Gardens, Yatadola, Matugama."}
                   </Text>
                   <Text className="block text-gray-600 text-sm">
-                    Tel: +94706995585(WhatsApp) / +94712114841
+                    {settings?.phone
+                      ? `Tel: ${settings.phone}`
+                      : "Tel: +94706995585(WhatsApp) / +94712114841"}
                   </Text>
                   <Text className="block text-gray-600 text-sm">
-                    Email: digital@storyflix.lk
+                    {settings?.email
+                      ? `Email: ${settings.email}`
+                      : "Email: digital@storyflix.lk"}
                   </Text>
                 </div>
               </div>
@@ -306,7 +325,7 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
 
           <div className="text-center mt-8 pt-4 border-t border-gray-200">
             <Text className="block text-gray-600 italic font-medium">
-              Thank you for your business!
+              {settings?.receiptFooter || "Thank you for your business!"}
             </Text>
             <Text className="block text-gray-400 text-sm mt-1">
               Please keep this receipt for your records.

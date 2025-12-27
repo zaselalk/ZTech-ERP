@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import { formatCurrency } from "../utils";
 import autoTable from "jspdf-autotable";
+import { Settings } from "../services/settingsService";
 
 const loadFont = async (url: string): Promise<string> => {
   const response = await fetch(url);
@@ -17,9 +18,16 @@ const loadFont = async (url: string): Promise<string> => {
 };
 const hasSinhala = (text: string) => /[\u0D80-\u0DFF]/.test(text);
 
-export const buildReceiptHtml = async (sale: any) => {
+export const buildReceiptHtml = async (sale: any, settings?: Settings) => {
   const doc = new jsPDF();
   let subTotal: number = 0;
+
+  const businessName = settings?.businessName || "Storyflix Pvt Ltd";
+  const address =
+    settings?.address || "No.09, Sunhill Gardens, Yatadola, Matugama.";
+  const phone = settings?.phone || "+94706995585(WhatsApp) / +94712114841";
+  const email = settings?.email || "digital@storyflix.lk";
+  const footer = settings?.receiptFooter || "Thank you for your business!";
 
   try {
     const fontRegular = await loadFont("/fonts/NotoSansSinhala-Regular.ttf");
@@ -53,20 +61,21 @@ export const buildReceiptHtml = async (sale: any) => {
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(41, 128, 185); // Blue color
-  doc.text("Storyflix Pvt Ltd", 105, 25, { align: "center" });
+  doc.text(businessName, 105, 25, { align: "center" });
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(80, 80, 80);
-  doc.text(" No.09, Sunhill Gardens, Yatadola, Matugama.", 105, 32, {
+  doc.text(address, 105, 32, {
     align: "center",
   });
-  doc.text(
-    "Tel: +94706995585(WhatsApp) / +94712114841 | Email: digital@storyflix.lk",
-    105,
-    37,
-    { align: "center" }
-  );
+
+  let contactInfo = "";
+  if (phone) contactInfo += `Tel: ${phone}`;
+  if (phone && email) contactInfo += " | ";
+  if (email) contactInfo += `Email: ${email}`;
+
+  doc.text(contactInfo, 105, 37, { align: "center" });
 
   // Separator line
   doc.setDrawColor(41, 128, 185);
@@ -277,7 +286,7 @@ export const buildReceiptHtml = async (sale: any) => {
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(9);
   doc.setFont("helvetica", "italic");
-  doc.text("Thank you for your business!", 105, totalsStartY + 35, {
+  doc.text(footer, 105, totalsStartY + 35, {
     align: "center",
   });
 

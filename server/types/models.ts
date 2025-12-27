@@ -242,3 +242,34 @@ export class QuotationItem
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
+
+// Settings attributes
+export interface SettingsAttributes {
+  id: number;
+  businessName: string;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  receiptFooter: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface SettingsCreationAttributes
+  extends Optional<SettingsAttributes, "id" | "createdAt" | "updatedAt"> {}
+
+export class Settings
+  extends Model<SettingsAttributes, SettingsCreationAttributes>
+  implements SettingsAttributes
+{
+  public id!: number;
+  public businessName!: string;
+  public address!: string | null;
+  public phone!: string | null;
+  public email!: string | null;
+  public website!: string | null;
+  public receiptFooter!: string | null;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}

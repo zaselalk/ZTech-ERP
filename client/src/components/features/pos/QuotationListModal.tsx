@@ -5,6 +5,7 @@ import { Quotation } from "../../../types";
 import { formatCurrency } from "../../../utils";
 import { buildReceiptHtml } from "../../../utils/ReceiptBuilder";
 import { quotationService } from "../../../services";
+import { settingsService, Settings } from "../../../services/settingsService";
 
 interface QuotationListModalProps {
   visible: boolean;
@@ -20,6 +21,19 @@ const QuotationListModal = ({
   const [searchText, setSearchText] = useState("");
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState<Settings | undefined>(undefined);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const data = await settingsService.getSettings();
+        setSettings(data);
+      } catch (error) {
+        console.error("Failed to load settings", error);
+      }
+    };
+    loadSettings();
+  }, []);
 
   useEffect(() => {
     if (visible) {
@@ -97,7 +111,7 @@ const QuotationListModal = ({
           <Button
             icon={<DownloadOutlined />}
             onClick={async () => {
-              const doc = await buildReceiptHtml(record);
+              const doc = await buildReceiptHtml(record, settings);
               doc.save(`quotation-${record.id}.pdf`);
             }}
           >
