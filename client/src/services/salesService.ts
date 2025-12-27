@@ -4,10 +4,10 @@ import { Sale } from "../types";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 interface CreateSaleData {
-  BookshopId: number;
+  CustomerId: number;
   payment_method: string;
   items: Array<{
-    BookId: number;
+    ProductId: number;
     quantity: number;
     discount: number;
     discount_type: "Fixed" | "Percentage";
@@ -71,17 +71,17 @@ export const salesService = {
   },
 
   /**
-   * Get sales by bookshop
+   * Get sales by customer
    */
-  async getSalesByBookshop(startDate?: string, endDate?: string): Promise<any> {
+  async getSalesByCustomer(startDate?: string, endDate?: string): Promise<any> {
     const params = new URLSearchParams();
     if (startDate) params.append("startDate", startDate);
     if (endDate) params.append("endDate", endDate);
 
     const queryString = params.toString();
     const url = queryString
-      ? `${API_URL}/sales/sales-by-bookshop?${queryString}`
-      : `${API_URL}/sales/sales-by-bookshop`;
+      ? `${API_URL}/sales/sales-by-customer?${queryString}`
+      : `${API_URL}/sales/sales-by-customer`;
 
     return await api.fetch<any>(url);
   },

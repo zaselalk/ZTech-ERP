@@ -4,7 +4,7 @@ import { FileTextOutlined } from "@ant-design/icons";
 import ReceiptModal from "../components/ReceiptModal";
 import ItemDiscountModal from "../components/features/pos/ItemDiscountModal";
 import PosSearch from "../components/features/pos/PosSearch";
-import PosBookList from "../components/features/pos/PosBookList";
+import PosProductList from "../components/features/pos/PosProductList";
 import PosCart from "../components/features/pos/PosCart";
 import CheckoutModal from "../components/features/pos/CheckoutModal";
 import QuotationModal from "../components/features/pos/QuotationModal";
@@ -55,7 +55,7 @@ const PosPage = () => {
     handleItemDiscountApply,
     resetSale,
     handleClearCart,
-    refreshBookData,
+    refreshProductData,
   } = usePos();
 
   return (
@@ -112,8 +112,8 @@ const PosPage = () => {
               padding: "16px",
             }}
           >
-            <PosBookList
-              books={searchResults !== null ? searchResults : topSellers}
+            <PosProductList
+              products={searchResults !== null ? searchResults : topSellers}
               cart={cart}
               onAddToCart={handleAddToCart}
               loading={
@@ -156,7 +156,7 @@ const PosPage = () => {
             setIsCheckoutVisible(false);
             setCompletedSale(sale);
             handleClearCart();
-            await refreshBookData();
+            await refreshProductData();
           }}
         />
       )}

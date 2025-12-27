@@ -8,9 +8,9 @@ export interface DashboardStats {
   totalSalesWeek: number;
   totalSalesMonth: number;
   lowStockCount: number;
-  totalBooks: number;
+  totalProducts: number;
   recentSales: Sale[];
-  totalConsignment: number;
+  totalCredit: number;
 }
 
 export const dashboardService = {

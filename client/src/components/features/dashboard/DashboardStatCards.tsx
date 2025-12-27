@@ -19,9 +19,9 @@ export const DashboardStatCards = () => {
     totalSalesWeek: 0,
     totalSalesMonth: 0,
     lowStockCount: 0,
-    totalBooks: 0,
+    totalProducts: 0,
     recentSales: [],
-    totalConsignment: 0,
+    totalCredit: 0,
   });
 
   useEffect(() => {
@@ -85,14 +85,12 @@ export const DashboardStatCards = () => {
         <Card className="bg-linear-to-br from-[#f54ea2] to-[#ff7676] border-none rounded-2xl shadow-[0_8px_24px_rgba(245,78,162,0.3)] text-white h-[160px]">
           <div className="flex justify-between items-start">
             <div>
-              <Text className="text-white/80 text-sm block">
-                Total Consignment
-              </Text>
+              <Text className="text-white/80 text-sm block">Total Credit</Text>
               <Title
                 level={3}
                 className="text-white my-2 text-[32px] font-bold"
               >
-                {formatCurrency(stats.totalConsignment)}
+                {formatCurrency(stats.totalCredit)}
               </Title>
             </div>
             <DollarCircleOutlined className="text-[32px] text-white/70" />

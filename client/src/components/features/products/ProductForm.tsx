@@ -1,0 +1,125 @@
+import { Modal, Form, Input, InputNumber, Select, Row, Col } from "antd";
+import { Product } from "../../../types";
+
+interface ProductFormProps {
+  visible: boolean;
+  editingProduct: Product | null;
+  form: ReturnType<typeof Form.useForm>[0];
+  onOk: () => Promise<void>;
+  onCancel: () => void;
+}
+
+export const ProductForm = ({
+  visible,
+  editingProduct,
+  form,
+  onOk,
+  onCancel,
+}: ProductFormProps) => {
+  return (
+    <Modal
+      title={editingProduct ? "Edit Product" : "Add Product"}
+      open={visible}
+      onOk={onOk}
+      onCancel={onCancel}
+      width={800}
+    >
+      <Form form={form} layout="vertical">
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="quantity"
+              label="Quantity"
+              rules={[{ required: true, type: "integer" }]}
+            >
+              <InputNumber style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="price"
+              label="Price (Rs.)"
+              rules={[{ required: true, type: "number" }]}
+            >
+              <InputNumber style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+
+          <Col span={12}>
+            <Form.Item name="supplier" label="Supplier">
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="category" label="Category">
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="barcode" label="Barcode">
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="brand" label="Brand">
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="reorder_threshold"
+              label="Reorder Threshold"
+              initialValue={1}
+              rules={[{ type: "integer" }]}
+            >
+              <InputNumber style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="discount"
+              label="Discount"
+              initialValue={0}
+              rules={[{ type: "number" }]}
+            >
+              <InputNumber
+                style={{ width: "100%" }}
+                min={0}
+                placeholder="Enter discount value"
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="discount_type"
+              label="Discount Type"
+              initialValue="Fixed"
+            >
+              <Select>
+                <Select.Option value="Fixed">Fixed Amount (Rs.)</Select.Option>
+                <Select.Option value="Percentage">Percentage (%)</Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+      </Form>
+    </Modal>
+  );
+};

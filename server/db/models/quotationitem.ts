@@ -20,11 +20,11 @@ export = (
           key: "id",
         },
       },
-      BookId: {
+      ProductId: {
         type: dataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: "Books",
+          model: "Products",
           key: "id",
         },
       },
@@ -61,9 +61,9 @@ export = (
       foreignKey: "QuotationId",
       as: "quotation",
     });
-    QuotationItem.belongsTo(models.Book, {
-      foreignKey: "BookId",
-      as: "book",
+    QuotationItem.belongsTo(models.Product, {
+      foreignKey: "ProductId",
+      as: "product",
     });
   };
 

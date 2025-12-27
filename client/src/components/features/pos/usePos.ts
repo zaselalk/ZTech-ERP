@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { message } from "antd";
 import type { InputRef } from "antd";
-import { bookService } from "../../../services";
-import { Book, Sale, Quotation } from "../../../types";
+import { productService } from "../../../services";
+import { Product, Sale, Quotation } from "../../../types";
 import { CartItem } from "./types";
 
 export const usePos = () => {
-  const [topSellers, setTopSellers] = useState<Book[]>([]);
+  const [topSellers, setTopSellers] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartDiscountInput, setCartDiscountInput] = useState<number>(0);
   const [cartDiscountType, setCartDiscountType] = useState<
@@ -21,7 +21,7 @@ export const usePos = () => {
   const [completedQuotation, setCompletedQuotation] =
     useState<Quotation | null>(null);
   const [editingItem, setEditingItem] = useState<CartItem | null>(null);
-  const [searchResults, setSearchResults] = useState<Book[] | null>(null);
+  const [searchResults, setSearchResults] = useState<Product[] | null>(null);
   const [searchType, setSearchType] = useState<"name" | "barcode">("name");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const searchTimeout = useRef<number | null>(null);
@@ -49,7 +49,7 @@ export const usePos = () => {
   const fetchTopSellers = async (): Promise<void> => {
     setLoadingTopSellers(true);
     try {
-      const data = await bookService.getTopSellers();
+      const data = await productService.getTopSellers();
       setTopSellers(data);
     } catch (e) {
       message.error("Failed to load top sellers");
@@ -67,12 +67,12 @@ export const usePos = () => {
     if (query) {
       setLoadingSearch(true);
       try {
-        const data = await bookService.searchBooks(query, searchType);
+        const data = await productService.searchProducts(query, searchType);
 
         if (searchType === "barcode" && data.length === 1) {
-          const book = data[0];
-          handleAddToCart(book);
-          message.success(`Added ${book.name} to cart`);
+          const product = data[0];
+          handleAddToCart(product);
+          message.success(`Added ${product.name} to cart`);
           setSearchQuery("");
           setSearchResults(null);
           searchInputRef.current?.focus();
@@ -81,7 +81,7 @@ export const usePos = () => {
 
         setSearchResults(data);
       } catch (e) {
-        message.error("Failed to search for books");
+        message.error("Failed to search for products");
       } finally {
         setLoadingSearch(false);
       }
@@ -100,44 +100,46 @@ export const usePos = () => {
     }, 300);
   };
 
-  const handleAddToCart = (book: Book): void => {
+  const handleAddToCart = (product: Product): void => {
     const currentCart = cartRef.current;
-    const availableQuantity = book.quantity ?? 0;
+    const availableQuantity = product.quantity ?? 0;
 
     if (availableQuantity <= 0) {
-      message.warning(`${book.name} is out of stock`);
+      message.warning(`${product.name} is out of stock`);
       // return; // Uncomment to block
     }
 
-    const existing = currentCart.find((item) => item.id === book.id);
+    const existing = currentCart.find((item) => item.id === product.id);
     if (existing) {
       if (existing.quantity >= existing.availableStock) {
         message.warning(
-          `Only ${existing.availableStock} available for ${book.name}`
+          `Only ${existing.availableStock} available for ${product.name}`
         );
         return;
       }
       setCart(
         currentCart.map((item) =>
-          item.id === book.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
         )
       );
     } else {
       setCart([
         ...currentCart,
         {
-          ...book,
+          ...product,
           quantity: 1,
           availableStock: availableQuantity,
-          discountValue: book.discount ?? 0,
-          discountType: book.discount_type ?? "Fixed",
+          discountValue: product.discount ?? 0,
+          discountType: product.discount_type ?? "Fixed",
         },
       ]);
     }
   };
 
-  const handleQuantityChange = (bookId: number, quantity: number): void => {
-    const cartItem = cart.find((item) => item.id === bookId);
+  const handleQuantityChange = (productId: number, quantity: number): void => {
+    const cartItem = cart.find((item) => item.id === productId);
     let finalQuantity = quantity;
     if (cartItem && quantity > cartItem.availableStock) {
       message.warning(
@@ -148,18 +150,20 @@ export const usePos = () => {
     setCart(
       cart
         .map((item) =>
-          item.id === bookId ? { ...item, quantity: finalQuantity } : item
+          item.id === productId ? { ...item, quantity: finalQuantity } : item
         )
         .filter((item) => item.quantity > 0)
     );
   };
 
   const handleItemDiscountApply = (
-    bookId: number,
+    productId: number,
     discount: { discountValue: number; discountType: "Fixed" | "Percentage" }
   ): void => {
     setCart(
-      cart.map((item) => (item.id === bookId ? { ...item, ...discount } : item))
+      cart.map((item) =>
+        item.id === productId ? { ...item, ...discount } : item
+      )
     );
     setEditingItem(null);
   };
@@ -197,7 +201,7 @@ export const usePos = () => {
     setEditingItem(null);
   };
 
-  const refreshBookData = async (): Promise<void> => {
+  const refreshProductData = async (): Promise<void> => {
     // Refresh top sellers to get updated quantities
     await fetchTopSellers();
     // If there's a search active, refresh search results
@@ -248,6 +252,6 @@ export const usePos = () => {
     handleItemDiscountApply,
     resetSale,
     handleClearCart,
-    refreshBookData,
+    refreshProductData,
   };
 };

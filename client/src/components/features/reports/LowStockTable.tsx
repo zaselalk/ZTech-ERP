@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Table, Button, Space, Typography, message } from "antd";
-import { Book, Bookshop } from "../../../types";
+import { Product } from "../../../types";
 import { reportService } from "../../../services";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -8,14 +8,13 @@ import * as XLSX from "xlsx";
 
 const { Title } = Typography;
 
-export interface LowStockBook extends Book {
+export interface LowStockProduct extends Product {
   quantity: number;
   reorder_threshold?: number;
-  bookshop?: Bookshop;
 }
 
 export const LowStockTable = () => {
-  const [lowStockData, setLowStockData] = useState<LowStockBook[]>([]);
+  const [lowStockData, setLowStockData] = useState<LowStockProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,15 +37,15 @@ export const LowStockTable = () => {
     const doc = new jsPDF();
     doc.text("Low Stock Report", 14, 22);
 
-    const tableData = lowStockData.map((book) => [
-      book.name,
-      book.bookshop?.name || "N/A",
-      book.quantity,
-      book.reorder_threshold || 0,
+    const tableData = lowStockData.map((product) => [
+      product.name,
+      product.supplier || "N/A",
+      product.quantity,
+      product.reorder_threshold || 0,
     ]);
 
     autoTable(doc, {
-      head: [["Book Name", "Bookshop", "Quantity", "Reorder Threshold"]],
+      head: [["Product Name", "Supplier", "Quantity", "Reorder Threshold"]],
       body: tableData,
       startY: 30,
     });
@@ -56,11 +55,11 @@ export const LowStockTable = () => {
 
   const exportLowStockExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(
-      lowStockData.map((book) => ({
-        "Book Name": book.name,
-        Bookshop: book.bookshop?.name || "N/A",
-        Quantity: book.quantity,
-        "Reorder Threshold": book.reorder_threshold || 0,
+      lowStockData.map((product) => ({
+        "Product Name": product.name,
+        Supplier: product.supplier || "N/A",
+        Quantity: product.quantity,
+        "Reorder Threshold": product.reorder_threshold || 0,
       }))
     );
     const workbook = XLSX.utils.book_new();
@@ -69,7 +68,8 @@ export const LowStockTable = () => {
   };
 
   const lowStockColumns = [
-    { title: "Book Name", dataIndex: "name", key: "name" },
+    { title: "Product Name", dataIndex: "name", key: "name" },
+    { title: "Supplier", dataIndex: "supplier", key: "supplier" },
     { title: "Quantity", dataIndex: "quantity", key: "quantity" },
     {
       title: "Reorder Threshold",

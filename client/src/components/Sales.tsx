@@ -17,7 +17,7 @@ import {
 } from "chart.js";
 import { DailySalesTrend } from "./features/sales/DailySalesTrend";
 import { PaymentMethods } from "./features/sales/PaymentMethods";
-import { SalesByBookshop } from "./features/sales/SalesByBookshop";
+import { SalesByCustomer } from "./features/sales/SalesByCustomer";
 import { SalesSummary } from "./features/sales/SalesSummary";
 import { SalesHistory } from "./features/sales/SalesHistory";
 
@@ -94,7 +94,7 @@ const Sales = () => {
       </Row>
 
       <Row gutter={[24, 24]} className="mb-8">
-        <SalesByBookshop startDate={startStr} endDate={endStr} />
+        <SalesByCustomer startDate={startStr} endDate={endStr} />
         <SalesSummary startDate={startStr} endDate={endStr} />
       </Row>
 

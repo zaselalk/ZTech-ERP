@@ -5,17 +5,17 @@ export interface User {
   createdAt: string;
 }
 
-export interface Bookshop {
+export interface Customer {
   id: number;
   name: string;
-  location?: string;
-  contact?: string;
-  consignment?: number; // amount pending or consignment flag stored as number
+  address?: string;
+  phone?: string;
+  credit_balance?: number;
 }
 
 export interface SaleItem {
   id: number;
-  bookId: number;
+  productId: number;
   quantity: number;
   price: number;
   discount: number; // per item discount value
@@ -25,21 +25,21 @@ export interface SaleItem {
 export interface SaleItemResponse {
   id: number;
   SaleId: number;
-  BookId: number | null;
+  ProductId: number | null;
   quantity: number;
   price: string;
   discount: string;
   discount_type: "Fixed" | "Percentage";
-  bookName?: string;
-  bookAuthor?: string;
-  bookBarcode?: string;
+  productName?: string;
+  productBrand?: string;
+  productBarcode?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface bookWithSaleItem {
+export interface productWithSaleItem {
   SaleItem: {
-    BookId: number;
+    ProductId: number;
     SaleId: number;
     createdAt: string;
     discount: string;
@@ -51,35 +51,34 @@ export interface bookWithSaleItem {
   };
   name: string;
   id: number;
-  author?: string | null;
+  brand?: string | null;
   barcode?: string | null;
   price: number;
   quantity: number;
-  publisher?: string | null;
+  supplier?: string | null;
   reorder_threshold: number;
   updatedAt: string;
 }
 
-export interface Book {
+export interface Product {
   id: number;
   barcode?: string | null;
   name: string;
-  author?: string | null;
-  publisher?: string | null;
-  genre?: string | null;
+  brand?: string | null;
+  supplier?: string | null;
+  category?: string | null;
   price: number;
   quantity?: number;
   reorder_threshold?: number;
   discount?: number;
   discount_type?: "Fixed" | "Percentage";
-  consignment?: boolean;
   SaleItem?: SaleItem; // present in sale responses
 }
 
 export interface Sale {
   id: number;
-  bookshop: Bookshop;
-  books: bookWithSaleItem[];
+  customer: Customer;
+  products: productWithSaleItem[];
   items: SaleItemResponse[];
   total_amount: number;
   discount: number;
@@ -98,26 +97,9 @@ export interface DashboardStat {
   trend?: number;
 }
 
-export interface DailySalesPoint {
-  date: string; // ISO date
-  total: number;
-}
-
-export interface ChartDataShape {
-  dailySales: [string, number][];
-  bookshopSales: [string, number][];
-  paymentMethods: [string, number][];
-}
-
-export type ApiHeaders = Record<string, string>;
-
-export interface ApiOptions extends RequestInit {
-  headers?: ApiHeaders;
-}
-
 export interface ConsignmentPayment {
   id: number;
-  bookshopId: number;
+  customerId: number;
   amount: number;
   paymentDate: string;
   note?: string;
@@ -126,27 +108,23 @@ export interface ConsignmentPayment {
 
 export interface QuotationItem {
   id: number;
-  BookId: number;
+  QuotationId: number;
+  ProductId: number;
   quantity: number;
   price: number;
   discount: number;
   discount_type: "Fixed" | "Percentage";
-  book?: Book;
+  product?: Product;
 }
 
 export interface Quotation {
   id: number;
-  bookshop: Bookshop;
-  items: QuotationItem[];
   total_amount: number;
+  CustomerId: number;
+  customer?: Customer;
   discount: number;
   expiresAt: string;
   status: "Active" | "Converted";
-  createdAt: string;
-}
-
-export interface Backup {
-  filename: string;
-  size: number;
+  items?: QuotationItem[];
   createdAt: string;
 }

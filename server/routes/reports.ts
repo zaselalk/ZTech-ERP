@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { Op } from "sequelize";
 const db = require("../db/models");
-const { Sale, Book } = db;
+const { Sale, Product } = db;
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.get(
           [Op.between]: [new Date(startDate), new Date(endDate)],
         };
       }
-      const sales = await Sale.findAll({ where, include: ["bookshop"] });
+      const sales = await Sale.findAll({ where, include: ["customer"] });
       res.json(sales);
     } catch (err) {
       const error = err as Error;
@@ -37,18 +37,18 @@ router.get(
 // Get low stock report
 router.get("/low-stock", async (req: Request, res: Response): Promise<void> => {
   try {
-    const lowStockBooks = await Book.findAll({
+    const lowStockProducts = await Product.findAll({
       where: {
         quantity: {
           [Op.lte]: db.sequelize.col("reorder_threshold"),
         },
       },
     });
-    res.json(lowStockBooks);
+    res.json(lowStockProducts);
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ message: error.message });
   }
 });
 
-export = router;
+export default router;

@@ -26,11 +26,11 @@ export = (
         ),
         allowNull: false,
       },
-      BookshopId: {
+      CustomerId: {
         type: dataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: "Bookshops",
+          model: "Customers",
           key: "id",
         },
       },
@@ -50,13 +50,13 @@ export = (
 
   // Define associations
   (Sale as any).associate = (models: any) => {
-    Sale.belongsTo(models.Bookshop, {
-      foreignKey: "BookshopId",
-      as: "bookshop",
+    Sale.belongsTo(models.Customer, {
+      foreignKey: "CustomerId",
+      as: "customer",
     });
-    Sale.belongsToMany(models.Book, {
+    Sale.belongsToMany(models.Product, {
       through: "SaleItem",
-      as: "books",
+      as: "products",
       foreignKey: "SaleId",
     });
     Sale.hasMany(models.SaleItem, {

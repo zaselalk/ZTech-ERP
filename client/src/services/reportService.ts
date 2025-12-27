@@ -1,12 +1,11 @@
 import api from "../utils/api";
-import { Sale, Book, Bookshop } from "../types";
+import { Sale, Product } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
-interface LowStockBook extends Book {
+interface LowStockProduct extends Product {
   quantity: number;
   reorder_threshold?: number;
-  bookshop?: Bookshop;
 }
 
 export const reportService = {
@@ -24,7 +23,7 @@ export const reportService = {
   /**
    * Get low stock report
    */
-  async getLowStockReport(): Promise<LowStockBook[]> {
-    return await api.fetch<LowStockBook[]>(`${API_URL}/reports/low-stock`);
+  async getLowStockReport(): Promise<LowStockProduct[]> {
+    return await api.fetch<LowStockProduct[]>(`${API_URL}/reports/low-stock`);
   },
 };

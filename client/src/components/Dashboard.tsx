@@ -32,7 +32,7 @@ const Dashboard = () => {
             display: "block",
           }}
         >
-          Here's what's happening with your bookshop today.
+          Here's what's happening with your store today.
         </Text>
       </div>
 

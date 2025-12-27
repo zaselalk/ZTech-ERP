@@ -1,13 +1,20 @@
 import express, { Request, Response } from "express";
 import { Op } from "sequelize";
 const db = require("../db/models");
-const { sequelize, Quotation, QuotationItem, Book, Bookshop, Sale, SaleItem } =
-  db;
+const {
+  sequelize,
+  Quotation,
+  QuotationItem,
+  Product,
+  Customer,
+  Sale,
+  SaleItem,
+} = db;
 
 const router = express.Router();
 
 interface QuotationItemRequest {
-  BookId: number;
+  ProductId: number;
   quantity: number;
   discount?: number;
   discount_type?: "Fixed" | "Percentage";
@@ -19,7 +26,7 @@ interface CartDiscount {
 }
 
 interface CreateQuotationRequestBody {
-  BookshopId: number;
+  CustomerId: number;
   items: QuotationItemRequest[];
   cartDiscount?: CartDiscount;
   expiresAt: string;
@@ -38,8 +45,8 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     const quotations = await Quotation.findAll({
       where: whereClause,
       include: [
-        "bookshop",
-        { model: QuotationItem, as: "items", include: ["book"] },
+        "customer",
+        { model: QuotationItem, as: "items", include: ["product"] },
       ],
       order: [["createdAt", "DESC"]],
     });
@@ -57,9 +64,9 @@ router.post(
     req: Request<{}, {}, CreateQuotationRequestBody>,
     res: Response
   ): Promise<void> => {
-    const { BookshopId, items, cartDiscount, expiresAt } = req.body;
+    const { CustomerId, items, cartDiscount, expiresAt } = req.body;
 
-    if (!BookshopId || !items || items.length === 0 || !expiresAt) {
+    if (!CustomerId || !items || items.length === 0 || !expiresAt) {
       res.status(400).json({ message: "Missing required fields" });
       return;
     }
@@ -70,7 +77,7 @@ router.post(
     try {
       const quotation = await Quotation.create(
         {
-          BookshopId,
+          CustomerId,
           total_amount: 0,
           discount: 0,
           expiresAt: new Date(expiresAt),
@@ -80,12 +87,15 @@ router.post(
       );
 
       for (const item of items) {
-        const book = await Book.findByPk(item.BookId, { transaction: t });
+        const product = await Product.findByPk(item.ProductId, {
+          transaction: t,
+        });
 
-        if (!book) throw new Error(`Book with id ${item.BookId} not found`);
+        if (!product)
+          throw new Error(`Product with id ${item.ProductId} not found`);
         // Note: We do NOT check stock or deduct it for quotations
 
-        let itemPrice = parseFloat(book.price);
+        let itemPrice = parseFloat(product.price);
         let itemDiscountValue = parseFloat(String(item.discount || 0));
 
         if (item.discount_type === "Fixed" && itemDiscountValue > 0) {
@@ -103,9 +113,9 @@ router.post(
         await QuotationItem.create(
           {
             QuotationId: quotation.id,
-            BookId: item.BookId,
+            ProductId: item.ProductId,
             quantity: item.quantity,
-            price: book.price,
+            price: product.price,
             discount: itemDiscountValue,
             discount_type: item.discount_type || "Fixed",
           },
@@ -141,8 +151,8 @@ router.post(
 
       const finalQuotation = await Quotation.findByPk(quotation.id, {
         include: [
-          "bookshop",
-          { model: QuotationItem, as: "items", include: ["book"] },
+          "customer",
+          { model: QuotationItem, as: "items", include: ["product"] },
         ],
       });
 
@@ -160,7 +170,7 @@ router.post(
   "/:id/convert",
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
-    const { payment_method } = req.body; // We need payment method for the sale
+    const { payment_method } = req.body;
 
     if (!payment_method) {
       res.status(400).json({ message: "Payment method is required" });
@@ -186,7 +196,7 @@ router.post(
       // Create Sale
       const sale = await Sale.create(
         {
-          BookshopId: quotation.BookshopId,
+          CustomerId: quotation.CustomerId,
           payment_method,
           total_amount: quotation.total_amount,
           discount: quotation.discount,
@@ -196,27 +206,33 @@ router.post(
 
       // Process items
       for (const qItem of quotation.items) {
-        const book = await Book.findByPk(qItem.BookId, { transaction: t });
+        const product = await Product.findByPk(qItem.ProductId, {
+          transaction: t,
+        });
 
-        if (!book) throw new Error(`Book with id ${qItem.BookId} not found`);
-        if (book.quantity < qItem.quantity)
-          throw new Error(`Not enough stock for book: ${book.name}`);
+        if (!product)
+          throw new Error(`Product with id ${qItem.ProductId} not found`);
+        if (product.quantity < qItem.quantity)
+          throw new Error(`Not enough stock for product: ${product.name}`);
 
         // Create SaleItem
         await SaleItem.create(
           {
             SaleId: sale.id,
-            BookId: qItem.BookId,
+            ProductId: qItem.ProductId,
             quantity: qItem.quantity,
             price: qItem.price,
             discount: qItem.discount,
             discount_type: qItem.discount_type,
+            productName: product.name,
+            productBrand: product.brand,
+            productBarcode: product.barcode,
           },
           { transaction: t }
         );
 
         // Decrement stock
-        await book.decrement("quantity", {
+        await product.decrement("quantity", {
           by: qItem.quantity,
           transaction: t,
         });
@@ -224,11 +240,11 @@ router.post(
 
       // Update Consignment if needed
       if (payment_method === "Consignment") {
-        const bookshop = await Bookshop.findByPk(quotation.BookshopId, {
+        const customer = await Customer.findByPk(quotation.CustomerId, {
           transaction: t,
         });
-        if (bookshop) {
-          await bookshop.increment("consignment", {
+        if (customer) {
+          await customer.increment("credit_balance", {
             by: quotation.total_amount,
             transaction: t,
           });
@@ -241,7 +257,7 @@ router.post(
       await t.commit();
 
       const finalSale = await Sale.findByPk(sale.id, {
-        include: ["bookshop", { model: Book, as: "books" }],
+        include: ["customer", { model: Product, as: "products" }],
       });
 
       res.status(201).json(finalSale);
@@ -252,5 +268,21 @@ router.post(
     }
   }
 );
+
+// Delete quotation
+router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const quotation = await Quotation.findByPk(req.params.id);
+    if (!quotation) {
+      res.status(404).json({ message: "Quotation not found" });
+      return;
+    }
+    await quotation.destroy();
+    res.status(204).send();
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ message: error.message });
+  }
+});
 
 export default router;

@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { Op } from "sequelize";
 import * as sequelize from "sequelize";
 const db = require("../db/models");
-const { Sale, Book, Bookshop } = db;
+const { Sale, Product, Customer } = db;
 
 const router = express.Router();
 
@@ -31,9 +31,9 @@ router.get("/stats", async (req: Request, res: Response): Promise<void> => {
       where: { createdAt: { [Op.gte]: startOfMonth } },
     });
 
-    const totalBooks = await Book.sum("quantity");
+    const totalProducts = await Product.sum("quantity");
 
-    const lowStockCount = await Book.count({
+    const lowStockCount = await Product.count({
       where: {
         quantity: {
           [Op.lte]: sequelize.col("reorder_threshold"),
@@ -44,19 +44,19 @@ router.get("/stats", async (req: Request, res: Response): Promise<void> => {
     const recentSales = await Sale.findAll({
       limit: 5,
       order: [["createdAt", "DESC"]],
-      include: ["bookshop"],
+      include: ["customer"],
     });
 
-    const totalConsignment = await Bookshop.sum("consignment");
+    const totalCredit = await Customer.sum("credit_balance");
 
     res.json({
       totalSalesToday: totalSalesToday || 0,
       totalSalesWeek: totalSalesWeek || 0,
       totalSalesMonth: totalSalesMonth || 0,
-      totalBooks: totalBooks || 0,
+      totalProducts: totalProducts || 0,
       lowStockCount: lowStockCount || 0,
       recentSales,
-      totalConsignment: totalConsignment || 0,
+      totalCredit: totalCredit || 0,
     });
   } catch (err) {
     const error = err as Error;

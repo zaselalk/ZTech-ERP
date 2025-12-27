@@ -1,5 +1,15 @@
 import { Sequelize, DataTypes, ModelStatic } from "sequelize";
-import { User, Bookshop, Book, Sale, SaleItem } from "../../types/models";
+import {
+  User,
+  Product,
+  Sale,
+  SaleItem,
+  Customer,
+  ConsignmentPayment,
+  Quotation,
+  QuotationItem,
+  Settings,
+} from "../../types/models";
 
 const fs = require("fs");
 const path = require("path");
@@ -12,10 +22,14 @@ interface DB {
   sequelize: Sequelize;
   Sequelize: typeof Sequelize;
   User: ModelStatic<User>;
-  Bookshop: ModelStatic<Bookshop>;
-  Book: ModelStatic<Book>;
+  Product: ModelStatic<Product>;
   Sale: ModelStatic<Sale>;
   SaleItem: ModelStatic<SaleItem>;
+  Customer: ModelStatic<Customer>;
+  ConsignmentPayment: ModelStatic<ConsignmentPayment>;
+  Quotation: ModelStatic<Quotation>;
+  QuotationItem: ModelStatic<QuotationItem>;
+  Settings: ModelStatic<Settings>;
 }
 
 const db = {} as DB;

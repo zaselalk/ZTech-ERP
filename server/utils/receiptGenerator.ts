@@ -1,6 +1,7 @@
 import PDFDocument from "pdfkit-table";
 import fs from "fs";
 import path from "path";
+import db from "../db/models";
 
 interface SaleItem {
   price: number;
@@ -9,12 +10,12 @@ interface SaleItem {
   discount_type: "Fixed" | "Percentage";
 }
 
-interface Book {
+interface Product {
   name: string;
   SaleItem: SaleItem;
 }
 
-interface Bookshop {
+interface Customer {
   name: string;
 }
 
@@ -22,13 +23,21 @@ interface Sale {
   id: number;
   createdAt: Date;
   payment_method: string;
-  bookshop?: Bookshop;
-  books: Book[];
+  Customer?: Customer;
+  Products: Product[];
   discount: number;
   total_amount: number;
 }
 
-export const generateReceiptPdf = (sale: Sale): Promise<Buffer> => {
+export const generateReceiptPdf = async (sale: Sale): Promise<Buffer> => {
+  const settings = await db.Settings.findOne();
+  const businessName = settings?.businessName || "Storyflix Pvt Ltd";
+  const address =
+    settings?.address || "No.09, Sunhill Gardens, Yatadola, Matugama.";
+  const phone = settings?.phone || "+94706995585(WhatsApp) / +94712114841";
+  const email = settings?.email || "digital@storyflix.lk";
+  const footer = settings?.receiptFooter || "Thank you for your business!";
+
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 30, size: "A4" });
     const buffers: Buffer[] = [];
@@ -96,22 +105,23 @@ export const generateReceiptPdf = (sale: Sale): Promise<Buffer> => {
       .fontSize(22)
       .font("Helvetica-Bold")
       .fillColor("#2980b9") // Blue color
-      .text("Storyflix Pvt Ltd", 0, 20, { align: "center" });
+      .text(businessName, 0, 20, { align: "center" });
 
     // Company Details
     doc
       .fontSize(9)
       .font("Helvetica")
       .fillColor("#505050")
-      .text(" No.09, Sunhill Gardens, Yatadola, Matugama.", 0, 45, {
+      .text(address, 0, 45, {
         align: "center",
       });
-    doc.text(
-      "Tel: +94706995585(WhatsApp) / +94712114841 | Email: digital@storyflix.lk",
-      0,
-      58,
-      { align: "center" }
-    );
+
+    let contactInfo = "";
+    if (phone) contactInfo += `Tel: ${phone}`;
+    if (phone && email) contactInfo += " | ";
+    if (email) contactInfo += `Email: ${email}`;
+
+    doc.text(contactInfo, 0, 58, { align: "center" });
 
     // Separator Line
     doc
@@ -148,9 +158,9 @@ export const generateReceiptPdf = (sale: Sale): Promise<Buffer> => {
     yPos += 15;
 
     // Customer (if exists)
-    if (sale.bookshop) {
+    if (sale.Customer) {
       doc.font("Helvetica-Bold").text("Customer:", 14, yPos);
-      const customerName = sale.bookshop.name;
+      const customerName = sale.Customer.name;
       const customerFont = hasSinhala(customerName)
         ? "NotoSansSinhala"
         : "Helvetica";
@@ -164,8 +174,8 @@ export const generateReceiptPdf = (sale: Sale): Promise<Buffer> => {
     yPos += 20;
 
     // --- Table Section ---
-    const tableData = sale.books.map((book) => {
-      const saleItem = book.SaleItem;
+    const tableData = sale.Products.map((product) => {
+      const saleItem = product.SaleItem;
       const price = parseFloat(String(saleItem.price));
       const qty = saleItem.quantity;
 
@@ -178,11 +188,11 @@ export const generateReceiptPdf = (sale: Sale): Promise<Buffer> => {
 
       const total = price * qty; // Note: Logic in client seemed to ignore item discount for row total display?
       // Checking client code:
-      // <td>LKR ${(book.SaleItem.price * book.SaleItem.quantity).toFixed(2)}</td>
+      // <td>LKR ${(product.SaleItem.price * product.SaleItem.quantity).toFixed(2)}</td>
       // Yes, it shows gross total per line.
 
       return [
-        book.name,
+        product.name,
         String(qty),
         `LKR ${price.toFixed(2)}`,
         discountText,
@@ -227,8 +237,8 @@ export const generateReceiptPdf = (sale: Sale): Promise<Buffer> => {
 
     // --- Totals Section ---
     // Calculate subtotal (logic from client)
-    const subtotal = sale.books.reduce((acc: number, book: any) => {
-      const saleItem = book.SaleItem;
+    const subtotal = sale.Products.reduce((acc: number, product: any) => {
+      const saleItem = product.SaleItem;
       let itemPrice = parseFloat(saleItem.price) || 0;
       const qty = saleItem.quantity || 0;
 
@@ -244,7 +254,7 @@ export const generateReceiptPdf = (sale: Sale): Promise<Buffer> => {
       // return acc + itemPrice * qty;
 
       // However, the HTML generation in server/routes/sales.ts used:
-      // acc + book.SaleItem.price * book.SaleItem.quantity
+      // acc + product.SaleItem.price * product.SaleItem.quantity
       // which is GROSS subtotal.
 
       // And ReceiptBuilder.ts used:
@@ -297,6 +307,14 @@ export const generateReceiptPdf = (sale: Sale): Promise<Buffer> => {
       finalY + 35,
       { align: "right", width: 80 }
     );
+
+    // Footer
+    doc
+      .fontSize(10)
+      .font("Helvetica")
+      .text(footer, 0, doc.page.height - 50, {
+        align: "center",
+      });
 
     doc.end();
   });
