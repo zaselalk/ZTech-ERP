@@ -46,6 +46,15 @@ export const DashboardRecentSales = () => {
       key: "createdAt",
       render: (val: string) => new Date(val).toLocaleDateString(),
     },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: any, record: any) => (
+        <a href={`/sales/${record.id}`} style={{ color: "#667eea" }}>
+          View
+        </a>
+      ),
+    },
   ];
 
   return (
