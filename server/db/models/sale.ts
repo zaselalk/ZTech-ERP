@@ -59,6 +59,10 @@ export = (
       as: "books",
       foreignKey: "SaleId",
     });
+    Sale.hasMany(models.SaleItem, {
+      as: "items",
+      foreignKey: "SaleId",
+    });
   };
 
   return Sale;
