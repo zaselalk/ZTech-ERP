@@ -44,7 +44,7 @@ const QuotationListModal = ({
     const searchLower = searchText.toLowerCase();
     return (
       quotation.id?.toString().includes(searchLower) ||
-      quotation.bookshop?.name?.toLowerCase().includes(searchLower) ||
+      quotation.customer?.name?.toLowerCase().includes(searchLower) ||
       quotation.total_amount?.toString().includes(searchLower) ||
       new Date(quotation.createdAt)
         .toLocaleDateString()
@@ -79,9 +79,9 @@ const QuotationListModal = ({
       },
     },
     {
-      title: "Bookshop",
-      dataIndex: ["bookshop", "name"],
-      key: "bookshop",
+      title: "Customer",
+      dataIndex: ["customer", "name"],
+      key: "customer",
     },
     {
       title: "Total",
@@ -121,7 +121,7 @@ const QuotationListModal = ({
     >
       <Space direction="vertical" style={{ width: "100%", marginBottom: 16 }}>
         <Input
-          placeholder="Search by ID, bookshop, date, or amount..."
+          placeholder="Search by ID, customer, date, or amount..."
           prefix={<SearchOutlined />}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}

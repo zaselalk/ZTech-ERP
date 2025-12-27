@@ -14,9 +14,9 @@ export const DashboardRecentSales = () => {
     totalSalesWeek: 0,
     totalSalesMonth: 0,
     lowStockCount: 0,
-    totalBooks: 0,
+    totalProducts: 0,
     recentSales: [],
-    totalConsignment: 0,
+    totalCredit: 0,
   });
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export const DashboardRecentSales = () => {
   };
   const recentSalesColumns = [
     { title: "Sale ID", dataIndex: "id", key: "id" },
-    { title: "Bookshop", dataIndex: ["bookshop", "name"], key: "bookshop" },
+    { title: "Customer", dataIndex: ["customer", "name"], key: "customer" },
     {
       title: "Amount",
       dataIndex: "total_amount",

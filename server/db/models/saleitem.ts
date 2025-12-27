@@ -20,11 +20,11 @@ export = (
           key: "id",
         },
       },
-      BookId: {
+      ProductId: {
         type: dataTypes.INTEGER,
         allowNull: true,
         references: {
-          model: "Books",
+          model: "Products",
           key: "id",
         },
       },
@@ -46,15 +46,15 @@ export = (
         allowNull: false,
         defaultValue: "Fixed",
       },
-      bookName: {
+      productName: {
         type: dataTypes.STRING,
         allowNull: true,
       },
-      bookAuthor: {
+      productBrand: {
         type: dataTypes.STRING,
         allowNull: true,
       },
-      bookBarcode: {
+      productBarcode: {
         type: dataTypes.STRING,
         allowNull: true,
       },
@@ -73,9 +73,9 @@ export = (
       foreignKey: "SaleId",
       as: "sale",
     });
-    SaleItem.belongsTo(models.Book, {
-      foreignKey: "BookId",
-      as: "book",
+    SaleItem.belongsTo(models.Product, {
+      foreignKey: "ProductId",
+      as: "product",
     });
   };
 

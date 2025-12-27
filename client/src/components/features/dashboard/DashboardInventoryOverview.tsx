@@ -1,17 +1,17 @@
 import { Card, Col, message, Table, Typography } from "antd";
 import { WarningOutlined, AlertOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import { Book } from "../../../types";
-import { bookService } from "../../../services";
+import { Product } from "../../../types";
+import { productService } from "../../../services";
 const { Text } = Typography;
 
 export const DashboardInventoryOverview = () => {
-  interface LowStockItem extends Book {
+  interface LowStockItem extends Product {
     quantity: number;
   }
   const lowStockColumns = [
-    { title: "Book Name", dataIndex: "name", key: "name" },
-    { title: "Author", dataIndex: "author", key: "author" },
+    { title: "Product Name", dataIndex: "name", key: "name" },
+    { title: "Brand", dataIndex: "brand", key: "brand" },
     {
       title: "Quantity",
       dataIndex: "quantity",
@@ -28,7 +28,7 @@ export const DashboardInventoryOverview = () => {
 
   const fetchLowStockItems = async (): Promise<void> => {
     try {
-      const data = await bookService.getLowStockBooks();
+      const data = await productService.getLowStockProducts();
       setLowStockItems(data as LowStockItem[]);
     } catch (error) {
       message.error("Failed to fetch low stock items");

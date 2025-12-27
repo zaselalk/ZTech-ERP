@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import passport from "../auth/passport";
 import authRoutes from "./auth";
-import bookshopRoutes from "./bookshops";
-import bookRoutes from "./books";
+import customerRoutes from "./customers";
+import productRoutes from "./products";
 import salesRoutes from "./sales";
 import reportsRoutes from "./reports";
 import dashboardRoutes from "./dashboard";
@@ -18,8 +18,8 @@ export function registerRoutes(app: Express): void {
   app.use(passport.initialize());
 
   app.use("/api/auth", authRoutes);
-  app.use("/api/bookshops", requireAuth, bookshopRoutes);
-  app.use("/api/books", requireAuth, bookRoutes);
+  app.use("/api/customers", requireAuth, customerRoutes);
+  app.use("/api/products", requireAuth, productRoutes);
   app.use("/api/sales", requireAuth, salesRoutes);
   app.use("/api/reports", requireAuth, requireAdmin, reportsRoutes);
   app.use("/api/dashboard", requireAuth, requireAdmin, dashboardRoutes);
@@ -27,8 +27,4 @@ export function registerRoutes(app: Express): void {
   app.use("/api/issues", requireAuth, requireAdmin, issuesRoutes);
   app.use("/api/users", requireAuth, requireAdmin, usersRoutes);
   app.use("/api/quotations", requireAuth, quotationsRoutes);
-
-  app.get("/", (_req, res) => {
-    res.send("Bookshop API is running...");
-  });
 }

@@ -12,7 +12,7 @@ export = (
         autoIncrement: true,
         primaryKey: true,
       },
-      bookshopId: {
+      customerId: {
         type: dataTypes.INTEGER,
         allowNull: false,
       },
@@ -39,9 +39,9 @@ export = (
 
   // Define associations
   (ConsignmentPayment as any).associate = (models: any) => {
-    ConsignmentPayment.belongsTo(models.Bookshop, {
-      foreignKey: "bookshopId",
-      as: "bookshop",
+    ConsignmentPayment.belongsTo(models.Customer, {
+      foreignKey: "customerId",
+      as: "customer",
     });
   };
 

@@ -1,7 +1,7 @@
 services:
   api:
-    image: yatadola-pos
-    container_name: yatadola-pos-api
+    image: ztech-pos-api
+    container_name: ztech-pos-api
     # Override the default start command to use nodemon
     command: npm run dev:watch
     ports:

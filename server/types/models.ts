@@ -10,25 +10,25 @@ export interface UserAttributes {
   updatedAt?: Date;
 }
 
-// Bookshop attributes
-export interface BookshopAttributes {
+// Customer attributes
+export interface CustomerAttributes {
   id: number;
-  name: string;
-  consignment: number;
-  location: string | null;
-  contact: string | null;
+  name: string; // Can be business name or person name
+  credit_balance: number;
+  address: string | null;
+  phone: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-// Book attributes
-export interface BookAttributes {
+// Product attributes
+export interface ProductAttributes {
   id: number;
   barcode: string | null;
   name: string;
-  author: string | null;
-  publisher: string | null;
-  genre: string | null;
+  brand: string | null;
+  supplier: string | null;
+  category: string | null;
   quantity: number;
   price: number;
   reorder_threshold: number;
@@ -43,7 +43,7 @@ export interface SaleAttributes {
   id: number;
   total_amount: number;
   payment_method: "Cash" | "Card" | "Consignment";
-  BookshopId: number;
+  CustomerId: number;
   discount: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -53,14 +53,14 @@ export interface SaleAttributes {
 export interface SaleItemAttributes {
   id: number;
   SaleId: number;
-  BookId: number;
+  ProductId: number;
   quantity: number;
   price: number;
   discount: number;
   discount_type: "Fixed" | "Percentage";
-  bookName?: string;
-  bookAuthor?: string;
-  bookBarcode?: string;
+  productName?: string;
+  productBrand?: string;
+  productBarcode?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -68,7 +68,7 @@ export interface SaleItemAttributes {
 // ConsignmentPayment attributes
 export interface ConsignmentPaymentAttributes {
   id: number;
-  bookshopId: number;
+  customerId: number;
   amount: number;
   paymentDate: Date;
   note?: string;
@@ -80,7 +80,7 @@ export interface ConsignmentPaymentAttributes {
 export interface QuotationAttributes {
   id: number;
   total_amount: number;
-  BookshopId: number;
+  CustomerId: number;
   discount: number;
   expiresAt: Date;
   status: "Active" | "Converted";
@@ -92,7 +92,7 @@ export interface QuotationAttributes {
 export interface QuotationItemAttributes {
   id: number;
   QuotationId: number;
-  BookId: number;
+  ProductId: number;
   quantity: number;
   price: number;
   discount: number;
@@ -101,26 +101,26 @@ export interface QuotationItemAttributes {
   updatedAt?: Date;
 }
 
-// Creation attributes (id is auto-generated)
+// Creation attributes (Optional for auto-generated fields)
 export interface UserCreationAttributes
-  extends Optional<UserAttributes, "id"> {}
-export interface BookshopCreationAttributes
-  extends Optional<BookshopAttributes, "id" | "location" | "contact"> {}
-export interface BookCreationAttributes
-  extends Optional<
-    BookAttributes,
-    "id" | "barcode" | "author" | "publisher" | "genre"
-  > {}
+  extends Optional<UserAttributes, "id" | "createdAt" | "updatedAt"> {}
+export interface CustomerCreationAttributes
+  extends Optional<CustomerAttributes, "id" | "createdAt" | "updatedAt"> {}
+export interface ProductCreationAttributes
+  extends Optional<ProductAttributes, "id" | "createdAt" | "updatedAt"> {}
 export interface SaleCreationAttributes
-  extends Optional<SaleAttributes, "id"> {}
+  extends Optional<SaleAttributes, "id" | "createdAt" | "updatedAt"> {}
 export interface SaleItemCreationAttributes
-  extends Optional<SaleItemAttributes, "id"> {}
+  extends Optional<SaleItemAttributes, "id" | "createdAt" | "updatedAt"> {}
 export interface ConsignmentPaymentCreationAttributes
-  extends Optional<ConsignmentPaymentAttributes, "id"> {}
+  extends Optional<
+    ConsignmentPaymentAttributes,
+    "id" | "createdAt" | "updatedAt"
+  > {}
 export interface QuotationCreationAttributes
-  extends Optional<QuotationAttributes, "id"> {}
+  extends Optional<QuotationAttributes, "id" | "createdAt" | "updatedAt"> {}
 export interface QuotationItemCreationAttributes
-  extends Optional<QuotationItemAttributes, "id"> {}
+  extends Optional<QuotationItemAttributes, "id" | "createdAt" | "updatedAt"> {}
 
 // Model classes
 export class User
@@ -135,29 +135,29 @@ export class User
   public readonly updatedAt!: Date;
 }
 
-export class Bookshop
-  extends Model<BookshopAttributes, BookshopCreationAttributes>
-  implements BookshopAttributes
+export class Customer
+  extends Model<CustomerAttributes, CustomerCreationAttributes>
+  implements CustomerAttributes
 {
   public id!: number;
   public name!: string;
-  public consignment!: number;
-  public location!: string | null;
-  public contact!: string | null;
+  public credit_balance!: number;
+  public address!: string | null;
+  public phone!: string | null;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
 
-export class Book
-  extends Model<BookAttributes, BookCreationAttributes>
-  implements BookAttributes
+export class Product
+  extends Model<ProductAttributes, ProductCreationAttributes>
+  implements ProductAttributes
 {
   public id!: number;
   public barcode!: string | null;
   public name!: string;
-  public author!: string | null;
-  public publisher!: string | null;
-  public genre!: string | null;
+  public brand!: string | null;
+  public supplier!: string | null;
+  public category!: string | null;
   public quantity!: number;
   public price!: number;
   public reorder_threshold!: number;
@@ -174,7 +174,7 @@ export class Sale
   public id!: number;
   public total_amount!: number;
   public payment_method!: "Cash" | "Card" | "Consignment";
-  public BookshopId!: number;
+  public CustomerId!: number;
   public discount!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -186,27 +186,27 @@ export class SaleItem
 {
   public id!: number;
   public SaleId!: number;
-  public BookId!: number;
+  public ProductId!: number;
   public quantity!: number;
   public price!: number;
   public discount!: number;
   public discount_type!: "Fixed" | "Percentage";
+  public productName?: string;
+  public productBrand?: string;
+  public productBarcode?: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
 
 export class ConsignmentPayment
-  extends Model<
-    ConsignmentPaymentAttributes,
-    ConsignmentPaymentCreationAttributes
-  >
+  extends Model<ConsignmentPaymentAttributes, ConsignmentPaymentCreationAttributes>
   implements ConsignmentPaymentAttributes
 {
   public id!: number;
-  public bookshopId!: number;
+  public customerId!: number;
   public amount!: number;
   public paymentDate!: Date;
-  public note!: string;
+  public note?: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -217,7 +217,7 @@ export class Quotation
 {
   public id!: number;
   public total_amount!: number;
-  public BookshopId!: number;
+  public CustomerId!: number;
   public discount!: number;
   public expiresAt!: Date;
   public status!: "Active" | "Converted";
@@ -231,7 +231,7 @@ export class QuotationItem
 {
   public id!: number;
   public QuotationId!: number;
-  public BookId!: number;
+  public ProductId!: number;
   public quantity!: number;
   public price!: number;
   public discount!: number;

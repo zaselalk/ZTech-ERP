@@ -1,6 +1,6 @@
-import { Book } from "../../../types";
+import { Product } from "../../../types";
 
-export interface CartItem extends Book {
+export interface CartItem extends Product {
   quantity: number;
   availableStock: number;
   discountValue: number;

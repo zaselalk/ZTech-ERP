@@ -29,15 +29,15 @@ import {
   MenuOutlined,
 } from "@ant-design/icons";
 
-import Bookshops from "./components/Bookshops";
-import Books from "./components/Books";
+import Customers from "./components/Customers";
+import Products from "./components/Products";
 import Sales from "./components/Sales";
 import Reports from "./components/Reports";
 import Dashboard from "./components/Dashboard";
 import PosPage from "./pages/PosPage";
-import Consignments from "./components/Consignments";
-import BookshopDetails from "./components/BookshopDetails";
-import BookDetails from "./components/BookDetails";
+import CreditPayments from "./components/CreditPayments";
+import CustomerDetails from "./components/CustomerDetails";
+import ProductDetails from "./components/ProductDetails";
 import LoginPage from "./pages/LoginPage";
 import Backups from "./components/Backups";
 import Issues from "./components/Issues";
@@ -58,9 +58,9 @@ const MainLayout = () => {
     "/": "1",
     "/sales": "2",
     "/inventory": "3",
-    "/bookshops": "4",
+    "/customers": "4",
     "/reports": "5",
-    "/consignments": "6",
+    "/credit": "6",
     "/backups": "7",
     "/issues": "8",
     "/users": "9",
@@ -103,7 +103,7 @@ const MainLayout = () => {
     {
       key: "4",
       icon: <ShopOutlined />,
-      label: "Bookshops",
+      label: "Customers",
     },
     {
       key: "5",
@@ -113,7 +113,7 @@ const MainLayout = () => {
     {
       key: "6",
       icon: <DollarCircleOutlined />,
-      label: "Consignments",
+      label: "Credit Payments",
     },
     {
       key: "7",
@@ -255,12 +255,12 @@ const MainLayout = () => {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/sales" element={<Sales />} />
-            <Route path="/inventory" element={<Books />} />
-            <Route path="/books/:id" element={<BookDetails />} />
-            <Route path="/bookshops" element={<Bookshops />} />
-            <Route path="/bookshops/:id" element={<BookshopDetails />} />
+            <Route path="/inventory" element={<Products />} />
+            <Route path="/products/:id" element={<ProductDetails />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/customers/:id" element={<CustomerDetails />} />
             <Route path="/reports" element={<Reports />} />
-            <Route path="/consignments" element={<Consignments />} />
+            <Route path="/credit" element={<CreditPayments />} />
             <Route path="/backups" element={<Backups />} />
             <Route path="/issues" element={<Issues />} />
             <Route path="/users" element={<Users />} />

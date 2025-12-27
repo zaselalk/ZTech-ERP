@@ -58,7 +58,7 @@ const ConvertQuotationModal = ({
           <Select placeholder="Select a payment method">
             <Option value="Cash">Cash</Option>
             <Option value="Card">Card</Option>
-            <Option value="Consignment">Consignment</Option>
+            <Option value="Credit">Credit</Option>
           </Select>
         </Form.Item>
       </Form>

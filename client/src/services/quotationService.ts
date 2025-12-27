@@ -11,9 +11,9 @@ export const quotationService = {
   },
 
   createQuotation: async (data: {
-    BookshopId: number;
+    CustomerId: number;
     items: {
-      BookId: number;
+      ProductId: number;
       quantity: number;
       discount: number;
       discount_type: "Fixed" | "Percentage";

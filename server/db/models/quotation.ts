@@ -16,11 +16,11 @@ export = (
         type: dataTypes.DECIMAL(10, 2),
         allowNull: false,
       },
-      BookshopId: {
+      CustomerId: {
         type: dataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: "Bookshops",
+          model: "Customers",
           key: "id",
         },
       },
@@ -49,9 +49,9 @@ export = (
 
   // Define associations
   (Quotation as any).associate = (models: any) => {
-    Quotation.belongsTo(models.Bookshop, {
-      foreignKey: "BookshopId",
-      as: "bookshop",
+    Quotation.belongsTo(models.Customer, {
+      foreignKey: "CustomerId",
+      as: "customer",
     });
     Quotation.hasMany(models.QuotationItem, {
       foreignKey: "QuotationId",

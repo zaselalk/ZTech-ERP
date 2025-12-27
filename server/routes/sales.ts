@@ -3,12 +3,12 @@ import nodemailer from "nodemailer";
 import { col, fn, literal, Op } from "sequelize";
 import { requireAdmin } from "../middleware/requireAdmin";
 const db = require("../db/models");
-const { sequelize, Sale, SaleItem, Book, Bookshop } = db;
+const { sequelize, Sale, SaleItem, Product, Customer } = db;
 
 const router = express.Router();
 
 interface SaleItem {
-  BookId: number;
+  ProductId: number;
   quantity: number;
   discount?: number;
   discount_type?: "Fixed" | "Percentage";
@@ -20,7 +20,7 @@ interface CartDiscount {
 }
 
 interface CreateSaleRequestBody {
-  BookshopId: number;
+  CustomerId: number;
   payment_method: "Cash" | "Card" | "Consignment";
   items: SaleItem[];
   cartDiscount?: CartDiscount;
@@ -52,7 +52,7 @@ router.get(
 
       const sales = await Sale.findAll({
         where: whereClause,
-        include: ["bookshop", { model: Book, as: "books" }, "items"],
+        include: ["customer", { model: Product, as: "products" }, "items"],
         order: [["createdAt", "DESC"]],
       });
       res.json(sales);
@@ -154,9 +154,9 @@ router.get(
   }
 );
 
-// get sales by bookshop
+// get sales by customer
 router.get(
-  "/sales-by-bookshop",
+  "/sales-by-customer",
   requireAdmin,
   async (req: Request, res: Response): Promise<void> => {
     try {
@@ -186,15 +186,15 @@ router.get(
         where: whereClause,
         include: [
           {
-            model: Bookshop,
-            as: "bookshop",
+            model: Customer,
+            as: "customer",
             attributes: ["name"],
           },
         ],
-        group: ["BookshopId", "bookshop.id"],
+        group: ["CustomerId", "customer.id"],
         attributes: [
           [fn("SUM", col("total_amount")), "totalSales"],
-          "BookshopId",
+          "CustomerId",
         ],
       });
 
@@ -254,7 +254,7 @@ router.get(
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   try {
     const sale = await Sale.findByPk(req.params.id, {
-      include: ["bookshop", { model: Book, as: "books" }, "items"],
+      include: ["customer", { model: Product, as: "products" }, "items"],
     });
     if (sale) {
       res.json(sale);
@@ -275,9 +275,9 @@ router.post(
     res: Response
   ): Promise<void> => {
     // cartDiscount is the overall discount object { type, value }
-    const { BookshopId, payment_method, items, cartDiscount } = req.body;
+    const { CustomerId, payment_method, items, cartDiscount } = req.body;
 
-    if (!BookshopId || !payment_method || !items || items.length === 0) {
+    if (!CustomerId || !payment_method || !items || items.length === 0) {
       res.status(400).json({ message: "Missing required fields" });
       return;
     }
@@ -288,18 +288,18 @@ router.post(
     try {
       // Create the main Sale record first. The final total will be updated later.
       const sale = await Sale.create(
-        { BookshopId, payment_method, total_amount: 0, discount: 0 },
+        { CustomerId, payment_method, total_amount: 0, discount: 0 },
         { transaction: t }
       );
 
       for (const item of items) {
-        const book = await Book.findByPk(item.BookId, { transaction: t });
+        const product = await Product.findByPk(item.ProductId, { transaction: t });
 
-        if (!book) throw new Error(`Book with id ${item.BookId} not found`);
-        if (book.quantity < item.quantity)
-          throw new Error(`Not enough stock for book: ${book.name}`);
+        if (!product) throw new Error(`Product with id ${item.ProductId} not found`);
+        if (product.quantity < item.quantity)
+          throw new Error(`Not enough stock for product: ${product.name}`);
 
-        let itemPrice = parseFloat(book.price);
+        let itemPrice = parseFloat(product.price);
         let itemDiscountValue = parseFloat(String(item.discount || 0));
 
         // Apply item-level discount
@@ -319,20 +319,20 @@ router.post(
         await SaleItem.create(
           {
             SaleId: sale.id,
-            BookId: item.BookId,
+            ProductId: item.ProductId,
             quantity: item.quantity,
-            price: book.price, // Store original price
+            price: product.price, // Store original price
             discount: itemDiscountValue,
             discount_type: item.discount_type || "Fixed",
-            bookName: book.name,
-            bookAuthor: book.author,
-            bookBarcode: book.barcode,
+            productName: product.name,
+            productBrand: product.brand,
+            productBarcode: product.barcode,
           },
           { transaction: t }
         );
 
         // Decrement stock
-        await book.decrement("quantity", { by: item.quantity, transaction: t });
+        await product.decrement("quantity", { by: item.quantity, transaction: t });
       }
 
       // Calculate and apply the overall cart discount
@@ -362,11 +362,11 @@ router.post(
       );
 
       if (payment_method === "Consignment") {
-        const bookshop = await Bookshop.findByPk(BookshopId, {
+        const customer = await Customer.findByPk(CustomerId, {
           transaction: t,
         });
-        if (bookshop) {
-          await bookshop.increment("consignment", {
+        if (customer) {
+          await customer.increment("credit_balance", {
             by: finalTotalAmount,
             transaction: t,
           });
@@ -376,7 +376,7 @@ router.post(
       await t.commit();
 
       const finalSale = await Sale.findByPk(sale.id, {
-        include: ["bookshop", { model: Book, as: "books" }],
+        include: ["customer", { model: Product, as: "products" }],
       });
 
       res.status(201).json(finalSale);
@@ -416,7 +416,7 @@ router.post(
       }
 
       const sale = await Sale.findByPk(req.params.id, {
-        include: ["bookshop", { model: Book, as: "books" }],
+        include: ["customer", { model: Product, as: "products" }],
       });
 
       if (!sale) {
@@ -428,9 +428,9 @@ router.post(
       const pdfBuffer = await generateReceiptPdf(sale);
 
       // Generate HTML for the receipt
-      const subtotal = sale.books.reduce(
-        (acc: number, book: any) =>
-          acc + book.SaleItem.price * book.SaleItem.quantity,
+      const subtotal = sale.products.reduce(
+        (acc: number, product: any) =>
+          acc + product.SaleItem.price * product.SaleItem.quantity,
         0
       );
 
@@ -448,34 +448,24 @@ router.post(
           .receipt-info p { margin: 5px 0; }
           table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: #fff; }
           th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
-          th { background-color: #2980b9; color: #fff; }
-          .totals { text-align: right; margin-top: 20px; }
-          .totals p { margin: 5px 0; }
-          .totals h3 { color: #2980b9; margin: 10px 0 0; }
-          .footer { text-align: center; margin-top: 30px; font-size: 0.8em; color: #aaa; }
+          th { background-color: #f2f2f2; }
+          .total { font-weight: bold; font-size: 1.2em; text-align: right; margin-top: 20px; }
+          .footer { text-align: center; margin-top: 30px; font-size: 0.8em; color: #777; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h1>Storyflix Pvt Ltd</h1>
-            <p> No.09, Sunhill Gardens, Yatadola, Matugama.</p>
-            <p>Tel: +94706995585(WhatsApp) / +94712114841 | Email: digital@storyflix.lk</p>
+            <h1>Receipt</h1>
+            <p>Thank you for your purchase!</p>
           </div>
-          
           <div class="receipt-info">
-            <h2>Receipt for Sale #${sale.id}</h2>
-            ${
-              sale.bookshop
-                ? `<p><strong>Customer:</strong> ${sale.bookshop.name}</p>`
-                : ""
-            }
+            <p><strong>Receipt ID:</strong> ${sale.id}</p>
             <p><strong>Date:</strong> ${new Date(
               sale.createdAt
-            ).toLocaleString()}</p>
-            <p><strong>Payment Method:</strong> ${sale.payment_method}</p>
+            ).toLocaleDateString()}</p>
+            <p><strong>Customer:</strong> ${sale.customer.name}</p>
           </div>
-
           <table>
             <thead>
               <tr>
@@ -486,15 +476,15 @@ router.post(
               </tr>
             </thead>
             <tbody>
-              ${sale.books
+              ${sale.products
                 .map(
-                  (book: any) => `
+                  (product: any) => `
                 <tr>
-                  <td>${book.name}</td>
-                  <td>${book.SaleItem.quantity}</td>
-                  <td>LKR ${parseFloat(book.SaleItem.price).toFixed(2)}</td>
-                  <td>LKR ${(
-                    book.SaleItem.price * book.SaleItem.quantity
+                  <td>${product.name}</td>
+                  <td>${product.SaleItem.quantity}</td>
+                  <td>${product.SaleItem.price}</td>
+                  <td>${(
+                    product.SaleItem.price * product.SaleItem.quantity
                   ).toFixed(2)}</td>
                 </tr>
               `
@@ -502,34 +492,25 @@ router.post(
                 .join("")}
             </tbody>
           </table>
-
-          <div class="totals">
-            <p>Subtotal: LKR ${subtotal.toFixed(2)}</p>
-            <p>Cart Discount: LKR ${parseFloat(String(sale.discount)).toFixed(
-              2
-            )}</p>
-            <h3>Total: LKR ${parseFloat(String(sale.total_amount)).toFixed(
-              2
-            )}</h3>
+          <div class="total">
+            <p>Total: ${sale.total_amount}</p>
           </div>
-
           <div class="footer">
-            <p>Thank you for your purchase!</p>
-            <p>&copy; ${new Date().getFullYear()} Storyflix Pvt Ltd. All rights reserved.</p>
+            <p>If you have any questions, please contact us.</p>
           </div>
         </div>
       </body>
       </html>
-    `;
+      `;
 
-      const mailOptions: any = {
-        from: process.env.EMAIL_FROM, // sender address
-        to: email, // list of receivers
-        subject: `Your receipt for Sale #${sale.id}`, // Subject line
-        html: receiptHtml, // html body
+      const mailOptions = {
+        from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+        to: email,
+        subject: `Receipt for Sale #${sale.id}`,
+        html: receiptHtml,
         attachments: [
           {
-            filename: `Receipt-${sale.id}.pdf`,
+            filename: `receipt-${sale.id}.pdf`,
             content: pdfBuffer,
           },
         ],
@@ -537,12 +518,13 @@ router.post(
 
       await transporter.sendMail(mailOptions);
 
-      res.status(200).json({ message: "Email sent successfully" });
+      res.json({ message: "Email sent successfully" });
     } catch (err) {
-      console.error("Failed to send email:", err);
+      const error = err as Error;
+      console.error("Error sending email:", error);
       res.status(500).json({ message: "Failed to send email" });
     }
   }
 );
 
-export = router;
+export default router;

@@ -33,7 +33,7 @@ const PosSearch = ({
     >
       <Search
         ref={searchInputRef}
-        placeholder={`Search for books by ${searchType}...`}
+        placeholder={`Search for products by ${searchType}...`}
         value={searchQuery}
         onChange={(e) => onSearchQueryChange(e.target.value)}
         onSearch={(value) => onSearch(value)}

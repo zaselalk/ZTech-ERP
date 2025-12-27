@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import db from "../db/models";
-import { BookCreationAttributes } from "../types/models";
+import { ProductCreationAttributes } from "../types/models";
 
 const CSV_FILE_PATH = path.join(__dirname, "../books.csv");
 
@@ -92,12 +92,12 @@ const importBooks = async () => {
 
       try {
         // Prepare data
-        const bookData: BookCreationAttributes = {
+        const productData: ProductCreationAttributes = {
           barcode: row.barcode,
           name: row.name,
-          author: row.author,
-          publisher: row.publisher,
-          genre: row.genre,
+          brand: row.author, // Mapping author to brand
+          supplier: row.publisher, // Mapping publisher to supplier
+          category: row.genre, // Mapping genre to category
           quantity: parseInt(row.quantity) || 0,
           price: parseFloat(row.price),
           reorder_threshold: parseInt(row.reorder_threshold) || 10,
@@ -105,15 +105,15 @@ const importBooks = async () => {
           discount_type: "Percentage", // Default
         };
 
-        // Upsert book (update if exists, insert if not)
-        await db.Book.upsert(bookData);
+        // Upsert product (update if exists, insert if not)
+        await db.Product.upsert(productData);
         successCount++;
 
         if (successCount % 100 === 0) {
-          console.log(`Processed ${successCount} books...`);
+          console.log(`Processed ${successCount} products...`);
         }
       } catch (err) {
-        console.error(`Line ${i + 1}: Error importing book ${row.name}.`, err);
+        console.error(`Line ${i + 1}: Error importing product ${row.name}.`, err);
         errorCount++;
       }
     }

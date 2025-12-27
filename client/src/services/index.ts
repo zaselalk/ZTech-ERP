@@ -1,5 +1,5 @@
-export { bookService } from "./bookService";
-export { bookshopService } from "./bookshopService";
+export { productService } from "./productService";
+export { customerService } from "./customerService";
 export { salesService } from "./salesService";
 export { reportService } from "./reportService";
 export { dashboardService } from "./dashboardService";

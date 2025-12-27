@@ -198,14 +198,14 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
               </Text>{" "}
               <Text>{new Date(sale.createdAt).toLocaleDateString()}</Text>
             </div>
-            {/* {sale.bookshop && (
+            {sale.customer && (
               <div>
                 <Text strong className="text-gray-700">
                   Customer:
                 </Text>{" "}
-                <Text>{sale.bookshop.name}</Text>
+                <Text>{sale.customer.name}</Text>
               </div>
-            )} */}
+            )}
             <div>
               <Text strong>Payment:</Text> <Text>{sale.payment_method}</Text>
             </div>
@@ -221,10 +221,10 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
             columns={[
               {
                 title: "DESCRIPTION",
-                dataIndex: "bookName",
+                dataIndex: "productName",
                 key: "name",
                 width: "35%",
-                render: (text: string) => text || "Unknown Book",
+                render: (text: string) => text || "Unknown Product",
               },
               {
                 title: "QTY",

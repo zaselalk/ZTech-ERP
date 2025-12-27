@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Modal, Form, message } from "antd";
-import { bookshopService, salesService } from "../../../services";
-import { Bookshop, Sale } from "../../../types";
+import { customerService, salesService } from "../../../services";
+import { Customer, Sale } from "../../../types";
 import { CartItem } from "./types";
 import PaymentForm from "./PaymentForm";
 
@@ -25,21 +25,21 @@ const CheckoutModal = ({
   onSuccess,
 }: CheckoutModalProps) => {
   const [form] = Form.useForm();
-  const [bookshops, setBookshops] = useState<Bookshop[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
 
   useEffect(() => {
     if (visible) {
-      fetchBookshops();
+      fetchCustomers();
       form.resetFields();
     }
   }, [visible]);
 
-  const fetchBookshops = async () => {
+  const fetchCustomers = async () => {
     try {
-      const data = await bookshopService.getBookshops();
-      setBookshops(data);
+      const data = await customerService.getCustomers();
+      setCustomers(data);
     } catch (error) {
-      message.error("Failed to load bookshops");
+      message.error("Failed to load customers");
     }
   };
 
@@ -47,10 +47,10 @@ const CheckoutModal = ({
     try {
       const values = await form.validateFields();
       const saleData = {
-        BookshopId: values.BookshopId,
+        CustomerId: values.CustomerId,
         payment_method: values.payment_method,
         items: cart.map((item) => ({
-          BookId: item.id,
+          ProductId: item.id,
           quantity: item.quantity,
           discount: item.discountValue,
           discount_type: item.discountType,
@@ -78,7 +78,7 @@ const CheckoutModal = ({
       onCancel={onClose}
     >
       <Form form={form} layout="vertical">
-        <PaymentForm form={form} total={total} bookshops={bookshops} />
+        <PaymentForm form={form} total={total} customers={customers} />
       </Form>
     </Modal>
   );

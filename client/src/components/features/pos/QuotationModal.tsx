@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Modal, Form, Select, DatePicker, Typography, message } from "antd";
-import { bookshopService, quotationService } from "../../../services";
-import { Bookshop, Quotation } from "../../../types";
+import { customerService, quotationService } from "../../../services";
+import { Customer, Quotation } from "../../../types";
 import { CartItem } from "./types";
 import { formatCurrency } from "../../../utils";
 import dayjs from "dayjs";
@@ -29,21 +29,21 @@ const QuotationModal = ({
   onSuccess,
 }: QuotationModalProps) => {
   const [form] = Form.useForm();
-  const [bookshops, setBookshops] = useState<Bookshop[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
 
   useEffect(() => {
     if (visible) {
-      fetchBookshops();
+      fetchCustomers();
       form.resetFields();
     }
   }, [visible]);
 
-  const fetchBookshops = async () => {
+  const fetchCustomers = async () => {
     try {
-      const data = await bookshopService.getBookshops();
-      setBookshops(data);
+      const data = await customerService.getCustomers();
+      setCustomers(data);
     } catch (error) {
-      message.error("Failed to load bookshops");
+      message.error("Failed to load customers");
     }
   };
 
@@ -51,9 +51,9 @@ const QuotationModal = ({
     try {
       const values = await form.validateFields();
       const quotationData = {
-        BookshopId: values.BookshopId,
+        CustomerId: values.CustomerId,
         items: cart.map((item) => ({
-          BookId: item.id,
+          ProductId: item.id,
           quantity: item.quantity,
           discount: item.discountValue,
           discount_type: item.discountType,
@@ -84,14 +84,14 @@ const QuotationModal = ({
       <Form form={form} layout="vertical">
         <Title level={4}>Total Amount: {formatCurrency(total)}</Title>
         <Form.Item
-          name="BookshopId"
-          label="Bookshop"
+          name="CustomerId"
+          label="Customer"
           rules={[{ required: true }]}
         >
-          <Select placeholder="Select a bookshop">
-            {bookshops.map((shop) => (
-              <Option key={shop.id} value={shop.id}>
-                {shop.name}
+          <Select placeholder="Select a customer">
+            {customers.map((customer) => (
+              <Option key={customer.id} value={customer.id}>
+                {customer.name}
               </Option>
             ))}
           </Select>

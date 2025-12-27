@@ -13,7 +13,7 @@ interface PosCartProps {
   total: number;
   cartDiscountInput: number;
   cartDiscountType: "Fixed" | "Percentage";
-  onQuantityChange: (bookId: number, quantity: number) => void;
+  onQuantityChange: (productId: number, quantity: number) => void;
   onEditItem: (item: CartItem) => void;
   onCartDiscountChange: (val: number) => void;
   onCartDiscountTypeChange: (val: "Fixed" | "Percentage") => void;
@@ -48,7 +48,7 @@ const PosCart = ({
   };
 
   const cartColumns = [
-    { title: "Book", dataIndex: "name", key: "name" },
+    { title: "Product", dataIndex: "name", key: "name" },
     {
       title: "Price",
       dataIndex: "price",

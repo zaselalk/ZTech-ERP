@@ -110,12 +110,12 @@ export const buildReceiptHtml = async (sale: any) => {
     yPos += 7;
   }
 
-  // add bookshop name if exists
-  if (sale.bookshop) {
+  // add customer name if exists
+  if (sale.customer) {
     doc.setFont("helvetica", "bold");
     doc.text(`Customer:`, 14, yPos);
     doc.setFont("helvetica", "normal");
-    doc.text(`${sale.bookshop.name}`, 45, yPos);
+    doc.text(`${sale.customer.name}`, 45, yPos);
     yPos += 7;
   }
 
@@ -148,8 +148,12 @@ export const buildReceiptHtml = async (sale: any) => {
       // Old Sale structure
       detailItem = item.SaleItem;
       bookName = item.name;
-    } else if (item.bookName) {
+    } else if (item.productName) {
       // New Sale structure
+      detailItem = item;
+      bookName = item.productName;
+    } else if (item.bookName) {
+      // Previous Sale structure
       detailItem = item;
       bookName = item.bookName;
     } else if (item.book) {

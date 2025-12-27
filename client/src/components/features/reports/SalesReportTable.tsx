@@ -53,7 +53,7 @@ export const SalesReportTable = ({
 
     const tableData = salesData.map((sale) => [
       sale.id,
-      sale.bookshop?.name || "N/A",
+      sale.customer?.name || "N/A",
       formatCurrency(
         typeof sale.total_amount === "number"
           ? sale.total_amount
@@ -64,7 +64,7 @@ export const SalesReportTable = ({
     ]);
 
     autoTable(doc, {
-      head: [["Sale ID", "Bookshop", "Total Amount", "Payment Method", "Date"]],
+      head: [["Sale ID", "Customer", "Total Amount", "Payment Method", "Date"]],
       body: tableData,
       startY: 30,
     });
@@ -76,7 +76,7 @@ export const SalesReportTable = ({
     const worksheet = XLSX.utils.json_to_sheet(
       salesData.map((sale) => ({
         "Sale ID": sale.id,
-        Bookshop: sale.bookshop?.name || "N/A",
+        Customer: sale.customer?.name || "N/A",
         "Total Amount":
           typeof sale.total_amount === "number"
             ? sale.total_amount
@@ -92,7 +92,7 @@ export const SalesReportTable = ({
 
   const salesColumns = [
     { title: "Sale ID", dataIndex: "id", key: "id" },
-    { title: "Bookshop", dataIndex: ["bookshop", "name"], key: "bookshop" },
+    { title: "Customer", dataIndex: ["customer", "name"], key: "customer" },
     {
       title: "Total Amount",
       dataIndex: "total_amount",
