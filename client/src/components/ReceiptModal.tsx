@@ -17,7 +17,7 @@ import {
 import { useReactToPrint } from "react-to-print";
 import { formatCurrency } from "../utils";
 import { salesService } from "../services";
-import { bookWithSaleItem, Sale } from "../types";
+import { Sale, SaleItemResponse } from "../types";
 import { buildReceiptHtml } from "../utils/ReceiptBuilder";
 
 const { Title, Text } = Typography;
@@ -86,21 +86,23 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
     }
   };
 
-  const subtotal = sale?.books.reduce((acc: number, book: bookWithSaleItem) => {
-    const saleItem = book.SaleItem;
-    let itemPrice = parseFloat(saleItem.price) || 0;
-    const qty = saleItem.quantity || 0;
+  const subtotal = sale?.items?.reduce(
+    (acc: number, item: SaleItemResponse) => {
+      let itemPrice = parseFloat(item.price) || 0;
+      const qty = item.quantity || 0;
 
-    // Apply item level discount logic again to get accurate subtotal
-    if (parseFloat(saleItem.discount) > 0) {
-      if (saleItem.discount_type === "Fixed") {
-        itemPrice -= parseFloat(saleItem.discount);
-      } else if (saleItem.discount_type === "Percentage") {
-        itemPrice -= (itemPrice * parseFloat(saleItem.discount)) / 100;
+      // Apply item level discount logic again to get accurate subtotal
+      if (parseFloat(item.discount) > 0) {
+        if (item.discount_type === "Fixed") {
+          itemPrice -= parseFloat(item.discount);
+        } else if (item.discount_type === "Percentage") {
+          itemPrice -= (itemPrice * parseFloat(item.discount)) / 100;
+        }
       }
-    }
-    return acc + itemPrice * qty;
-  }, 0);
+      return acc + itemPrice * qty;
+    },
+    0
+  );
 
   // console.log("Rerender");
 
@@ -210,7 +212,7 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
           </div>
 
           <Table
-            dataSource={sale.books}
+            dataSource={sale.items}
             rowKey="id"
             pagination={false}
             size="small"
@@ -219,36 +221,36 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
             columns={[
               {
                 title: "DESCRIPTION",
-                dataIndex: "name",
+                dataIndex: "bookName",
                 key: "name",
                 width: "35%",
+                render: (text: string) => text || "Unknown Book",
               },
               {
                 title: "QTY",
-                dataIndex: ["SaleItem", "quantity"],
+                dataIndex: "quantity",
                 key: "quantity",
                 align: "center",
                 width: "10%",
               },
               {
                 title: "RATE",
-                dataIndex: ["SaleItem", "price"],
+                dataIndex: "price",
                 key: "price",
                 align: "right",
                 width: "18%",
-                render: (val: number) => formatCurrency(val),
+                render: (val: string) => formatCurrency(parseFloat(val)),
               },
               {
                 title: "DISC",
-                dataIndex: ["SaleItem"],
                 key: "discount",
                 align: "center",
                 width: "15%",
-                render: (si: any) =>
-                  si?.discount > 0
-                    ? ` ${si.discount_type === "Fixed" ? "Rs." : ""} ${
-                        si.discount
-                      } ${si.discount_type === "Percentage" ? "%" : ""}`
+                render: (_: unknown, record: SaleItemResponse) =>
+                  parseFloat(record.discount) > 0
+                    ? ` ${record.discount_type === "Fixed" ? "Rs." : ""} ${
+                        record.discount
+                      } ${record.discount_type === "Percentage" ? "%" : ""}`
                     : "-",
               },
               {
@@ -256,12 +258,11 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
                 key: "total",
                 align: "right",
                 width: "22%",
-                render: (_: unknown, record: Sale["books"][number]) => {
-                  const discountType = record.SaleItem?.discount_type;
-                  const discountValue =
-                    parseFloat(record.SaleItem.discount) || 0;
-                  let price = parseFloat(record.SaleItem.price) || 0;
-                  const quantity = record.SaleItem.quantity || 0;
+                render: (_: unknown, record: SaleItemResponse) => {
+                  const discountType = record.discount_type;
+                  const discountValue = parseFloat(record.discount) || 0;
+                  let price = parseFloat(record.price) || 0;
+                  const quantity = record.quantity || 0;
 
                   if (discountValue > 0) {
                     if (discountType === "Fixed") {

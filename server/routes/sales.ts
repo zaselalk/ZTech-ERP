@@ -52,7 +52,7 @@ router.get(
 
       const sales = await Sale.findAll({
         where: whereClause,
-        include: ["bookshop", { model: Book, as: "books" }],
+        include: ["bookshop", { model: Book, as: "books" }, "items"],
         order: [["createdAt", "DESC"]],
       });
       res.json(sales);
@@ -254,7 +254,7 @@ router.get(
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   try {
     const sale = await Sale.findByPk(req.params.id, {
-      include: ["bookshop", { model: Book, as: "books" }],
+      include: ["bookshop", { model: Book, as: "books" }, "items"],
     });
     if (sale) {
       res.json(sale);
@@ -324,6 +324,9 @@ router.post(
             price: book.price, // Store original price
             discount: itemDiscountValue,
             discount_type: item.discount_type || "Fixed",
+            bookName: book.name,
+            bookAuthor: book.author,
+            bookBarcode: book.barcode,
           },
           { transaction: t }
         );

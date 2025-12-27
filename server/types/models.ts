@@ -58,6 +58,9 @@ export interface SaleItemAttributes {
   price: number;
   discount: number;
   discount_type: "Fixed" | "Percentage";
+  bookName?: string;
+  bookAuthor?: string;
+  bookBarcode?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

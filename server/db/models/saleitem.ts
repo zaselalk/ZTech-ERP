@@ -22,7 +22,7 @@ export = (
       },
       BookId: {
         type: dataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: "Books",
           key: "id",
@@ -45,6 +45,18 @@ export = (
         type: dataTypes.ENUM("Fixed", "Percentage"),
         allowNull: false,
         defaultValue: "Fixed",
+      },
+      bookName: {
+        type: dataTypes.STRING,
+        allowNull: true,
+      },
+      bookAuthor: {
+        type: dataTypes.STRING,
+        allowNull: true,
+      },
+      bookBarcode: {
+        type: dataTypes.STRING,
+        allowNull: true,
       },
     },
     {

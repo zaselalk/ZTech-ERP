@@ -22,6 +22,21 @@ export interface SaleItem {
   discount_type?: "Fixed" | "Percentage";
 }
 
+export interface SaleItemResponse {
+  id: number;
+  SaleId: number;
+  BookId: number | null;
+  quantity: number;
+  price: string;
+  discount: string;
+  discount_type: "Fixed" | "Percentage";
+  bookName?: string;
+  bookAuthor?: string;
+  bookBarcode?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface bookWithSaleItem {
   SaleItem: {
     BookId: number;
@@ -65,6 +80,7 @@ export interface Sale {
   id: number;
   bookshop: Bookshop;
   books: bookWithSaleItem[];
+  items: SaleItemResponse[];
   total_amount: number;
   discount: number;
   payment_method: string;

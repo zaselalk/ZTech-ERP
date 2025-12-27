@@ -135,15 +135,28 @@ export const buildReceiptHtml = async (sale: any) => {
   const tableRows: any[] = [];
 
   // Handle both Sale (books array) and Quotation (items array) structures
-  const items = sale.books || sale.items || [];
+  const items = sale.items || sale.books || [];
 
   items.forEach((item: any) => {
     // For Sale, item is bookWithSaleItem and has SaleItem property
     // For Quotation, item is QuotationItem and has book property
 
-    const isSaleItem = !!item.SaleItem;
-    const detailItem = isSaleItem ? item.SaleItem : item;
-    const bookName = isSaleItem ? item.name : item.book?.name || "Unknown Book";
+    let detailItem = item;
+    let bookName = "Unknown Book";
+
+    if (item.SaleItem) {
+      // Old Sale structure
+      detailItem = item.SaleItem;
+      bookName = item.name;
+    } else if (item.bookName) {
+      // New Sale structure
+      detailItem = item;
+      bookName = item.bookName;
+    } else if (item.book) {
+      // Quotation structure
+      detailItem = item;
+      bookName = item.book.name;
+    }
 
     const quantity_price = parseFloat(detailItem.price) || 0;
     const quantity = detailItem.quantity || 0;
