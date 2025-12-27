@@ -12,7 +12,12 @@ export const DashboardInventoryOverview = () => {
   const lowStockColumns = [
     { title: "Book Name", dataIndex: "name", key: "name" },
     { title: "Author", dataIndex: "author", key: "author" },
-    { title: "Quantity", dataIndex: "quantity", key: "quantity" },
+    {
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
+      sorter: (a: LowStockItem, b: LowStockItem) => a.quantity - b.quantity,
+    },
   ];
 
   const [lowStockItems, setLowStockItems] = useState<LowStockItem[]>([]);
@@ -66,7 +71,7 @@ export const DashboardInventoryOverview = () => {
               columns={lowStockColumns}
               dataSource={lowStockItems}
               rowKey="id"
-              pagination={false}
+              // pagination={lowStockItems.length > 10 ? { pageSize: 10 } : false}
               size="small"
             />
           </>
