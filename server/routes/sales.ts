@@ -293,9 +293,12 @@ router.post(
       );
 
       for (const item of items) {
-        const product = await Product.findByPk(item.ProductId, { transaction: t });
+        const product = await Product.findByPk(item.ProductId, {
+          transaction: t,
+        });
 
-        if (!product) throw new Error(`Product with id ${item.ProductId} not found`);
+        if (!product)
+          throw new Error(`Product with id ${item.ProductId} not found`);
         if (product.quantity < item.quantity)
           throw new Error(`Not enough stock for product: ${product.name}`);
 
@@ -332,7 +335,10 @@ router.post(
         );
 
         // Decrement stock
-        await product.decrement("quantity", { by: item.quantity, transaction: t });
+        await product.decrement("quantity", {
+          by: item.quantity,
+          transaction: t,
+        });
       }
 
       // Calculate and apply the overall cart discount

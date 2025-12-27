@@ -1,8 +1,15 @@
 import express, { Request, Response } from "express";
 import { Op } from "sequelize";
 const db = require("../db/models");
-const { sequelize, Quotation, QuotationItem, Product, Customer, Sale, SaleItem } =
-  db;
+const {
+  sequelize,
+  Quotation,
+  QuotationItem,
+  Product,
+  Customer,
+  Sale,
+  SaleItem,
+} = db;
 
 const router = express.Router();
 
@@ -80,9 +87,12 @@ router.post(
       );
 
       for (const item of items) {
-        const product = await Product.findByPk(item.ProductId, { transaction: t });
+        const product = await Product.findByPk(item.ProductId, {
+          transaction: t,
+        });
 
-        if (!product) throw new Error(`Product with id ${item.ProductId} not found`);
+        if (!product)
+          throw new Error(`Product with id ${item.ProductId} not found`);
         // Note: We do NOT check stock or deduct it for quotations
 
         let itemPrice = parseFloat(product.price);
@@ -140,7 +150,10 @@ router.post(
       await t.commit();
 
       const finalQuotation = await Quotation.findByPk(quotation.id, {
-        include: ["customer", { model: QuotationItem, as: "items", include: ["product"] }],
+        include: [
+          "customer",
+          { model: QuotationItem, as: "items", include: ["product"] },
+        ],
       });
 
       res.status(201).json(finalQuotation);
@@ -193,9 +206,12 @@ router.post(
 
       // Process items
       for (const qItem of quotation.items) {
-        const product = await Product.findByPk(qItem.ProductId, { transaction: t });
+        const product = await Product.findByPk(qItem.ProductId, {
+          transaction: t,
+        });
 
-        if (!product) throw new Error(`Product with id ${qItem.ProductId} not found`);
+        if (!product)
+          throw new Error(`Product with id ${qItem.ProductId} not found`);
         if (product.quantity < qItem.quantity)
           throw new Error(`Not enough stock for product: ${product.name}`);
 

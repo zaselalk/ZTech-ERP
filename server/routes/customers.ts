@@ -184,7 +184,10 @@ router.post(
       }
 
       // So a payment REDUCES this amount.
-      await customer.decrement("credit_balance", { by: amount, transaction: t });
+      await customer.decrement("credit_balance", {
+        by: amount,
+        transaction: t,
+      });
 
       await t.commit();
       res.status(201).json(payment);

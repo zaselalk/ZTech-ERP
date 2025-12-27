@@ -85,9 +85,7 @@ export const DashboardStatCards = () => {
         <Card className="bg-linear-to-br from-[#f54ea2] to-[#ff7676] border-none rounded-2xl shadow-[0_8px_24px_rgba(245,78,162,0.3)] text-white h-[160px]">
           <div className="flex justify-between items-start">
             <div>
-              <Text className="text-white/80 text-sm block">
-                Total Credit
-              </Text>
+              <Text className="text-white/80 text-sm block">Total Credit</Text>
               <Title
                 level={3}
                 className="text-white my-2 text-[32px] font-bold"

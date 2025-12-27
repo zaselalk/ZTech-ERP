@@ -71,7 +71,10 @@ export const productService = {
   /**
    * Update an existing product
    */
-  async updateProduct(id: number, productData: Partial<Product>): Promise<Product> {
+  async updateProduct(
+    id: number,
+    productData: Partial<Product>
+  ): Promise<Product> {
     return await api.fetch<Product>(`${API_URL}/products/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

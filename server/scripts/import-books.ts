@@ -113,7 +113,10 @@ const importBooks = async () => {
           console.log(`Processed ${successCount} products...`);
         }
       } catch (err) {
-        console.error(`Line ${i + 1}: Error importing product ${row.name}.`, err);
+        console.error(
+          `Line ${i + 1}: Error importing product ${row.name}.`,
+          err
+        );
         errorCount++;
       }
     }

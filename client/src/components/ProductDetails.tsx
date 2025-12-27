@@ -42,26 +42,35 @@ const ProductDetails = () => {
   }, [id]);
 
   // Calculate top customers
-  const customerMap = new Map<number, { customer: { id: number; name: string }; total_quantity: number; date: string }>();
+  const customerMap = new Map<
+    number,
+    {
+      customer: { id: number; name: string };
+      total_quantity: number;
+      date: string;
+    }
+  >();
   stats.sales.forEach((item: any) => {
-      const customer = item.sale?.customer;
-      if (customer) {
-          const existing = customerMap.get(customer.id);
-          if (existing) {
-              existing.total_quantity += item.quantity;
-              if (new Date(item.createdAt) > new Date(existing.date)) {
-                  existing.date = item.createdAt;
-              }
-          } else {
-              customerMap.set(customer.id, {
-                  customer: { id: customer.id, name: customer.name },
-                  total_quantity: item.quantity,
-                  date: item.createdAt
-              });
-          }
+    const customer = item.sale?.customer;
+    if (customer) {
+      const existing = customerMap.get(customer.id);
+      if (existing) {
+        existing.total_quantity += item.quantity;
+        if (new Date(item.createdAt) > new Date(existing.date)) {
+          existing.date = item.createdAt;
+        }
+      } else {
+        customerMap.set(customer.id, {
+          customer: { id: customer.id, name: customer.name },
+          total_quantity: item.quantity,
+          date: item.createdAt,
+        });
       }
+    }
   });
-  const topCustomers = Array.from(customerMap.values()).sort((a, b) => b.total_quantity - a.total_quantity);
+  const topCustomers = Array.from(customerMap.values()).sort(
+    (a, b) => b.total_quantity - a.total_quantity
+  );
 
   const topCustomersColumns = [
     {
@@ -84,7 +93,11 @@ const ProductDetails = () => {
 
   const salesColumns = [
     { title: "Sale ID", dataIndex: ["sale", "id"], key: "id" },
-    { title: "Customer", dataIndex: ["sale", "customer", "name"], key: "customer" },
+    {
+      title: "Customer",
+      dataIndex: ["sale", "customer", "name"],
+      key: "customer",
+    },
     {
       title: "Quantity",
       dataIndex: "quantity",

@@ -199,7 +199,10 @@ export class SaleItem
 }
 
 export class ConsignmentPayment
-  extends Model<ConsignmentPaymentAttributes, ConsignmentPaymentCreationAttributes>
+  extends Model<
+    ConsignmentPaymentAttributes,
+    ConsignmentPaymentCreationAttributes
+  >
   implements ConsignmentPaymentAttributes
 {
   public id!: number;
