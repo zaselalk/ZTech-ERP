@@ -14,7 +14,8 @@
     "seed": "sequelize-cli db:seed --seed",
     "seed:all": "sequelize-cli db:seed:all",
     "seed:undo": "sequelize-cli db:seed:undo:all",
-    "setup:admin": "ts-node setup-admin.ts"
+    "setup:admin": "ts-node setup-admin.ts",
+    "import:books": "ts-node scripts/import-books.ts"
   },
   "keywords": [],
   "author": "",
