@@ -17,15 +17,15 @@ const genres = ["Fantasy", "Sci-Fi", "Mystery", "Thriller", "Romance", "Historic
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     // 1. Get the actual IDs from the Bookshops table
-    const bookshops = await queryInterface.sequelize.query(
-      `SELECT id from Bookshops;`,
-      { type: queryInterface.sequelize.QueryTypes.SELECT }
-    );
-    const bookshopIds = bookshops.map(bs => bs.id);
+    // const bookshops = await queryInterface.sequelize.query(
+    //   `SELECT id from Bookshops;`,
+    //   { type: queryInterface.sequelize.QueryTypes.SELECT }
+    // );
+    // const bookshopIds = bookshops.map(bs => bs.id);
 
-    if (bookshopIds.length === 0) {
-      throw new Error("No bookshops found. Please seed bookshops before seeding books.");
-    }
+    // if (bookshopIds.length === 0) {
+    //   throw new Error("No bookshops found. Please seed bookshops before seeding books.");
+    // }
 
     const books = [];
     const barcodes = new Set();
@@ -37,7 +37,7 @@ module.exports = {
 
       const name = `${getRandom(titlePrefixes)} ${getRandom(titleSuffixes)}`;
       const author = `${getRandom(authorFirstNames)} ${getRandom(authorLastNames)}`;
-      
+
       // Ensure unique name/author combo
       if (books.some(b => b.name === name && b.author === author)) continue;
 

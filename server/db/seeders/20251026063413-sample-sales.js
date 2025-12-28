@@ -10,11 +10,11 @@ module.exports = {
     await queryInterface.sequelize.query('ALTER TABLE Sales AUTO_INCREMENT = 1;');
     await queryInterface.sequelize.query('ALTER TABLE SaleItems AUTO_INCREMENT = 1;');
 
-    const bookshops = await queryInterface.sequelize.query(`SELECT id from Bookshops;`, { type: queryInterface.sequelize.QueryTypes.SELECT });
+    const customers = await queryInterface.sequelize.query(`SELECT id from Customers;`, { type: queryInterface.sequelize.QueryTypes.SELECT });
     const books = await queryInterface.sequelize.query(`SELECT id, price from Books;`, { type: queryInterface.sequelize.QueryTypes.SELECT });
 
-    if (bookshops.length === 0 || books.length < 3) {
-      console.log("Not enough bookshops or books to create sample sales.");
+    if (customers.length === 0 || books.length < 3) {
+      console.log("Not enough customers or books to create sample sales.");
       return;
     }
 
@@ -26,7 +26,7 @@ module.exports = {
       const saleDate = new Date();
       saleDate.setDate(saleDate.getDate() - Math.floor(Math.random() * 90)); // Random date in the last 90 days
 
-      const bookshop = getRandom(bookshops);
+      const customer = getRandom(customers);
       const numItems = Math.floor(Math.random() * 3) + 1;
       const saleBooks = [];
       for (let j = 0; j < numItems; j++) {
@@ -38,7 +38,7 @@ module.exports = {
 
       sales.push({
         id: saleId,
-        BookshopId: bookshop.id,
+        CustomerId: customer.id,
         payment_method: getRandom(['Cash', 'Card', 'Consignment']),
         total_amount,
         discount: 0,
