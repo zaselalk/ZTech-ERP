@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { UserPermissions } from "../types/models";
 const db = require("../db/models");
 const { User } = db;
 
@@ -47,7 +48,11 @@ router.post(
         expiresIn: "1h",
       });
 
-      res.json({ token, role: user.role, username: user.username });
+      res.json({
+        token,
+        username: user.username,
+        permissions: user.permissions as UserPermissions,
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });

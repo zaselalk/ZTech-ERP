@@ -1,7 +1,11 @@
 import express, { Request, Response } from "express";
 import nodemailer from "nodemailer";
 import { col, fn, literal, Op } from "sequelize";
-import { requireAdmin } from "../middleware/requireAdmin";
+import {
+  requireViewPermission,
+  requireCreatePermission,
+  requireAnyPermission,
+} from "../middleware/requirePermission";
 const db = require("../db/models");
 const { sequelize, Sale, SaleItem, Product, Customer } = db;
 
@@ -34,7 +38,7 @@ interface EmailRequestBody {
 // Get all sales
 router.get(
   "/",
-  requireAdmin,
+  requireViewPermission("sales"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { startDate, endDate } = req.query;
@@ -65,7 +69,7 @@ router.get(
 // Get daily sales
 router.get(
   "/daily-sales-trend",
-  requireAdmin,
+  requireViewPermission("sales"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { startDate, endDate } = req.query;
@@ -111,7 +115,7 @@ router.get(
 // get sales payment method
 router.get(
   "/sales-payment",
-  requireAdmin,
+  requireViewPermission("sales"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { startDate, endDate } = req.query;
@@ -156,7 +160,7 @@ router.get(
 // get sales by customer
 router.get(
   "/sales-by-customer",
-  requireAdmin,
+  requireViewPermission("sales"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { startDate, endDate } = req.query;
@@ -269,6 +273,7 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 // Create a new sale
 router.post(
   "/",
+  requireAnyPermission("pos", ["create"]),
   async (
     req: Request<{}, {}, CreateSaleRequestBody>,
     res: Response

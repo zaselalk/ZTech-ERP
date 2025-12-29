@@ -1,4 +1,10 @@
 import api from "../utils/api";
+import {
+  UserPermissions,
+  ModuleName,
+  ModulePermission,
+  DEFAULT_PERMISSIONS,
+} from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
@@ -30,23 +36,33 @@ export const authService = {
   async login(
     username: string,
     password: string
-  ): Promise<{ token: string; role: string; username: string }> {
-    return await api.fetch<{ token: string; role: string; username: string }>(
-      `${API_URL}/auth/login`,
-      {
-        method: "POST",
-        data: { username, password },
-      }
-    );
+  ): Promise<{
+    token: string;
+    username: string;
+    permissions: UserPermissions;
+  }> {
+    return await api.fetch<{
+      token: string;
+      username: string;
+      permissions: UserPermissions;
+    }>(`${API_URL}/auth/login`, {
+      method: "POST",
+      data: { username, password },
+    });
   },
 
   /**
    * Store token and user info in localStorage
    */
-  storeToken(token: string, role?: string, username?: string): void {
+  storeToken(
+    token: string,
+    username?: string,
+    permissions?: UserPermissions
+  ): void {
     localStorage.setItem("token", token);
-    if (role) localStorage.setItem("role", role);
     if (username) localStorage.setItem("username", username);
+    if (permissions)
+      localStorage.setItem("permissions", JSON.stringify(permissions));
   },
 
   /**
@@ -57,13 +73,6 @@ export const authService = {
   },
 
   /**
-   * Get user role from localStorage
-   */
-  getRole(): string | null {
-    return localStorage.getItem("role");
-  },
-
-  /**
    * Get username from localStorage
    */
   getUsername(): string | null {
@@ -71,12 +80,64 @@ export const authService = {
   },
 
   /**
+   * Get user permissions from localStorage
+   */
+  getPermissions(): UserPermissions | null {
+    const permissions = localStorage.getItem("permissions");
+    if (!permissions) {
+      return DEFAULT_PERMISSIONS;
+    }
+    try {
+      return JSON.parse(permissions);
+    } catch {
+      return DEFAULT_PERMISSIONS;
+    }
+  },
+
+  /**
+   * Check if user has a specific permission for a module
+   */
+  hasPermission(module: ModuleName, permission: ModulePermission): boolean {
+    const permissions = this.getPermissions();
+    if (!permissions) return false;
+    return permissions[module]?.[permission] ?? false;
+  },
+
+  /**
+   * Check if user can view a module
+   */
+  canView(module: ModuleName): boolean {
+    return this.hasPermission(module, "view");
+  },
+
+  /**
+   * Check if user can create in a module
+   */
+  canCreate(module: ModuleName): boolean {
+    return this.hasPermission(module, "create");
+  },
+
+  /**
+   * Check if user can edit in a module
+   */
+  canEdit(module: ModuleName): boolean {
+    return this.hasPermission(module, "edit");
+  },
+
+  /**
+   * Check if user can delete in a module
+   */
+  canDelete(module: ModuleName): boolean {
+    return this.hasPermission(module, "delete");
+  },
+
+  /**
    * Remove token and user info from localStorage
    */
   removeToken(): void {
     localStorage.removeItem("token");
-    localStorage.removeItem("role");
     localStorage.removeItem("username");
+    localStorage.removeItem("permissions");
   },
 
   /**

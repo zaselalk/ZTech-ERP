@@ -21,10 +21,9 @@ export = (
         type: dataTypes.STRING,
         allowNull: false,
       },
-      role: {
-        type: dataTypes.ENUM("admin", "staff"),
+      permissions: {
+        type: dataTypes.JSON,
         allowNull: false,
-        defaultValue: "staff",
       },
     },
     {

@@ -1,5 +1,5 @@
 import api from "../utils/api";
-import { User } from "../types";
+import { User, UserPermissions } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
@@ -8,7 +8,18 @@ export const userService = {
     return await api.fetch<User[]>(`${API_URL}/users`);
   },
 
-  createUser: async (userData: Partial<User> & { password?: string }) => {
+  getDefaultPermissions: async () => {
+    return await api.fetch<UserPermissions>(
+      `${API_URL}/users/default-permissions`
+    );
+  },
+
+  createUser: async (
+    userData: Partial<User> & {
+      password?: string;
+      permissions?: UserPermissions;
+    }
+  ) => {
     return await api.fetch<User>(`${API_URL}/users`, {
       method: "POST",
       data: userData,
@@ -17,7 +28,10 @@ export const userService = {
 
   updateUser: async (
     id: number,
-    userData: Partial<User> & { password?: string }
+    userData: Partial<User> & {
+      password?: string;
+      permissions?: UserPermissions;
+    }
   ) => {
     return await api.fetch<User>(`${API_URL}/users/${id}`, {
       method: "PUT",

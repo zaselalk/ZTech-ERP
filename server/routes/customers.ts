@@ -1,5 +1,10 @@
 import express, { Request, Response } from "express";
-import { requireAdmin } from "../middleware/requireAdmin";
+import {
+  requireCreatePermission,
+  requireEditPermission,
+  requireDeletePermission,
+  requireViewPermission,
+} from "../middleware/requirePermission";
 const db = require("../db/models");
 const { Customer, Sale, ConsignmentPayment } = db;
 
@@ -34,7 +39,7 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 // Create a new customer
 router.post(
   "/",
-  requireAdmin,
+  requireCreatePermission("customers"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const customer = await Customer.create(req.body);
@@ -49,7 +54,7 @@ router.post(
 // Update a customer
 router.put(
   "/:id",
-  requireAdmin,
+  requireEditPermission("customers"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const [updated] = await Customer.update(req.body, {
@@ -71,7 +76,7 @@ router.put(
 // Delete a customer
 router.delete(
   "/:id",
-  requireAdmin,
+  requireDeletePermission("customers"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const deleted = await Customer.destroy({
@@ -92,7 +97,7 @@ router.delete(
 // Get all sales for a customer
 router.get(
   "/:id/sales",
-  requireAdmin,
+  requireViewPermission("customers"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const sales = await Sale.findAll({
@@ -110,7 +115,7 @@ router.get(
 // Add a consignment payment
 router.post(
   "/:id/payments",
-  requireAdmin,
+  requireCreatePermission("credit"),
   async (req: Request, res: Response): Promise<void> => {
     const { amount, paymentDate, note } = req.body;
     const customerId = req.params.id;

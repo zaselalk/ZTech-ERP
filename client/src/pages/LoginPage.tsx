@@ -36,12 +36,26 @@ const LoginPage = () => {
     try {
       const {
         token,
-        role,
         username: user,
+        permissions,
       } = await authService.login(username, password);
-      authService.storeToken(token, role, user);
+      authService.storeToken(token, user, permissions);
       message.success("Login successful!");
-      if (role === "staff") {
+
+      // Check if user has any admin module access
+      const hasAdminAccess =
+        permissions.dashboard?.view ||
+        permissions.sales?.view ||
+        permissions.inventory?.view ||
+        permissions.customers?.view ||
+        permissions.reports?.view ||
+        permissions.credit?.view ||
+        permissions.backups?.view ||
+        permissions.issues?.view ||
+        permissions.users?.view ||
+        permissions.settings?.view;
+
+      if (!hasAdminAccess) {
         navigate("/pos");
       } else {
         navigate("/");
