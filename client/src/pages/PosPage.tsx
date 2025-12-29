@@ -1,4 +1,4 @@
-import { Layout, Typography, Button, Space } from "antd";
+import { Layout, Typography, Button, Space, Result } from "antd";
 import { useNavigate } from "react-router-dom";
 import { FileTextOutlined } from "@ant-design/icons";
 import ReceiptModal from "../components/ReceiptModal";
@@ -12,13 +12,31 @@ import QuotationListModal from "../components/features/pos/QuotationListModal";
 import ConvertQuotationModal from "../components/features/pos/ConvertQuotationModal";
 import { usePos } from "../components/features/pos/usePos";
 import { authService } from "../services";
+import { usePermissions } from "../hooks/usePermissions";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
 
 const PosPage = () => {
   const navigate = useNavigate();
-  const userRole = authService.getRole();
+  const { canView } = usePermissions();
+
+  // Check if user has access to POS
+  const hasPosAccess = canView("pos");
+
+  // Check if user has access to any admin module
+  const hasAdminAccess =
+    canView("dashboard") ||
+    canView("sales") ||
+    canView("inventory") ||
+    canView("customers") ||
+    canView("reports") ||
+    canView("credit") ||
+    canView("backups") ||
+    canView("issues") ||
+    canView("users") ||
+    canView("settings");
+
   const {
     topSellers,
     cart,
@@ -58,6 +76,24 @@ const PosPage = () => {
     refreshProductData,
   } = usePos();
 
+  // Show forbidden message if user doesn't have POS access
+  if (!hasPosAccess) {
+    return (
+      <Layout className="min-h-screen">
+        <Result
+          status="403"
+          title="403"
+          subTitle="Sorry, you don't have permission to access the Point of Sale."
+          extra={
+            <Button type="primary" onClick={() => navigate("/login")}>
+              Go to Login
+            </Button>
+          }
+        />
+      </Layout>
+    );
+  }
+
   return (
     <Layout className="min-h-screen">
       <Header className="flex justify-between items-center">
@@ -73,11 +109,11 @@ const PosPage = () => {
           >
             View Quotations
           </Button>
-          {userRole === "admin" && (
+          {hasAdminAccess && (
             <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
           )}
-          {/* show logout button for staff users */}
-          {userRole === "staff" && (
+          {/* show logout button for users without admin access */}
+          {!hasAdminAccess && (
             <Button
               danger
               onClick={() => {

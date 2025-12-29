@@ -1,8 +1,8 @@
 import express, { Request, Response } from "express";
 import { v2 as cloudinary } from "cloudinary";
 import db from "../db/models";
-import { requireAdmin } from "../middleware/requireAdmin";
 import { requireAuth } from "../middleware/requireAuth";
+import { requireEditPermission } from "../middleware/requirePermission";
 import { env } from "../config/env";
 
 const router = express.Router();
@@ -51,7 +51,7 @@ router.get("/", async (req: Request, res: Response) => {
 router.put(
   "/",
   requireAuth,
-  requireAdmin,
+  requireEditPermission("settings"),
   async (req: Request, res: Response) => {
     try {
       const {
@@ -100,7 +100,7 @@ router.put(
 router.post(
   "/logo",
   requireAuth,
-  requireAdmin,
+  requireEditPermission("settings"),
   async (req: Request, res: Response) => {
     try {
       if (!checkCloudinaryConfig()) {
@@ -165,7 +165,7 @@ router.post(
 router.delete(
   "/logo",
   requireAuth,
-  requireAdmin,
+  requireEditPermission("settings"),
   async (req: Request, res: Response) => {
     try {
       let settings = await db.Settings.findOne();

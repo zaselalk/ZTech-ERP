@@ -1,6 +1,7 @@
 import readline from "readline";
 import bcrypt from "bcrypt";
 import { Sequelize } from "sequelize";
+import { FULL_PERMISSIONS, ALL_MODULES } from "./types/models";
 
 // Import database models
 const db = require("./db/models");
@@ -96,14 +97,23 @@ async function setupAdmin() {
     await db.sequelize.authenticate();
     console.log("✓ Database connection established successfully.\n");
 
-    // Check if any admin users already exist
-    const existingAdmin = await User.findOne({
-      where: { role: "admin" },
+    // Check if any admin users already exist (users with full permissions)
+    const allUsers = await User.findAll();
+    const existingAdmin = allUsers.find((user: any) => {
+      const perms = user.permissions;
+      if (!perms) return false;
+      return ALL_MODULES.every(
+        (module) =>
+          perms[module]?.view &&
+          perms[module]?.create &&
+          perms[module]?.edit &&
+          perms[module]?.delete
+      );
     });
 
     if (existingAdmin) {
       const confirm = await question(
-        "An admin user already exists. Do you want to create another admin user? (yes/no): "
+        "A user with full admin permissions already exists. Do you want to create another admin user? (yes/no): "
       );
 
       if (confirm.toLowerCase() !== "yes" && confirm.toLowerCase() !== "y") {
@@ -161,16 +171,16 @@ async function setupAdmin() {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create admin user
+    // Create admin user with full permissions
     const admin = await User.create({
       username: username.trim(),
       password: hashedPassword,
-      role: "admin",
+      permissions: FULL_PERMISSIONS,
     });
 
     console.log("\n✓ Admin user created successfully!");
     console.log(`\nUsername: ${admin.username}`);
-    console.log("Role: admin");
+    console.log("Permissions: Full Access (all modules)");
     console.log("\nYou can now login to the system with these credentials.");
   } catch (error) {
     console.error("\n❌ Error during setup:", error);

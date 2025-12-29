@@ -1,11 +1,82 @@
 import { Model, Optional } from "sequelize";
 
+// Permission types for role-based access control
+export type ModulePermission = "view" | "create" | "edit" | "delete";
+
+export interface ModulePermissions {
+  view: boolean;
+  create: boolean;
+  edit: boolean;
+  delete: boolean;
+}
+
+export interface UserPermissions {
+  dashboard: ModulePermissions;
+  sales: ModulePermissions;
+  inventory: ModulePermissions;
+  customers: ModulePermissions;
+  reports: ModulePermissions;
+  credit: ModulePermissions;
+  backups: ModulePermissions;
+  issues: ModulePermissions;
+  users: ModulePermissions;
+  settings: ModulePermissions;
+  pos: ModulePermissions;
+}
+
+// All available modules
+export const ALL_MODULES = [
+  "dashboard",
+  "sales",
+  "inventory",
+  "customers",
+  "reports",
+  "credit",
+  "backups",
+  "issues",
+  "users",
+  "settings",
+  "pos",
+] as const;
+
+export type ModuleName = (typeof ALL_MODULES)[number];
+
+// Full access permissions (for initial admin setup)
+export const FULL_PERMISSIONS: UserPermissions = {
+  dashboard: { view: true, create: true, edit: true, delete: true },
+  sales: { view: true, create: true, edit: true, delete: true },
+  inventory: { view: true, create: true, edit: true, delete: true },
+  customers: { view: true, create: true, edit: true, delete: true },
+  reports: { view: true, create: true, edit: true, delete: true },
+  credit: { view: true, create: true, edit: true, delete: true },
+  backups: { view: true, create: true, edit: true, delete: true },
+  issues: { view: true, create: true, edit: true, delete: true },
+  users: { view: true, create: true, edit: true, delete: true },
+  settings: { view: true, create: true, edit: true, delete: true },
+  pos: { view: true, create: true, edit: true, delete: true },
+};
+
+// Default permissions for new users (POS only)
+export const DEFAULT_PERMISSIONS: UserPermissions = {
+  dashboard: { view: false, create: false, edit: false, delete: false },
+  sales: { view: false, create: false, edit: false, delete: false },
+  inventory: { view: false, create: false, edit: false, delete: false },
+  customers: { view: false, create: false, edit: false, delete: false },
+  reports: { view: false, create: false, edit: false, delete: false },
+  credit: { view: false, create: false, edit: false, delete: false },
+  backups: { view: false, create: false, edit: false, delete: false },
+  issues: { view: false, create: false, edit: false, delete: false },
+  users: { view: false, create: false, edit: false, delete: false },
+  settings: { view: false, create: false, edit: false, delete: false },
+  pos: { view: true, create: true, edit: false, delete: false },
+};
+
 // User attributes
 export interface UserAttributes {
   id: number;
   username: string;
   password: string;
-  role: "admin" | "staff";
+  permissions: UserPermissions;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -130,7 +201,7 @@ export class User
   public id!: number;
   public username!: string;
   public password!: string;
-  public role!: "admin" | "staff";
+  public permissions!: UserPermissions;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }

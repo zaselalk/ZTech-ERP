@@ -1,6 +1,11 @@
 import express, { Request, Response } from "express";
 import { Op } from "sequelize";
-import { requireAdmin } from "../middleware/requireAdmin";
+import {
+  requireViewPermission,
+  requireCreatePermission,
+  requireEditPermission,
+  requireDeletePermission,
+} from "../middleware/requirePermission";
 const db = require("../db/models");
 const { Product, SaleItem, Sale, Customer } = db;
 
@@ -60,7 +65,7 @@ router.get(
 // Get low stock products
 router.get(
   "/low-stock",
-  requireAdmin,
+  requireViewPermission("inventory"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const products = await Product.findAll({
@@ -96,7 +101,7 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 // Get stats for a single product
 router.get(
   "/:id/stats",
-  requireAdmin,
+  requireViewPermission("inventory"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const product = await Product.findByPk(req.params.id);
@@ -140,7 +145,7 @@ router.get(
 // Create a product
 router.post(
   "/",
-  requireAdmin,
+  requireCreatePermission("inventory"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const product = await Product.create(req.body);
@@ -155,7 +160,7 @@ router.post(
 // Update a product
 router.put(
   "/:id",
-  requireAdmin,
+  requireEditPermission("inventory"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const product = await Product.findByPk(req.params.id);
@@ -175,7 +180,7 @@ router.put(
 // Delete a product
 router.delete(
   "/:id",
-  requireAdmin,
+  requireDeletePermission("inventory"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const product = await Product.findByPk(req.params.id);

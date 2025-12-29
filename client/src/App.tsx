@@ -43,9 +43,12 @@ import Backups from "./components/Backups";
 import Issues from "./components/Issues";
 import Users from "./components/Users";
 import Settings from "./components/Settings";
+import PermissionGuard from "./components/PermissionGuard";
 import { authService, settingsService } from "./services";
+import { usePermissions } from "./hooks/usePermissions";
 import { DateTime } from "./components/layout/Header/DateTime";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { ModuleName } from "./types";
 
 const { Header, Content, Sider } = Layout;
 
@@ -55,6 +58,7 @@ const DEFAULT_LOGO = "/logo/storyflix-logo.png";
 const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { canView } = usePermissions();
 
   // Determine selected key from path, default to '1' (Dashboard)
   const pathMap: Record<string, string> = {
@@ -69,12 +73,12 @@ const MainLayout = () => {
     "/users": "9",
     "/settings": "10",
   };
+
   const [selectedKey, setSelectedKey] = useState(
     pathMap[location.pathname] || "1"
   );
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>(DEFAULT_LOGO);
-  const userRole = authService.getRole();
   const username = authService.getUsername();
 
   useEffect(() => {
@@ -91,8 +95,21 @@ const MainLayout = () => {
     loadSettings();
   }, []);
 
-  // Redirect staff to POS if they try to access dashboard
-  if (userRole === "staff") {
+  // Check if user has access to any admin module
+  const hasAnyAdminAccess =
+    canView("dashboard") ||
+    canView("sales") ||
+    canView("inventory") ||
+    canView("customers") ||
+    canView("reports") ||
+    canView("credit") ||
+    canView("backups") ||
+    canView("issues") ||
+    canView("users") ||
+    canView("settings");
+
+  // Redirect to POS if user doesn't have access to any admin modules
+  if (!hasAnyAdminAccess) {
     return <Navigate to="/pos" replace />;
   }
 
@@ -103,61 +120,74 @@ const MainLayout = () => {
     setMobileMenuVisible(false); // Close mobile menu after selection
   };
 
-  const items = [
+  // Build menu items based on user permissions
+  const allMenuItems = [
     {
       key: "1",
       icon: <DashboardOutlined />,
       label: "Dashboard",
+      module: "dashboard" as ModuleName,
     },
     {
       key: "2",
       icon: <ShoppingCartOutlined />,
       label: "Sales History",
+      module: "sales" as ModuleName,
     },
     {
       key: "3",
       icon: <AppstoreOutlined />,
       label: "Inventory",
+      module: "inventory" as ModuleName,
     },
     {
       key: "4",
       icon: <ShopOutlined />,
       label: "Customers",
+      module: "customers" as ModuleName,
     },
     {
       key: "5",
       icon: <BarChartOutlined />,
       label: "Reports",
+      module: "reports" as ModuleName,
     },
     {
       key: "6",
       icon: <DollarCircleOutlined />,
       label: "Credit Payments",
+      module: "credit" as ModuleName,
     },
     {
       key: "7",
       icon: <SettingOutlined />,
       label: "Backups",
+      module: "backups" as ModuleName,
     },
     {
       key: "8",
       icon: <BugOutlined />,
       label: "Issues",
+      module: "issues" as ModuleName,
     },
-  ];
-
-  if (userRole === "admin") {
-    items.push({
+    {
       key: "9",
       icon: <UserOutlined />,
       label: "Users",
-    });
-    items.push({
+      module: "users" as ModuleName,
+    },
+    {
       key: "10",
       icon: <SettingOutlined />,
       label: "Settings",
-    });
-  }
+      module: "settings" as ModuleName,
+    },
+  ];
+
+  // Filter menu items based on user permissions
+  const items = allMenuItems
+    .filter((item) => canView(item.module))
+    .map(({ module, ...menuItem }) => menuItem);
 
   const handleLogout = () => {
     authService.removeToken();
@@ -283,18 +313,102 @@ const MainLayout = () => {
         </Header>
         <Content className="m-2 sm:m-4 md:m-6 p-3 sm:p-4 md:p-6 bg-[#f5f6fa] rounded-lg overflow-y-auto flex-1">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/sales" element={<Sales />} />
-            <Route path="/inventory" element={<Products />} />
-            <Route path="/products/:id" element={<ProductDetails />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="/customers/:id" element={<CustomerDetails />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/credit" element={<CreditPayments />} />
-            <Route path="/backups" element={<Backups />} />
-            <Route path="/issues" element={<Issues />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route
+              path="/"
+              element={
+                <PermissionGuard module="dashboard">
+                  <Dashboard />
+                </PermissionGuard>
+              }
+            />
+            <Route
+              path="/sales"
+              element={
+                <PermissionGuard module="sales">
+                  <Sales />
+                </PermissionGuard>
+              }
+            />
+            <Route
+              path="/inventory"
+              element={
+                <PermissionGuard module="inventory">
+                  <Products />
+                </PermissionGuard>
+              }
+            />
+            <Route
+              path="/products/:id"
+              element={
+                <PermissionGuard module="inventory">
+                  <ProductDetails />
+                </PermissionGuard>
+              }
+            />
+            <Route
+              path="/customers"
+              element={
+                <PermissionGuard module="customers">
+                  <Customers />
+                </PermissionGuard>
+              }
+            />
+            <Route
+              path="/customers/:id"
+              element={
+                <PermissionGuard module="customers">
+                  <CustomerDetails />
+                </PermissionGuard>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <PermissionGuard module="reports">
+                  <Reports />
+                </PermissionGuard>
+              }
+            />
+            <Route
+              path="/credit"
+              element={
+                <PermissionGuard module="credit">
+                  <CreditPayments />
+                </PermissionGuard>
+              }
+            />
+            <Route
+              path="/backups"
+              element={
+                <PermissionGuard module="backups">
+                  <Backups />
+                </PermissionGuard>
+              }
+            />
+            <Route
+              path="/issues"
+              element={
+                <PermissionGuard module="issues">
+                  <Issues />
+                </PermissionGuard>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <PermissionGuard module="users">
+                  <Users />
+                </PermissionGuard>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <PermissionGuard module="settings">
+                  <Settings />
+                </PermissionGuard>
+              }
+            />
           </Routes>
         </Content>
       </Layout>

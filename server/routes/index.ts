@@ -12,22 +12,76 @@ import usersRoutes from "./users";
 import quotationsRoutes from "./quotations";
 import settingsRoutes from "./settings";
 
-import { requireAdmin } from "../middleware/requireAdmin";
 import { requireAuth } from "../middleware/requireAuth";
+import { requireViewPermission } from "../middleware/requirePermission";
 
 export function registerRoutes(app: Express): void {
   app.use(passport.initialize());
 
   app.use("/api/auth", authRoutes);
-  app.use("/api/customers", requireAuth, customerRoutes);
-  app.use("/api/products", requireAuth, productRoutes);
+
+  // Customer routes - requires customers module permission
+  app.use(
+    "/api/customers",
+    requireAuth,
+    requireViewPermission("customers"),
+    customerRoutes
+  );
+
+  // Product routes - requires inventory module permission
+  app.use(
+    "/api/products",
+    requireAuth,
+    requireViewPermission("inventory"),
+    productRoutes
+  );
+
+  // Sales routes - requires sales module permission (view) or pos (create for new sales)
   app.use("/api/sales", requireAuth, salesRoutes);
-  app.use("/api/reports", requireAuth, requireAdmin, reportsRoutes);
-  app.use("/api/dashboard", requireAuth, requireAdmin, dashboardRoutes);
-  app.use("/api/backups", requireAuth, requireAdmin, backupsRoutes);
-  app.use("/api/issues", requireAuth, requireAdmin, issuesRoutes);
-  app.use("/api/users", requireAuth, requireAdmin, usersRoutes);
+
+  // Reports routes - requires reports module permission
+  app.use(
+    "/api/reports",
+    requireAuth,
+    requireViewPermission("reports"),
+    reportsRoutes
+  );
+
+  // Dashboard routes - requires dashboard module permission
+  app.use(
+    "/api/dashboard",
+    requireAuth,
+    requireViewPermission("dashboard"),
+    dashboardRoutes
+  );
+
+  // Backups routes - requires backups module permission
+  app.use(
+    "/api/backups",
+    requireAuth,
+    requireViewPermission("backups"),
+    backupsRoutes
+  );
+
+  // Issues routes - requires issues module permission
+  app.use(
+    "/api/issues",
+    requireAuth,
+    requireViewPermission("issues"),
+    issuesRoutes
+  );
+
+  // Users routes - requires users module permission
+  app.use(
+    "/api/users",
+    requireAuth,
+    requireViewPermission("users"),
+    usersRoutes
+  );
+
+  // Quotations routes - requires sales or pos permission
   app.use("/api/quotations", requireAuth, quotationsRoutes);
-  // Settings: GET is public (for logo on login page), other methods require auth
+
+  // Settings: GET is public (for logo on login page), other methods require settings permission
   app.use("/api/settings", settingsRoutes);
 }
