@@ -448,38 +448,50 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
-.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card {
+.payment-method-radio-group
+  .ant-radio-button-wrapper-checked
+  .payment-method-card {
   border-width: 3px !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
   transform: translateY(-2px);
 }
 
 /* Cash - Green */
-.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card:has(.text-green-600) {
+.payment-method-radio-group
+  .ant-radio-button-wrapper-checked
+  .payment-method-card:has(.text-green-600) {
   border-color: #10b981 !important;
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
 }
 
 /* Card - Blue */
-.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card:has(.text-blue-600) {
+.payment-method-radio-group
+  .ant-radio-button-wrapper-checked
+  .payment-method-card:has(.text-blue-600) {
   border-color: #3b82f6 !important;
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
 }
 
 /* Credit - Amber */
-.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card:has(.text-amber-600) {
+.payment-method-radio-group
+  .ant-radio-button-wrapper-checked
+  .payment-method-card:has(.text-amber-600) {
   border-color: #f59e0b !important;
   background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
 }
 
 /* Paid - Teal */
-.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card:has(.text-teal-600) {
+.payment-method-radio-group
+  .ant-radio-button-wrapper-checked
+  .payment-method-card:has(.text-teal-600) {
   border-color: #14b8a6 !important;
   background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%) !important;
 }
 
 /* Cash On Delivery - Orange */
-.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card:has(.text-orange-600) {
+.payment-method-radio-group
+  .ant-radio-button-wrapper-checked
+  .payment-method-card:has(.text-orange-600) {
   border-color: #f97316 !important;
   background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%) !important;
 }
@@ -490,7 +502,9 @@ body {
 }
 
 /* Add checkmark indicator when selected */
-.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card::after {
+.payment-method-radio-group
+  .ant-radio-button-wrapper-checked
+  .payment-method-card::after {
   content: "✓";
   position: absolute;
   top: 8px;
