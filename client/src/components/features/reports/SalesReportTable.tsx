@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
-import { Table, Button, Space, Typography, message } from "antd";
+import { Table, Button, Space, message, Tag } from "antd";
+import {
+  FilePdfOutlined,
+  FileExcelOutlined,
+  EyeOutlined,
+} from "@ant-design/icons";
 import { Sale } from "../../../types";
 import { formatCurrency } from "../../../utils";
 import { reportService } from "../../../services";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-
-const { Title } = Typography;
 
 interface SalesReportTableProps {
   onViewReceipt: (saleId: number) => void;
@@ -90,47 +93,92 @@ export const SalesReportTable = ({
     XLSX.writeFile(workbook, "sales_report.xlsx");
   };
 
+  const getPaymentMethodColor = (method: string) => {
+    switch (method?.toLowerCase()) {
+      case "cash":
+        return "green";
+      case "card":
+        return "blue";
+      case "credit":
+        return "orange";
+      default:
+        return "default";
+    }
+  };
+
   const salesColumns = [
-    { title: "Sale ID", dataIndex: "id", key: "id" },
-    { title: "Customer", dataIndex: ["customer", "name"], key: "customer" },
+    {
+      title: "Sale ID",
+      dataIndex: "id",
+      key: "id",
+      sorter: (a: Sale, b: Sale) => a.id - b.id,
+      defaultSortOrder: "descend" as const,
+    },
+    {
+      title: "Customer",
+      dataIndex: ["customer", "name"],
+      key: "customer",
+      render: (name: string) => name || "Walk-in Customer",
+    },
     {
       title: "Total Amount",
       dataIndex: "total_amount",
       key: "total_amount",
       render: (val: number | string) =>
-        `${formatCurrency(typeof val === "number" ? val : parseFloat(val))}`,
+        formatCurrency(typeof val === "number" ? val : parseFloat(val)),
+      sorter: (a: Sale, b: Sale) => {
+        const aVal =
+          typeof a.total_amount === "number"
+            ? a.total_amount
+            : parseFloat(a.total_amount as string);
+        const bVal =
+          typeof b.total_amount === "number"
+            ? b.total_amount
+            : parseFloat(b.total_amount as string);
+        return aVal - bVal;
+      },
     },
     {
       title: "Payment Method",
       dataIndex: "payment_method",
       key: "payment_method",
+      render: (method: string) => (
+        <Tag color={getPaymentMethodColor(method)}>{method || "N/A"}</Tag>
+      ),
     },
     {
       title: "Date",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (val: string) => new Date(val).toLocaleString(),
+      sorter: (a: Sale, b: Sale) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     },
     {
       title: "Actions",
       key: "actions",
       render: (_: unknown, record: Sale) => (
-        <Button type="link" onClick={() => onViewReceipt(record.id)}>
-          View Receipt
+        <Button
+          type="link"
+          icon={<EyeOutlined />}
+          onClick={() => onViewReceipt(record.id)}
+        >
+          Receipt
         </Button>
       ),
     },
   ];
 
   return (
-    <>
-      <div className="flex justify-between items-center mt-8">
-        <Title level={3} className="m-0!">
-          Sales Report
-        </Title>
+    <div className="space-y-4">
+      <div className="flex justify-end">
         <Space>
-          <Button onClick={exportSalesPDF}>Export PDF</Button>
-          <Button onClick={exportSalesExcel}>Export Excel</Button>
+          <Button icon={<FilePdfOutlined />} onClick={exportSalesPDF}>
+            Export PDF
+          </Button>
+          <Button icon={<FileExcelOutlined />} onClick={exportSalesExcel}>
+            Export Excel
+          </Button>
         </Space>
       </div>
       <Table
@@ -138,7 +186,15 @@ export const SalesReportTable = ({
         dataSource={salesData}
         rowKey="id"
         loading={loading}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} of ${total} sales`,
+        }}
+        scroll={{ x: 800 }}
       />
-    </>
+    </div>
   );
 };

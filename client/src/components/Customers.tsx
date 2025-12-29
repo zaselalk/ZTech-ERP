@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react";
 import { Customer } from "../types";
-import { Button, Form, message, Typography, Card, Row, Col, Statistic, Input } from "antd";
+import {
+  Button,
+  Form,
+  message,
+  Typography,
+  Card,
+  Row,
+  Col,
+  Statistic,
+  Input,
+} from "antd";
 import {
   UserAddOutlined,
   TeamOutlined,
@@ -103,7 +113,7 @@ const Customers = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <Title level={2} className="!mb-1 !text-2xl sm:!text-3xl">
+          <Title level={2} className="mb-1! text-2xl! sm:text-3xl!">
             Customers
           </Title>
           <Text className="text-gray-500">
@@ -130,7 +140,9 @@ const Customers = () => {
           >
             <Statistic
               title={
-                <span className="text-gray-600 font-medium">Total Customers</span>
+                <span className="text-gray-600 font-medium">
+                  Total Customers
+                </span>
               }
               value={stats.totalCustomers}
               prefix={<TeamOutlined className="text-blue-500" />}
@@ -145,7 +157,9 @@ const Customers = () => {
           >
             <Statistic
               title={
-                <span className="text-gray-600 font-medium">Total Credit Balance</span>
+                <span className="text-gray-600 font-medium">
+                  Total Credit Balance
+                </span>
               }
               value={stats.totalCredit}
               prefix={<DollarOutlined className="text-orange-500" />}
@@ -161,7 +175,9 @@ const Customers = () => {
           >
             <Statistic
               title={
-                <span className="text-gray-600 font-medium">Customers with Credit</span>
+                <span className="text-gray-600 font-medium">
+                  Customers with Credit
+                </span>
               }
               value={stats.customersWithCredit}
               prefix={<TeamOutlined className="text-red-500" />}

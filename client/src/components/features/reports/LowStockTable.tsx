@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { Table, Button, Space, Typography, message } from "antd";
+import { Table, Button, Space, Tag, message } from "antd";
+import { FilePdfOutlined, FileExcelOutlined } from "@ant-design/icons";
 import { Product } from "../../../types";
 import { reportService } from "../../../services";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-
-const { Title } = Typography;
 
 export interface LowStockProduct extends Product {
   quantity: number;
@@ -67,26 +66,56 @@ export const LowStockTable = () => {
     XLSX.writeFile(workbook, "low_stock_report.xlsx");
   };
 
+  const getStockStatusColor = (quantity: number, threshold: number = 10) => {
+    if (quantity === 0) return "red";
+    if (quantity <= threshold / 2) return "orange";
+    return "gold";
+  };
+
   const lowStockColumns = [
-    { title: "Product Name", dataIndex: "name", key: "name" },
-    { title: "Supplier", dataIndex: "supplier", key: "supplier" },
-    { title: "Quantity", dataIndex: "quantity", key: "quantity" },
+    {
+      title: "Product Name",
+      dataIndex: "name",
+      key: "name",
+      sorter: (a: LowStockProduct, b: LowStockProduct) =>
+        a.name.localeCompare(b.name),
+    },
+    {
+      title: "Supplier",
+      dataIndex: "supplier",
+      key: "supplier",
+      render: (supplier: string) => supplier || "N/A",
+    },
+    {
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
+      sorter: (a: LowStockProduct, b: LowStockProduct) =>
+        a.quantity - b.quantity,
+      render: (quantity: number, record: LowStockProduct) => (
+        <Tag color={getStockStatusColor(quantity, record.reorder_threshold)}>
+          {quantity} units
+        </Tag>
+      ),
+    },
     {
       title: "Reorder Threshold",
       dataIndex: "reorder_threshold",
       key: "reorder_threshold",
+      render: (threshold: number) => threshold || 10,
     },
   ];
 
   return (
-    <>
-      <div className="flex justify-between items-center mt-8">
-        <Title level={3} className="m-0!">
-          Low Stock Report
-        </Title>
+    <div className="space-y-4">
+      <div className="flex justify-end">
         <Space>
-          <Button onClick={exportLowStockPDF}>Export PDF</Button>
-          <Button onClick={exportLowStockExcel}>Export Excel</Button>
+          <Button icon={<FilePdfOutlined />} onClick={exportLowStockPDF}>
+            Export PDF
+          </Button>
+          <Button icon={<FileExcelOutlined />} onClick={exportLowStockExcel}>
+            Export Excel
+          </Button>
         </Space>
       </div>
       <Table
@@ -94,7 +123,15 @@ export const LowStockTable = () => {
         dataSource={lowStockData}
         rowKey="id"
         loading={loading}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} of ${total} items`,
+        }}
+        scroll={{ x: 600 }}
       />
-    </>
+    </div>
   );
 };
