@@ -7,7 +7,7 @@ import {
   Drawer,
   type MenuProps,
 } from "antd";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Routes,
   Route,
@@ -43,11 +43,13 @@ import Backups from "./components/Backups";
 import Issues from "./components/Issues";
 import Users from "./components/Users";
 import Settings from "./components/Settings";
-import { authService } from "./services";
+import { authService, settingsService } from "./services";
 import { DateTime } from "./components/layout/Header/DateTime";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const { Header, Content, Sider } = Layout;
+
+const DEFAULT_LOGO = "/logo/storyflix-logo.png";
 
 // The main layout for the dashboard, reports, etc.
 const MainLayout = () => {
@@ -71,8 +73,23 @@ const MainLayout = () => {
     pathMap[location.pathname] || "1"
   );
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>(DEFAULT_LOGO);
   const userRole = authService.getRole();
   const username = authService.getUsername();
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await settingsService.getSettings();
+        if (settings.logoUrl) {
+          setLogoUrl(settings.logoUrl);
+        }
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+      }
+    };
+    loadSettings();
+  }, []);
 
   // Redirect staff to POS if they try to access dashboard
   if (userRole === "staff") {
@@ -168,9 +185,12 @@ const MainLayout = () => {
           className={`h-16 flex items-center text-white bg-white text-xl font-semibold border-b border-white/10 mb-2 py-12`}
         >
           <img
-            src="/logo/storyflix-logo.png"
-            alt="Bookshop Logo"
+            src={logoUrl}
+            alt="Business Logo"
             className="mx-auto mb-4 h-16"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = DEFAULT_LOGO;
+            }}
           />
         </div>
         <Menu
@@ -199,9 +219,12 @@ const MainLayout = () => {
       >
         <div className="h-16 flex items-center text-white bg-white text-xl font-semibold border-b border-white/10 mb-2 py-12">
           <img
-            src="/logo/storyflix-logo.png"
-            alt="Bookshop Logo"
+            src={logoUrl}
+            alt="Business Logo"
             className="mx-auto mb-4 h-16"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = DEFAULT_LOGO;
+            }}
           />
         </div>
         <Menu

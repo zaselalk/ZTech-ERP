@@ -3,6 +3,8 @@ import { formatCurrency } from "../utils";
 import autoTable from "jspdf-autotable";
 import { Settings } from "../services/settingsService";
 
+const DEFAULT_LOGO = "/logo/storyflix-logo.png";
+
 const loadFont = async (url: string): Promise<string> => {
   const response = await fetch(url);
   const blob = await response.blob();
@@ -52,10 +54,23 @@ export const buildReceiptHtml = async (sale: any, settings?: Settings) => {
 
   // Load and add logo
   const img = new Image();
-  img.src = "/logo/storyflix-logo.png";
+  img.crossOrigin = "anonymous"; // Allow CORS for external URLs
+  img.src = settings?.logoUrl || DEFAULT_LOGO;
 
   // Add logo (20x20 size at position 14, 15)
-  doc.addImage(img, "PNG", 14, 15, 40, 25);
+  try {
+    doc.addImage(img, "PNG", 14, 15, 40, 25);
+  } catch (error) {
+    // If logo fails to load (e.g., CORS issue), try default logo
+    console.warn("Failed to load logo, using default:", error);
+    const defaultImg = new Image();
+    defaultImg.src = DEFAULT_LOGO;
+    try {
+      doc.addImage(defaultImg, "PNG", 14, 15, 40, 25);
+    } catch (e) {
+      console.warn("Failed to load default logo:", e);
+    }
+  }
 
   // Company Header (right side of logo)
   doc.setFontSize(22);

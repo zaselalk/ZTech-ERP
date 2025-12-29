@@ -23,6 +23,8 @@ import { settingsService, Settings } from "../services/settingsService";
 
 const { Title, Text } = Typography;
 
+const DEFAULT_LOGO = "/logo/storyflix-logo.png";
+
 interface ReceiptModalProps {
   saleId: number | null;
   visible: boolean;
@@ -166,9 +168,12 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
           <div className="flex items-start justify-between mb-6 pb-4 border-b-2 border-blue-500">
             <div className="flex flex-col md:flex-row justify-center md:justify-between items-center w-full flex-wrap gap-4">
               <img
-                src="/logo/storyflix-logo.png"
-                alt="Storyflix Logo"
+                src={settings?.logoUrl || DEFAULT_LOGO}
+                alt="Business Logo"
                 className=" h-16 mr-4"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = DEFAULT_LOGO;
+                }}
               />
               <div>
                 <div className="text-center md:text-right">

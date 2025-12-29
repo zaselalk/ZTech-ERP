@@ -38,6 +38,11 @@ export = (
         allowNull: true,
         defaultValue: "Thank you for your business!",
       },
+      logoUrl: {
+        type: dataTypes.STRING(500),
+        allowNull: true,
+        defaultValue: null,
+      },
     },
     {
       sequelize,

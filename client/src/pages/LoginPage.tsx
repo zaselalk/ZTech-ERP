@@ -1,16 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, Form, Input, Button, Typography, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
-import { authService } from "../services";
+import { authService, settingsService } from "../services";
 
 const { Text } = Typography;
+
+const DEFAULT_LOGO = "/logo/storyflix-logo.png";
 
 const LoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>(DEFAULT_LOGO);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Fetch logo from settings
+    const loadSettings = async () => {
+      try {
+        const settings = await settingsService.getSettings();
+        if (settings.logoUrl) {
+          setLogoUrl(settings.logoUrl);
+        }
+      } catch (error) {
+        // Silently fail and use default logo
+        console.error("Failed to load settings:", error);
+      }
+    };
+    loadSettings();
+  }, []);
 
   const handleLogin = async (): Promise<void> => {
     setLoading(true);
@@ -51,9 +70,12 @@ const LoginPage = () => {
       >
         <div className="text-center mb-8">
           <img
-            src="/logo/storyflix-logo.png"
-            alt="Bookshop Logo"
+            src={logoUrl}
+            alt="Business Logo"
             className="mx-auto mb-4  h-16"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = DEFAULT_LOGO;
+            }}
           />
 
           <Text className="text-base text-[#7f8c8d] block">
