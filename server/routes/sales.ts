@@ -52,7 +52,6 @@ router.get(
 
       const sales = await Sale.findAll({
         where: whereClause,
-        include: ["customer", { model: Product, as: "products" }, "items"],
         order: [["createdAt", "DESC"]],
       });
       res.json(sales);
