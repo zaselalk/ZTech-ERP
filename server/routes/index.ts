@@ -12,6 +12,7 @@ import usersRoutes from "./users";
 import quotationsRoutes from "./quotations";
 import settingsRoutes from "./settings";
 import suppliersRoutes from "./suppliers";
+import warehousesRoutes from "./warehouses";
 
 import { requireAuth } from "../middleware/requireAuth";
 import { requireViewPermission } from "../middleware/requirePermission";
@@ -89,6 +90,14 @@ export function registerRoutes(app: Express): void {
     requireAuth,
     requireViewPermission("suppliers"),
     suppliersRoutes
+  );
+
+  // Warehouses routes - requires warehouses module permission (feature must be enabled)
+  app.use(
+    "/api/warehouses",
+    requireAuth,
+    requireViewPermission("warehouses"),
+    warehousesRoutes
   );
 
   // Settings: GET is public (for logo on login page), other methods require settings permission

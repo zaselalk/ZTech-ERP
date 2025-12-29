@@ -38,6 +38,7 @@ router.get("/", async (req: Request, res: Response) => {
         receiptFooter: "Thank you for shopping with us!",
         logoUrl: null,
         enableSupplierManagement: false,
+        enableWarehouseManagement: false,
       });
     }
 
@@ -64,6 +65,7 @@ router.put(
         receiptFooter,
         logoUrl,
         enableSupplierManagement,
+        enableWarehouseManagement,
       } = req.body;
 
       let settings = await db.Settings.findOne();
@@ -78,6 +80,7 @@ router.put(
           receiptFooter,
           logoUrl,
           enableSupplierManagement,
+          enableWarehouseManagement,
         });
       } else {
         settings = await db.Settings.create({
@@ -89,6 +92,7 @@ router.put(
           receiptFooter,
           logoUrl,
           enableSupplierManagement: enableSupplierManagement ?? false,
+          enableWarehouseManagement: enableWarehouseManagement ?? false,
         });
       }
 
@@ -150,6 +154,7 @@ router.post(
           businessName: "ZTech POS",
           logoUrl: uploadResponse.secure_url,
           enableSupplierManagement: false,
+          enableWarehouseManagement: false,
         });
       }
 

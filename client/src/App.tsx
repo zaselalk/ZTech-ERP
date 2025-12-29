@@ -27,6 +27,7 @@ import {
   BugOutlined,
   MenuOutlined,
   TeamOutlined,
+  HomeOutlined,
 } from "@ant-design/icons";
 
 import Customers from "./components/Customers";
@@ -44,6 +45,8 @@ import Users from "./components/Users";
 import Settings from "./components/Settings";
 import Suppliers from "./components/Suppliers";
 import SupplierDetails from "./components/SupplierDetails";
+import Warehouses from "./components/Warehouses";
+import WarehouseDetails from "./components/WarehouseDetails";
 import PermissionGuard from "./components/PermissionGuard";
 import { authService, settingsService } from "./services";
 import { usePermissions } from "./hooks/usePermissions";
@@ -73,6 +76,7 @@ const MainLayout = () => {
     "/users": "8",
     "/settings": "9",
     "/suppliers": "10",
+    "/warehouses": "11",
   };
 
   const [selectedKey, setSelectedKey] = useState(
@@ -81,6 +85,8 @@ const MainLayout = () => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>(DEFAULT_LOGO);
   const [supplierManagementEnabled, setSupplierManagementEnabled] =
+    useState(false);
+  const [warehouseManagementEnabled, setWarehouseManagementEnabled] =
     useState(false);
   const username = authService.getUsername();
 
@@ -93,6 +99,9 @@ const MainLayout = () => {
         }
         setSupplierManagementEnabled(
           settings.enableSupplierManagement ?? false
+        );
+        setWarehouseManagementEnabled(
+          settings.enableWarehouseManagement ?? false
         );
       } catch (error) {
         console.error("Failed to load settings:", error);
@@ -189,6 +198,17 @@ const MainLayout = () => {
             icon: <TeamOutlined />,
             label: "Suppliers",
             module: "suppliers" as ModuleName,
+          },
+        ]
+      : []),
+    // Conditionally add Warehouses menu item based on settings
+    ...(warehouseManagementEnabled
+      ? [
+          {
+            key: "11",
+            icon: <HomeOutlined />,
+            label: "Warehouses",
+            module: "warehouses" as ModuleName,
           },
         ]
       : []),
@@ -428,6 +448,27 @@ const MainLayout = () => {
                 element={
                   <PermissionGuard module="suppliers">
                     <SupplierDetails />
+                  </PermissionGuard>
+                }
+              />
+            )}
+            {/* Warehouses route - only available when warehouse management is enabled */}
+            {warehouseManagementEnabled && (
+              <Route
+                path="/warehouses"
+                element={
+                  <PermissionGuard module="warehouses">
+                    <Warehouses />
+                  </PermissionGuard>
+                }
+              />
+            )}
+            {warehouseManagementEnabled && (
+              <Route
+                path="/warehouses/:id"
+                element={
+                  <PermissionGuard module="warehouses">
+                    <WarehouseDetails />
                   </PermissionGuard>
                 }
               />

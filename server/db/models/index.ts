@@ -10,6 +10,7 @@ import {
   QuotationItem,
   Settings,
   Supplier,
+  Warehouse,
 } from "../../types/models";
 
 const fs = require("fs");
@@ -32,6 +33,7 @@ interface DB {
   QuotationItem: ModelStatic<QuotationItem>;
   Settings: ModelStatic<Settings>;
   Supplier: ModelStatic<Supplier>;
+  Warehouse: ModelStatic<Warehouse>;
 }
 
 const db = {} as DB;

@@ -12,6 +12,7 @@ export interface Settings {
   receiptFooter: string | null;
   logoUrl: string | null;
   enableSupplierManagement: boolean;
+  enableWarehouseManagement: boolean;
 }
 
 export const settingsService = {
