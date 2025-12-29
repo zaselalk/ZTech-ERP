@@ -1,5 +1,10 @@
 import { authService } from "../services";
-import { ModuleName, ModulePermission, UserPermissions, ALL_MODULES } from "../types";
+import {
+  ModuleName,
+  ModulePermission,
+  UserPermissions,
+  ALL_MODULES,
+} from "../types";
 
 /**
  * Custom hook to access and check user permissions

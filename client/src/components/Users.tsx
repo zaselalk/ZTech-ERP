@@ -57,10 +57,7 @@ interface PermissionEditorProps {
   onChange?: (permissions: UserPermissions) => void;
 }
 
-const PermissionEditor = ({
-  value,
-  onChange,
-}: PermissionEditorProps) => {
+const PermissionEditor = ({ value, onChange }: PermissionEditorProps) => {
   const currentPermissions = value || DEFAULT_PERMISSIONS;
 
   const handleModulePermissionChange = (
@@ -188,7 +185,8 @@ const Users = () => {
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [permissions, setPermissions] = useState<UserPermissions>(DEFAULT_PERMISSIONS);
+  const [permissions, setPermissions] =
+    useState<UserPermissions>(DEFAULT_PERMISSIONS);
   const [form] = Form.useForm();
 
   const fetchUsers = async () => {
@@ -260,10 +258,10 @@ const Users = () => {
     const viewableModules = ALL_MODULES.filter(
       (module) => user.permissions?.[module]?.view
     );
-    
+
     // Check if user has full access (all permissions enabled)
     const hasFullAccess = ALL_MODULES.every(
-      (module) => 
+      (module) =>
         user.permissions?.[module]?.view &&
         user.permissions?.[module]?.create &&
         user.permissions?.[module]?.edit &&
@@ -275,8 +273,9 @@ const Users = () => {
     }
 
     // Check if user has POS-only permissions (only pos module)
-    const hasPosOnly = viewableModules.length === 1 && viewableModules[0] === "pos";
-    
+    const hasPosOnly =
+      viewableModules.length === 1 && viewableModules[0] === "pos";
+
     if (hasPosOnly) {
       return <Tag color="blue">POS Only</Tag>;
     }
@@ -398,10 +397,7 @@ const Users = () => {
 
           <Divider />
 
-          <PermissionEditor
-            value={permissions}
-            onChange={setPermissions}
-          />
+          <PermissionEditor value={permissions} onChange={setPermissions} />
         </Form>
       </Modal>
     </div>

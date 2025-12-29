@@ -1,9 +1,6 @@
 import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import {
-  UserAttributes,
-  DEFAULT_PERMISSIONS,
-} from "../types/models";
+import { UserAttributes, DEFAULT_PERMISSIONS } from "../types/models";
 import {
   requireCreatePermission,
   requireEditPermission,
@@ -136,10 +133,11 @@ router.delete(
       const canManageUsers = usersWithPermission.filter(
         (u: any) => u.id !== parseInt(id) && u.permissions?.users?.delete
       );
-      
+
       if (canManageUsers.length === 0) {
         res.status(403).json({
-          message: "Cannot delete the last user with user management permissions.",
+          message:
+            "Cannot delete the last user with user management permissions.",
         });
         return;
       }
