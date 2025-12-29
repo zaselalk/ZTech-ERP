@@ -10,7 +10,7 @@ import {
   Avatar,
   Grid,
 } from "antd";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -39,6 +39,7 @@ export const CustomerTable = ({
   refreshTrigger,
   searchText = "",
 }: CustomerTableProps) => {
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const screens = useBreakpoint();
@@ -271,7 +272,23 @@ export const CustomerTable = ({
       scroll={{ x: "max-content" }}
       size={screens.md ? "middle" : "small"}
       className="customer-table"
-      rowClassName="hover:bg-gray-50 transition-colors"
+      onRow={(record) => ({
+        onClick: (e) => {
+          // Prevent navigation when clicking on action buttons
+          const target = e.target as HTMLElement;
+          if (
+            target.closest("button") ||
+            target.closest("a") ||
+            target.closest(".ant-btn") ||
+            target.closest(".ant-popconfirm")
+          ) {
+            return;
+          }
+          navigate(`/customers/${record.id}`);
+        },
+        style: { cursor: "pointer" },
+      })}
+      rowClassName="hover:bg-blue-50 transition-colors"
     />
   );
 };
