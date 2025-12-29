@@ -11,6 +11,7 @@ export interface Settings {
   website: string | null;
   receiptFooter: string | null;
   logoUrl: string | null;
+  enableSupplierManagement: boolean;
 }
 
 export const settingsService = {

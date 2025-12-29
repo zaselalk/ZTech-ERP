@@ -9,8 +9,15 @@ import {
   Upload,
   Image,
   Popconfirm,
+  Switch,
+  Divider,
+  Alert,
 } from "antd";
-import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  UploadOutlined,
+  DeleteOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload/interface";
 import { settingsService } from "../services/settingsService";
 
@@ -22,6 +29,8 @@ const Settings: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [enableSupplierManagement, setEnableSupplierManagement] =
+    useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -33,6 +42,7 @@ const Settings: React.FC = () => {
       const data = await settingsService.getSettings();
       form.setFieldsValue(data);
       setLogoUrl(data.logoUrl);
+      setEnableSupplierManagement(data.enableSupplierManagement ?? false);
     } catch (error) {
       console.error("Error fetching settings:", error);
       message.error("Failed to load settings");
@@ -44,8 +54,13 @@ const Settings: React.FC = () => {
   const onFinish = async (values: any) => {
     try {
       setSaving(true);
-      await settingsService.updateSettings(values);
+      await settingsService.updateSettings({
+        ...values,
+        enableSupplierManagement,
+      });
       message.success("Settings updated successfully");
+      // Reload page to update navigation if supplier management was toggled
+      window.location.reload();
     } catch (error) {
       console.error("Error updating settings:", error);
       message.error("Failed to update settings");
@@ -207,6 +222,43 @@ const Settings: React.FC = () => {
                 placeholder="Thank you for shopping with us!"
               />
             </Form.Item>
+
+            <Divider />
+
+            {/* Advanced Features Section */}
+            <div className="mb-4">
+              <h3 className="text-lg font-medium mb-2">Advanced Features</h3>
+              <p className="text-gray-500 text-sm mb-4">
+                Enable additional features to extend your POS system
+                capabilities.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <TeamOutlined className="text-xl text-blue-500" />
+                  <div>
+                    <div className="font-medium">Supplier Management</div>
+                    <div className="text-gray-500 text-sm">
+                      Track and manage your product suppliers
+                    </div>
+                  </div>
+                </div>
+                <Switch
+                  checked={enableSupplierManagement}
+                  onChange={setEnableSupplierManagement}
+                />
+              </div>
+              {enableSupplierManagement && (
+                <Alert
+                  className="mt-3"
+                  message="Supplier management will be available in the sidebar after saving."
+                  type="info"
+                  showIcon
+                />
+              )}
+            </div>
 
             <Form.Item>
               <Button type="primary" htmlType="submit" loading={saving}>

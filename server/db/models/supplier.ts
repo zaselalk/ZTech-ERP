@@ -1,23 +1,22 @@
 import { Sequelize, DataTypes, ModelStatic } from "sequelize";
-import { Settings } from "../../types/models";
+import { Supplier } from "../../types/models";
 
 export = (
   sequelize: Sequelize,
   dataTypes: typeof DataTypes
-): ModelStatic<Settings> => {
-  Settings.init(
+): ModelStatic<Supplier> => {
+  Supplier.init(
     {
       id: {
         type: dataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
       },
-      businessName: {
+      name: {
         type: dataTypes.STRING,
         allowNull: false,
-        defaultValue: "My Business",
       },
-      address: {
+      contactPerson: {
         type: dataTypes.STRING,
         allowNull: true,
       },
@@ -29,33 +28,22 @@ export = (
         type: dataTypes.STRING,
         allowNull: true,
       },
-      website: {
-        type: dataTypes.STRING,
+      address: {
+        type: dataTypes.TEXT,
         allowNull: true,
       },
-      receiptFooter: {
-        type: dataTypes.STRING,
+      notes: {
+        type: dataTypes.TEXT,
         allowNull: true,
-        defaultValue: "Thank you for your business!",
-      },
-      logoUrl: {
-        type: dataTypes.STRING(500),
-        allowNull: true,
-        defaultValue: null,
-      },
-      enableSupplierManagement: {
-        type: dataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
       },
     },
     {
       sequelize,
-      modelName: "Settings",
-      tableName: "Settings",
+      modelName: "Supplier",
+      tableName: "Suppliers",
       timestamps: true,
     }
   );
 
-  return Settings;
+  return Supplier;
 };

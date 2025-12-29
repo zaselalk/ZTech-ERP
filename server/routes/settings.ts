@@ -37,6 +37,7 @@ router.get("/", async (req: Request, res: Response) => {
         email: "info@example.com",
         receiptFooter: "Thank you for shopping with us!",
         logoUrl: null,
+        enableSupplierManagement: false,
       });
     }
 
@@ -62,6 +63,7 @@ router.put(
         website,
         receiptFooter,
         logoUrl,
+        enableSupplierManagement,
       } = req.body;
 
       let settings = await db.Settings.findOne();
@@ -75,6 +77,7 @@ router.put(
           website,
           receiptFooter,
           logoUrl,
+          enableSupplierManagement,
         });
       } else {
         settings = await db.Settings.create({
@@ -85,6 +88,7 @@ router.put(
           website,
           receiptFooter,
           logoUrl,
+          enableSupplierManagement: enableSupplierManagement ?? false,
         });
       }
 
@@ -145,6 +149,7 @@ router.post(
         settings = await db.Settings.create({
           businessName: "ZTech POS",
           logoUrl: uploadResponse.secure_url,
+          enableSupplierManagement: false,
         });
       }
 

@@ -9,3 +9,4 @@ export { issueService } from "./issueService";
 export { userService } from "./userService";
 export { quotationService } from "./quotationService";
 export { settingsService } from "./settingsService";
+export { supplierService } from "./supplierService";
