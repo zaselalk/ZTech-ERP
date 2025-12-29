@@ -368,33 +368,85 @@ body {
 .pos-cart .ant-empty-description {
   color: #64748b;
 }
-/* Checkout Modal Enhancements */
-.ant-modal .payment-method-select .ant-select-selector {
-  height: 44px !important;
-  padding: 8px 12px !important;
-  display: flex;
-  align-items: center;
+
+/* ===== CHECKOUT MODAL STYLES ===== */
+.checkout-modal .ant-modal-content {
+  padding: 0 !important;
+  border-radius: 20px !important;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
 }
 
-.ant-modal .payment-method-select .ant-select-selection-item {
-  display: flex;
-  align-items: center;
+.checkout-modal .ant-modal-body {
+  padding: 0 !important;
 }
 
 /* Animation for modal appearance */
-.ant-modal-content {
-  animation: modalSlideIn 0.3s ease-out;
+.checkout-modal .ant-modal-content {
+  animation: checkoutModalSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes modalSlideIn {
+@keyframes checkoutModalSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: scale(0.9) translateY(-20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1) translateY(0);
   }
+}
+
+/* Payment Method Button Styles */
+.payment-method-btn.ant-radio-button-wrapper {
+  height: auto !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-radius: 8px !important;
+}
+
+.payment-method-btn.ant-radio-button-wrapper::before {
+  display: none !important;
+}
+
+.payment-method-btn.ant-radio-button-wrapper:focus,
+.payment-method-btn.ant-radio-button-wrapper-focused {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.payment-method-btn.ant-radio-button-wrapper-checked {
+  background: transparent !important;
+  border: none !important;
+}
+
+.payment-method-group .ant-radio-button-wrapper {
+  border: none !important;
+  background: transparent !important;
+}
+
+.payment-method-group .ant-radio-button-wrapper::before {
+  display: none !important;
+}
+
+/* Checkout amount input styling */
+.checkout-amount-input.ant-input-number {
+  border-color: #a7f3d0 !important;
+}
+
+.checkout-amount-input.ant-input-number:hover,
+.checkout-amount-input.ant-input-number:focus,
+.checkout-amount-input.ant-input-number-focused {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1) !important;
+}
+
+.checkout-amount-input .ant-input-number-input {
+  font-size: 16px;
+  font-weight: 500;
 }
 
 /* Button hover effects for quick amount buttons */
@@ -423,6 +475,46 @@ body {
   box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
   transform: translateY(-1px);
 }
+
+/* Custom scrollbar for checkout modal content */
+.checkout-modal .ant-modal-body > div:nth-child(2) {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.checkout-modal .ant-modal-body > div:nth-child(2)::-webkit-scrollbar {
+  width: 6px;
+}
+
+.checkout-modal .ant-modal-body > div:nth-child(2)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.checkout-modal .ant-modal-body > div:nth-child(2)::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.checkout-modal
+  .ant-modal-body
+  > div:nth-child(2)::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ===== LEGACY PAYMENT METHOD STYLES ===== */
+/* Checkout Modal Enhancements */
+.ant-modal .payment-method-select .ant-select-selector {
+  height: 44px !important;
+  padding: 8px 12px !important;
+  display: flex;
+  align-items: center;
+}
+
+.ant-modal .payment-method-select .ant-select-selection-item {
+  display: flex;
+  align-items: center;
+}
+
 /* Payment Method Radio Button Cards */
 .payment-method-radio-group .ant-radio-button-wrapper {
   height: auto !important;
