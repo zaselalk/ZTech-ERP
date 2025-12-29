@@ -20,6 +20,7 @@ export interface UserPermissions {
   users: ModulePermissions;
   settings: ModulePermissions;
   pos: ModulePermissions;
+  suppliers: ModulePermissions;
 }
 
 // All available modules
@@ -35,6 +36,7 @@ export const ALL_MODULES = [
   "users",
   "settings",
   "pos",
+  "suppliers",
 ] as const;
 
 export type ModuleName = (typeof ALL_MODULES)[number];
@@ -52,6 +54,7 @@ export const MODULE_LABELS: Record<ModuleName, string> = {
   users: "Users",
   settings: "Settings",
   pos: "POS (Point of Sale)",
+  suppliers: "Suppliers",
 };
 
 // Full access permissions (for initial admin setup)
@@ -67,6 +70,7 @@ export const FULL_PERMISSIONS: UserPermissions = {
   users: { view: true, create: true, edit: true, delete: true },
   settings: { view: true, create: true, edit: true, delete: true },
   pos: { view: true, create: true, edit: true, delete: true },
+  suppliers: { view: true, create: true, edit: true, delete: true },
 };
 
 // Default permissions for new users (POS only)
@@ -82,6 +86,7 @@ export const DEFAULT_PERMISSIONS: UserPermissions = {
   users: { view: false, create: false, edit: false, delete: false },
   settings: { view: false, create: false, edit: false, delete: false },
   pos: { view: true, create: true, edit: false, delete: false },
+  suppliers: { view: false, create: false, edit: false, delete: false },
 };
 
 export interface User {

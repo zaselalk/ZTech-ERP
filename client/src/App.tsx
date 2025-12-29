@@ -26,6 +26,7 @@ import {
   SettingOutlined,
   BugOutlined,
   MenuOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 
 import Customers from "./components/Customers";
@@ -41,6 +42,8 @@ import Backups from "./components/Backups";
 import Issues from "./components/Issues";
 import Users from "./components/Users";
 import Settings from "./components/Settings";
+import Suppliers from "./components/Suppliers";
+import SupplierDetails from "./components/SupplierDetails";
 import PermissionGuard from "./components/PermissionGuard";
 import { authService, settingsService } from "./services";
 import { usePermissions } from "./hooks/usePermissions";
@@ -69,6 +72,7 @@ const MainLayout = () => {
     "/issues": "7",
     "/users": "8",
     "/settings": "9",
+    "/suppliers": "10",
   };
 
   const [selectedKey, setSelectedKey] = useState(
@@ -76,6 +80,8 @@ const MainLayout = () => {
   );
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>(DEFAULT_LOGO);
+  const [supplierManagementEnabled, setSupplierManagementEnabled] =
+    useState(false);
   const username = authService.getUsername();
 
   useEffect(() => {
@@ -85,6 +91,9 @@ const MainLayout = () => {
         if (settings.logoUrl) {
           setLogoUrl(settings.logoUrl);
         }
+        setSupplierManagementEnabled(
+          settings.enableSupplierManagement ?? false
+        );
       } catch (error) {
         console.error("Failed to load settings:", error);
       }
@@ -172,6 +181,17 @@ const MainLayout = () => {
       label: "Settings",
       module: "settings" as ModuleName,
     },
+    // Conditionally add Suppliers menu item based on settings
+    ...(supplierManagementEnabled
+      ? [
+          {
+            key: "10",
+            icon: <TeamOutlined />,
+            label: "Suppliers",
+            module: "suppliers" as ModuleName,
+          },
+        ]
+      : []),
   ];
 
   // Filter menu items based on user permissions
@@ -391,6 +411,27 @@ const MainLayout = () => {
                 </PermissionGuard>
               }
             />
+            {/* Suppliers route - only available when supplier management is enabled */}
+            {supplierManagementEnabled && (
+              <Route
+                path="/suppliers"
+                element={
+                  <PermissionGuard module="suppliers">
+                    <Suppliers />
+                  </PermissionGuard>
+                }
+              />
+            )}
+            {supplierManagementEnabled && (
+              <Route
+                path="/suppliers/:id"
+                element={
+                  <PermissionGuard module="suppliers">
+                    <SupplierDetails />
+                  </PermissionGuard>
+                }
+              />
+            )}
           </Routes>
         </Content>
       </Layout>

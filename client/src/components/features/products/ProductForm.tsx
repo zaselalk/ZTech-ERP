@@ -1,12 +1,19 @@
 import { Modal, Form, Input, InputNumber, Select, Row, Col } from "antd";
 import { Product } from "../../../types";
 
+interface Supplier {
+  id: number;
+  name: string;
+}
+
 interface ProductFormProps {
   visible: boolean;
   editingProduct: Product | null;
   form: ReturnType<typeof Form.useForm>[0];
   onOk: () => Promise<void>;
   onCancel: () => void;
+  suppliers?: Supplier[];
+  enableSupplierManagement?: boolean;
 }
 
 export const ProductForm = ({
@@ -15,6 +22,8 @@ export const ProductForm = ({
   form,
   onOk,
   onCancel,
+  suppliers = [],
+  enableSupplierManagement = false,
 }: ProductFormProps) => {
   return (
     <Modal
@@ -53,11 +62,29 @@ export const ProductForm = ({
             </Form.Item>
           </Col>
 
-          <Col span={12}>
-            <Form.Item name="supplier" label="Supplier">
-              <Input />
-            </Form.Item>
-          </Col>
+          {enableSupplierManagement && (
+            <Col span={12}>
+              <Form.Item name="supplier" label="Supplier">
+                <Select
+                  allowClear
+                  showSearch
+                  placeholder="Select a supplier"
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    (option?.children as unknown as string)
+                      ?.toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
+                >
+                  {suppliers.map((supplier) => (
+                    <Select.Option key={supplier.id} value={supplier.name}>
+                      {supplier.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          )}
         </Row>
 
         <Row gutter={16}>

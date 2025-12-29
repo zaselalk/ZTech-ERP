@@ -58,7 +58,11 @@ interface PermissionEditorProps {
 }
 
 const PermissionEditor = ({ value, onChange }: PermissionEditorProps) => {
-  const currentPermissions = value || DEFAULT_PERMISSIONS;
+  // Ensure all modules have permissions defined (handles users created before new modules were added)
+  const currentPermissions: UserPermissions = {
+    ...DEFAULT_PERMISSIONS,
+    ...(value || {}),
+  };
 
   const handleModulePermissionChange = (
     module: ModuleName,

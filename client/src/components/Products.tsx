@@ -20,7 +20,8 @@ import {
   InboxOutlined,
   TagsOutlined,
 } from "@ant-design/icons";
-import { productService } from "../services";
+import { productService, settingsService } from "../services";
+import { supplierService, type Supplier } from "../services/supplierService";
 import { ProductForm, ProductTable } from "./features/products";
 import { formatCurrency } from "../utils";
 
@@ -38,10 +39,33 @@ const Products = () => {
     totalCategories: 0,
   });
   const [form] = Form.useForm();
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [enableSupplierManagement, setEnableSupplierManagement] =
+    useState(false);
 
   useEffect(() => {
     fetchStats();
+    fetchSettings();
   }, [refreshTrigger]);
+
+  const fetchSettings = async () => {
+    try {
+      const settings = await settingsService.getSettings();
+      setEnableSupplierManagement(settings.enableSupplierManagement ?? false);
+
+      // Only fetch suppliers if the feature is enabled
+      if (settings.enableSupplierManagement) {
+        try {
+          const supplierData = await supplierService.getSuppliers();
+          setSuppliers(supplierData);
+        } catch (error) {
+          console.error("Failed to fetch suppliers", error);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch settings", error);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -255,6 +279,8 @@ const Products = () => {
         form={form}
         onOk={handleOk}
         onCancel={handleCancel}
+        suppliers={suppliers}
+        enableSupplierManagement={enableSupplierManagement}
       />
     </div>
   );
