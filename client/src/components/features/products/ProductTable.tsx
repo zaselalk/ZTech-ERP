@@ -29,12 +29,14 @@ interface ProductTableProps {
   onEdit: (product: Product) => void;
   refreshTrigger?: number;
   searchText?: string;
+  enableProfitTracking?: boolean;
 }
 
 export const ProductTable = ({
   onEdit,
   refreshTrigger,
   searchText = "",
+  enableProfitTracking = false,
 }: ProductTableProps) => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
@@ -139,24 +141,29 @@ export const ProductTable = ({
       ].map((cat) => ({ text: cat!, value: cat! })),
       onFilter: (value, record) => record.category === value,
     },
+    ...(enableProfitTracking
+      ? [
+          {
+            title: "Cost",
+            dataIndex: "cost_price",
+            key: "cost_price",
+            responsive: ["xl"] as const,
+            render: (cost_price: number | string) => (
+              <span className="text-gray-700">
+                {formatCurrency(
+                  typeof cost_price === "number"
+                    ? cost_price
+                    : parseFloat(cost_price || "0")
+                )}
+              </span>
+            ),
+            sorter: (a: Product, b: Product) =>
+              Number(a.cost_price || 0) - Number(b.cost_price || 0),
+          },
+        ]
+      : []),
     {
-      title: "Cost",
-      dataIndex: "cost_price",
-      key: "cost_price",
-      responsive: ["xl"],
-      render: (cost_price: number | string) => (
-        <span className="text-gray-700">
-          {formatCurrency(
-            typeof cost_price === "number"
-              ? cost_price
-              : parseFloat(cost_price || "0")
-          )}
-        </span>
-      ),
-      sorter: (a, b) => Number(a.cost_price || 0) - Number(b.cost_price || 0),
-    },
-    {
-      title: "Selling Price",
+      title: enableProfitTracking ? "Selling Price" : "Price",
       dataIndex: "price",
       key: "price",
       render: (price: number | string) => (

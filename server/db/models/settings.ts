@@ -53,6 +53,11 @@ export = (
         allowNull: false,
         defaultValue: false,
       },
+      enableProfitTracking: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       sequelize,

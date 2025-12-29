@@ -18,6 +18,7 @@ import {
   DeleteOutlined,
   TeamOutlined,
   HomeOutlined,
+  DollarOutlined,
 } from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload/interface";
 import { settingsService } from "../services/settingsService";
@@ -34,6 +35,7 @@ const Settings: React.FC = () => {
     useState(false);
   const [enableWarehouseManagement, setEnableWarehouseManagement] =
     useState(false);
+  const [enableProfitTracking, setEnableProfitTracking] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -47,6 +49,7 @@ const Settings: React.FC = () => {
       setLogoUrl(data.logoUrl);
       setEnableSupplierManagement(data.enableSupplierManagement ?? false);
       setEnableWarehouseManagement(data.enableWarehouseManagement ?? false);
+      setEnableProfitTracking(data.enableProfitTracking ?? false);
     } catch (error) {
       console.error("Error fetching settings:", error);
       message.error("Failed to load settings");
@@ -62,6 +65,7 @@ const Settings: React.FC = () => {
         ...values,
         enableSupplierManagement,
         enableWarehouseManagement,
+        enableProfitTracking,
       });
       message.success("Settings updated successfully");
       // Reload page to update navigation if supplier/warehouse management was toggled
@@ -285,6 +289,32 @@ const Settings: React.FC = () => {
                 <Alert
                   className="mt-3"
                   message="Warehouse management will be available in the sidebar after saving."
+                  type="info"
+                  showIcon
+                />
+              )}
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <DollarOutlined className="text-xl text-purple-500" />
+                  <div>
+                    <div className="font-medium">Profit & Loss Tracking</div>
+                    <div className="text-gray-500 text-sm">
+                      Track product costs and calculate profit margins
+                    </div>
+                  </div>
+                </div>
+                <Switch
+                  checked={enableProfitTracking}
+                  onChange={setEnableProfitTracking}
+                />
+              </div>
+              {enableProfitTracking && (
+                <Alert
+                  className="mt-3"
+                  message="Profit tracking will add cost price fields to products and enable profit/loss reports."
                   type="info"
                   showIcon
                 />

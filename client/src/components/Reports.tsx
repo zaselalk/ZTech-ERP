@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DatePicker, Typography, Row, Card, Tabs } from "antd";
 import {
   LineChartOutlined,
@@ -30,6 +30,7 @@ import { DailySalesTrend } from "./features/sales/DailySalesTrend";
 import { PaymentMethods } from "./features/sales/PaymentMethods";
 import { SalesByCustomer } from "./features/sales/SalesByCustomer";
 import { SalesSummary } from "./features/sales/SalesSummary";
+import { settingsService } from "../services";
 
 // Register Chart.js components
 ChartJS.register(
@@ -54,6 +55,20 @@ const Reports = () => {
   >(null);
   const [selectedSaleId, setSelectedSaleId] = useState<number | null>(null);
   const [isReceiptModalVisible, setIsReceiptModalVisible] = useState(false);
+  const [enableProfitTracking, setEnableProfitTracking] = useState(false);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const settings = await settingsService.getSettings();
+      setEnableProfitTracking(settings.enableProfitTracking ?? false);
+    } catch (error) {
+      console.error("Failed to fetch settings", error);
+    }
+  };
 
   const handleViewReceipt = (saleId: number) => {
     setSelectedSaleId(saleId);
@@ -96,16 +111,22 @@ const Reports = () => {
         </div>
       ),
     },
-    {
-      key: "profit-loss",
-      label: (
-        <span className="flex items-center gap-2">
-          <DollarOutlined />
-          Profit & Loss
-        </span>
-      ),
-      children: <ProfitReportSection startDate={startStr} endDate={endStr} />,
-    },
+    ...(enableProfitTracking
+      ? [
+          {
+            key: "profit-loss",
+            label: (
+              <span className="flex items-center gap-2">
+                <DollarOutlined />
+                Profit & Loss
+              </span>
+            ),
+            children: (
+              <ProfitReportSection startDate={startStr} endDate={endStr} />
+            ),
+          },
+        ]
+      : []),
     {
       key: "sales-report",
       label: (

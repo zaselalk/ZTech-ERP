@@ -348,7 +348,7 @@ router.post(
             ProductId: item.ProductId,
             quantity: item.quantity,
             price: product.price, // Store original selling price
-            cost_price: product.cost_price || 0, // Store cost price for profit calculation
+            cost_price: product.cost_price || null, // Store cost price for profit calculation (if enabled)
             discount: itemDiscountValue,
             discount_type: item.discount_type || "Fixed",
             productName: product.name,

@@ -14,6 +14,7 @@ interface ProductFormProps {
   onCancel: () => void;
   suppliers?: Supplier[];
   enableSupplierManagement?: boolean;
+  enableProfitTracking?: boolean;
 }
 
 export const ProductForm = ({
@@ -24,6 +25,7 @@ export const ProductForm = ({
   onCancel,
   suppliers = [],
   enableSupplierManagement = false,
+  enableProfitTracking = false,
 }: ProductFormProps) => {
   return (
     <Modal
@@ -52,31 +54,41 @@ export const ProductForm = ({
         </Row>
 
         <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="cost_price"
-              label="Cost Price (Rs.)"
-              rules={[{ required: true, type: "number", min: 0 }]}
-              tooltip="The price you paid to acquire this product"
-            >
-              <InputNumber
-                style={{ width: "100%" }}
-                min={0}
-                placeholder="Enter cost price"
-              />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
+          {enableProfitTracking && (
+            <Col span={12}>
+              <Form.Item
+                name="cost_price"
+                label="Cost Price (Rs.)"
+                rules={[{ type: "number", min: 0 }]}
+                tooltip="The price you paid to acquire this product"
+              >
+                <InputNumber
+                  style={{ width: "100%" }}
+                  min={0}
+                  placeholder="Enter cost price"
+                />
+              </Form.Item>
+            </Col>
+          )}
+          <Col span={enableProfitTracking ? 12 : 24}>
             <Form.Item
               name="price"
-              label="Selling Price (Rs.)"
+              label={
+                enableProfitTracking ? "Selling Price (Rs.)" : "Price (Rs.)"
+              }
               rules={[{ required: true, type: "number", min: 0 }]}
-              tooltip="The price you sell this product for"
+              tooltip={
+                enableProfitTracking
+                  ? "The price you sell this product for"
+                  : undefined
+              }
             >
               <InputNumber
                 style={{ width: "100%" }}
                 min={0}
-                placeholder="Enter selling price"
+                placeholder={
+                  enableProfitTracking ? "Enter selling price" : "Enter price"
+                }
               />
             </Form.Item>
           </Col>

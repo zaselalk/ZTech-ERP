@@ -39,6 +39,7 @@ router.get("/", async (req: Request, res: Response) => {
         logoUrl: null,
         enableSupplierManagement: false,
         enableWarehouseManagement: false,
+        enableProfitTracking: false,
       });
     }
 
@@ -66,6 +67,7 @@ router.put(
         logoUrl,
         enableSupplierManagement,
         enableWarehouseManagement,
+        enableProfitTracking,
       } = req.body;
 
       let settings = await db.Settings.findOne();
@@ -81,6 +83,7 @@ router.put(
           logoUrl,
           enableSupplierManagement,
           enableWarehouseManagement,
+          enableProfitTracking,
         });
       } else {
         settings = await db.Settings.create({
@@ -93,6 +96,7 @@ router.put(
           logoUrl,
           enableSupplierManagement: enableSupplierManagement ?? false,
           enableWarehouseManagement: enableWarehouseManagement ?? false,
+          enableProfitTracking: enableProfitTracking ?? false,
         });
       }
 
@@ -155,6 +159,7 @@ router.post(
           logoUrl: uploadResponse.secure_url,
           enableSupplierManagement: false,
           enableWarehouseManagement: false,
+          enableProfitTracking: false,
         });
       }
 
