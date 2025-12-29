@@ -17,6 +17,7 @@ import CheckoutModal from "../components/features/pos/CheckoutModal";
 import QuotationModal from "../components/features/pos/QuotationModal";
 import QuotationListModal from "../components/features/pos/QuotationListModal";
 import ConvertQuotationModal from "../components/features/pos/ConvertQuotationModal";
+import SaleCompleteModal from "../components/features/pos/SaleCompleteModal";
 import { usePos } from "../components/features/pos/usePos";
 import { authService } from "../services";
 import { usePermissions } from "../hooks/usePermissions";
@@ -30,6 +31,7 @@ const PosPage = () => {
   const { canView } = usePermissions();
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
 
   // Detect screen size for responsive layout
   useEffect(() => {
@@ -389,11 +391,22 @@ const PosPage = () => {
           onCancel={() => setEditingItem(null)}
         />
       )}
-      {completedSale && (
+      {completedSale && !showReceiptModal && (
+        <SaleCompleteModal
+          saleId={completedSale.id}
+          visible={!!completedSale && !showReceiptModal}
+          onClose={resetSale}
+          onViewReceipt={() => setShowReceiptModal(true)}
+        />
+      )}
+      {completedSale && showReceiptModal && (
         <ReceiptModal
           saleId={completedSale.id}
-          visible={!!completedSale}
-          onClose={resetSale}
+          visible={showReceiptModal}
+          onClose={() => {
+            setShowReceiptModal(false);
+            resetSale();
+          }}
         />
       )}
     </Layout>

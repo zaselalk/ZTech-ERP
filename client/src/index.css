@@ -613,3 +613,83 @@ body {
   font-weight: bold;
   box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
 }
+
+/* Sale Complete Modal Animations */
+@keyframes bounce-once {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-once {
+  animation: bounce-once 0.6s ease-out forwards;
+}
+
+/* Sale Complete Modal Slide Up Animation */
+.sale-complete-modal .ant-modal-content {
+  animation: slide-up-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes slide-up-bounce {
+  0% {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Sale Complete Modal Button Hover Effects */
+.sale-complete-modal .ant-btn:not(.ant-btn-primary):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sale-complete-modal .ant-btn {
+  transition: all 0.2s ease;
+}
+
+.sale-complete-modal .ant-modal-content {
+  border-radius: 24px !important;
+  overflow: hidden;
+}
+
+/* Receipt table print styles */
+.receipt-table .ant-table {
+  font-size: 12px !important;
+}
+
+.receipt-table .ant-table-thead > tr > th {
+  padding: 8px !important;
+  font-size: 11px !important;
+  white-space: nowrap;
+}
+
+.receipt-table .ant-table-tbody > tr > td {
+  padding: 8px !important;
+  font-size: 12px !important;
+}
+
+@media print {
+  .receipt-table .ant-table {
+    font-size: 11px !important;
+  }
+
+  .receipt-table .ant-table-thead > tr > th,
+  .receipt-table .ant-table-tbody > tr > td {
+    padding: 6px !important;
+  }
+}

@@ -245,11 +245,11 @@ export const buildReceiptHtml = async (sale: any, settings?: Settings) => {
       cellPadding: 3,
     },
     columnStyles: {
-      0: { halign: "left" },
-      1: { halign: "center" },
-      2: { halign: "right" },
-      3: { halign: "center" },
-      4: { halign: "right" },
+      0: { halign: "left", cellWidth: 55 },
+      1: { halign: "center", cellWidth: 15 },
+      2: { halign: "right", cellWidth: 35 },
+      3: { halign: "center", cellWidth: 25 },
+      4: { halign: "right", cellWidth: 40 },
     },
     didParseCell: (data) => {
       if (data.section === "body" && data.column.index === 0) {
