@@ -21,7 +21,6 @@ import {
   AppstoreOutlined,
   ShopOutlined,
   BarChartOutlined,
-  DollarCircleOutlined,
   UserOutlined,
   LogoutOutlined,
   SettingOutlined,
@@ -35,7 +34,6 @@ import Sales from "./components/Sales";
 import Reports from "./components/Reports";
 import Dashboard from "./components/Dashboard";
 import PosPage from "./pages/PosPage";
-import CreditPayments from "./components/CreditPayments";
 import CustomerDetails from "./components/CustomerDetails";
 import ProductDetails from "./components/ProductDetails";
 import LoginPage from "./pages/LoginPage";
@@ -67,11 +65,10 @@ const MainLayout = () => {
     "/inventory": "3",
     "/customers": "4",
     "/reports": "5",
-    "/credit": "6",
-    "/backups": "7",
-    "/issues": "8",
-    "/users": "9",
-    "/settings": "10",
+    "/backups": "6",
+    "/issues": "7",
+    "/users": "8",
+    "/settings": "9",
   };
 
   const [selectedKey, setSelectedKey] = useState(
@@ -102,7 +99,6 @@ const MainLayout = () => {
     canView("inventory") ||
     canView("customers") ||
     canView("reports") ||
-    canView("credit") ||
     canView("backups") ||
     canView("issues") ||
     canView("users") ||
@@ -154,30 +150,24 @@ const MainLayout = () => {
     },
     {
       key: "6",
-      icon: <DollarCircleOutlined />,
-      label: "Credit Payments",
-      module: "credit" as ModuleName,
-    },
-    {
-      key: "7",
       icon: <SettingOutlined />,
       label: "Backups",
       module: "backups" as ModuleName,
     },
     {
-      key: "8",
+      key: "7",
       icon: <BugOutlined />,
       label: "Issues",
       module: "issues" as ModuleName,
     },
     {
-      key: "9",
+      key: "8",
       icon: <UserOutlined />,
       label: "Users",
       module: "users" as ModuleName,
     },
     {
-      key: "10",
+      key: "9",
       icon: <SettingOutlined />,
       label: "Settings",
       module: "settings" as ModuleName,
@@ -366,14 +356,6 @@ const MainLayout = () => {
               element={
                 <PermissionGuard module="reports">
                   <Reports />
-                </PermissionGuard>
-              }
-            />
-            <Route
-              path="/credit"
-              element={
-                <PermissionGuard module="credit">
-                  <CreditPayments />
                 </PermissionGuard>
               }
             />

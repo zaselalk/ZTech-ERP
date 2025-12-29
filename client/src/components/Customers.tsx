@@ -10,6 +10,7 @@ import {
   Col,
   Statistic,
   Input,
+  Tabs,
 } from "antd";
 import {
   UserAddOutlined,
@@ -17,10 +18,13 @@ import {
   DollarOutlined,
   SearchOutlined,
   ReloadOutlined,
+  WalletOutlined,
 } from "@ant-design/icons";
 import { customerService } from "../services";
 import { CustomerForm, CustomerTable } from "./features/customers";
+import { CreditTable, PaymentModal } from "./features/credit";
 import { formatCurrency } from "../utils";
+import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
 
@@ -35,6 +39,11 @@ const Customers = () => {
     customersWithCredit: 0,
   });
   const [form] = Form.useForm();
+
+  // Credit payment state
+  const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
+  const [paymentCustomer, setPaymentCustomer] = useState<Customer | null>(null);
+  const [paymentForm] = Form.useForm();
 
   useEffect(() => {
     fetchStats();
@@ -107,6 +116,104 @@ const Customers = () => {
   const handleRefresh = () => {
     setRefreshTrigger((prev) => prev + 1);
   };
+
+  // Credit payment handlers
+  const showPaymentModal = (customer: Customer): void => {
+    setPaymentCustomer(customer);
+    paymentForm.setFieldsValue({
+      amount: 0,
+      paymentDate: dayjs(),
+      note: "",
+    });
+    setIsPaymentModalVisible(true);
+  };
+
+  const handlePaymentCancel = () => {
+    setIsPaymentModalVisible(false);
+    setPaymentCustomer(null);
+    paymentForm.resetFields();
+  };
+
+  const handlePaymentOk = async (): Promise<void> => {
+    try {
+      if (!paymentCustomer) {
+        message.error("No customer selected");
+        return;
+      }
+      const values = await paymentForm.validateFields();
+
+      const paymentData = {
+        amount: values.amount,
+        paymentDate: values.paymentDate.format("YYYY-MM-DD"),
+        note: values.note,
+      };
+
+      await customerService.addPayment(paymentCustomer.id, paymentData);
+
+      message.success("Payment recorded successfully");
+      setRefreshTrigger((prev) => prev + 1);
+      handlePaymentCancel();
+    } catch (error) {
+      message.error((error as Error).message);
+    }
+  };
+
+  const tabItems = [
+    {
+      key: "customers",
+      label: (
+        <span className="flex items-center gap-2">
+          <TeamOutlined />
+          Customer List
+        </span>
+      ),
+      children: (
+        <div className="space-y-4">
+          {/* Search and Actions Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <Input
+              placeholder="Search customers by name, phone, or address..."
+              prefix={<SearchOutlined className="text-gray-400" />}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-full sm:max-w-md"
+              allowClear
+              size="large"
+            />
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleRefresh}
+              className="w-full sm:w-auto"
+            >
+              Refresh
+            </Button>
+          </div>
+
+          <CustomerTable
+            onEdit={showModal}
+            onDelete={handleDelete}
+            refreshTrigger={refreshTrigger}
+            searchText={searchText}
+          />
+        </div>
+      ),
+    },
+    {
+      key: "credit",
+      label: (
+        <span className="flex items-center gap-2">
+          <WalletOutlined />
+          Credit Payments
+        </span>
+      ),
+      children: (
+        <CreditTable
+          onRecordPayment={showPaymentModal}
+          refreshTrigger={refreshTrigger}
+        />
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -187,37 +294,9 @@ const Customers = () => {
         </Col>
       </Row>
 
-      {/* Customer Table Card */}
-      <Card
-        className="shadow-sm"
-        styles={{ body: { padding: "16px sm:24px" } }}
-      >
-        {/* Search and Actions Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <Input
-            placeholder="Search customers by name, phone, or address..."
-            prefix={<SearchOutlined className="text-gray-400" />}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="w-full sm:max-w-md"
-            allowClear
-            size="large"
-          />
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={handleRefresh}
-            className="w-full sm:w-auto"
-          >
-            Refresh
-          </Button>
-        </div>
-
-        <CustomerTable
-          onEdit={showModal}
-          onDelete={handleDelete}
-          refreshTrigger={refreshTrigger}
-          searchText={searchText}
-        />
+      {/* Customer Tabs */}
+      <Card className="shadow-sm">
+        <Tabs defaultActiveKey="customers" items={tabItems} size="large" />
       </Card>
 
       <CustomerForm
@@ -226,6 +305,14 @@ const Customers = () => {
         form={form}
         onOk={handleOk}
         onCancel={handleCancel}
+      />
+
+      <PaymentModal
+        visible={isPaymentModalVisible}
+        customer={paymentCustomer}
+        form={paymentForm}
+        onOk={handlePaymentOk}
+        onCancel={handlePaymentCancel}
       />
     </div>
   );
