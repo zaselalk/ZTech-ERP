@@ -23,6 +23,7 @@ export interface UserPermissions {
   settings: ModulePermissions;
   pos: ModulePermissions;
   suppliers: ModulePermissions;
+  warehouses: ModulePermissions;
 }
 
 // All available modules
@@ -39,6 +40,7 @@ export const ALL_MODULES = [
   "settings",
   "pos",
   "suppliers",
+  "warehouses",
 ] as const;
 
 export type ModuleName = (typeof ALL_MODULES)[number];
@@ -57,6 +59,7 @@ export const FULL_PERMISSIONS: UserPermissions = {
   settings: { view: true, create: true, edit: true, delete: true },
   pos: { view: true, create: true, edit: true, delete: true },
   suppliers: { view: true, create: true, edit: true, delete: true },
+  warehouses: { view: true, create: true, edit: true, delete: true },
 };
 
 // Default permissions for new users (POS only)
@@ -73,6 +76,7 @@ export const DEFAULT_PERMISSIONS: UserPermissions = {
   settings: { view: false, create: false, edit: false, delete: false },
   pos: { view: true, create: true, edit: false, delete: false },
   suppliers: { view: false, create: false, edit: false, delete: false },
+  warehouses: { view: false, create: false, edit: false, delete: false },
 };
 
 // User attributes
@@ -329,6 +333,7 @@ export interface SettingsAttributes {
   receiptFooter: string | null;
   logoUrl: string | null;
   enableSupplierManagement: boolean;
+  enableWarehouseManagement: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -349,6 +354,7 @@ export class Settings
   public receiptFooter!: string | null;
   public logoUrl!: string | null;
   public enableSupplierManagement!: boolean;
+  public enableWarehouseManagement!: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -380,6 +386,45 @@ export class Supplier
   public email!: string | null;
   public address!: string | null;
   public notes!: string | null;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// Warehouse attributes
+export interface WarehouseAttributes {
+  id: number;
+  name: string;
+  code: string | null;
+  location: string | null;
+  address: string | null;
+  contactPerson: string | null;
+  phone: string | null;
+  email: string | null;
+  capacity: number | null;
+  notes: string | null;
+  isActive: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface WarehouseCreationAttributes
+  extends Optional<WarehouseAttributes, "id" | "createdAt" | "updatedAt"> {}
+
+export class Warehouse
+  extends Model<WarehouseAttributes, WarehouseCreationAttributes>
+  implements WarehouseAttributes
+{
+  public id!: number;
+  public name!: string;
+  public code!: string | null;
+  public location!: string | null;
+  public address!: string | null;
+  public contactPerson!: string | null;
+  public phone!: string | null;
+  public email!: string | null;
+  public capacity!: number | null;
+  public notes!: string | null;
+  public isActive!: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }

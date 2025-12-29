@@ -17,6 +17,7 @@ import {
   UploadOutlined,
   DeleteOutlined,
   TeamOutlined,
+  HomeOutlined,
 } from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload/interface";
 import { settingsService } from "../services/settingsService";
@@ -31,6 +32,8 @@ const Settings: React.FC = () => {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [enableSupplierManagement, setEnableSupplierManagement] =
     useState(false);
+  const [enableWarehouseManagement, setEnableWarehouseManagement] =
+    useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -43,6 +46,7 @@ const Settings: React.FC = () => {
       form.setFieldsValue(data);
       setLogoUrl(data.logoUrl);
       setEnableSupplierManagement(data.enableSupplierManagement ?? false);
+      setEnableWarehouseManagement(data.enableWarehouseManagement ?? false);
     } catch (error) {
       console.error("Error fetching settings:", error);
       message.error("Failed to load settings");
@@ -57,9 +61,10 @@ const Settings: React.FC = () => {
       await settingsService.updateSettings({
         ...values,
         enableSupplierManagement,
+        enableWarehouseManagement,
       });
       message.success("Settings updated successfully");
-      // Reload page to update navigation if supplier management was toggled
+      // Reload page to update navigation if supplier/warehouse management was toggled
       window.location.reload();
     } catch (error) {
       console.error("Error updating settings:", error);
@@ -254,6 +259,32 @@ const Settings: React.FC = () => {
                 <Alert
                   className="mt-3"
                   message="Supplier management will be available in the sidebar after saving."
+                  type="info"
+                  showIcon
+                />
+              )}
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <HomeOutlined className="text-xl text-green-500" />
+                  <div>
+                    <div className="font-medium">Warehouse Management</div>
+                    <div className="text-gray-500 text-sm">
+                      Manage multiple warehouse locations
+                    </div>
+                  </div>
+                </div>
+                <Switch
+                  checked={enableWarehouseManagement}
+                  onChange={setEnableWarehouseManagement}
+                />
+              </div>
+              {enableWarehouseManagement && (
+                <Alert
+                  className="mt-3"
+                  message="Warehouse management will be available in the sidebar after saving."
                   type="info"
                   showIcon
                 />

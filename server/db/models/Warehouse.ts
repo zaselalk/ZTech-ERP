@@ -1,23 +1,35 @@
 import { Sequelize, DataTypes, ModelStatic } from "sequelize";
-import { Settings } from "../../types/models";
+import { Warehouse } from "../../types/models";
 
 export = (
   sequelize: Sequelize,
   dataTypes: typeof DataTypes
-): ModelStatic<Settings> => {
-  Settings.init(
+): ModelStatic<Warehouse> => {
+  Warehouse.init(
     {
       id: {
         type: dataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
       },
-      businessName: {
+      name: {
         type: dataTypes.STRING,
         allowNull: false,
-        defaultValue: "My Business",
+      },
+      code: {
+        type: dataTypes.STRING,
+        allowNull: true,
+        unique: true,
+      },
+      location: {
+        type: dataTypes.STRING,
+        allowNull: true,
       },
       address: {
+        type: dataTypes.TEXT,
+        allowNull: true,
+      },
+      contactPerson: {
         type: dataTypes.STRING,
         allowNull: true,
       },
@@ -29,38 +41,27 @@ export = (
         type: dataTypes.STRING,
         allowNull: true,
       },
-      website: {
-        type: dataTypes.STRING,
+      capacity: {
+        type: dataTypes.INTEGER,
         allowNull: true,
       },
-      receiptFooter: {
-        type: dataTypes.STRING,
+      notes: {
+        type: dataTypes.TEXT,
         allowNull: true,
-        defaultValue: "Thank you for your business!",
       },
-      logoUrl: {
-        type: dataTypes.STRING(500),
-        allowNull: true,
-        defaultValue: null,
-      },
-      enableSupplierManagement: {
+      isActive: {
         type: dataTypes.BOOLEAN,
         allowNull: false,
-        defaultValue: false,
-      },
-      enableWarehouseManagement: {
-        type: dataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
+        defaultValue: true,
       },
     },
     {
       sequelize,
-      modelName: "Settings",
-      tableName: "Settings",
+      modelName: "Warehouse",
+      tableName: "Warehouses",
       timestamps: true,
     }
   );
 
-  return Settings;
+  return Warehouse;
 };
