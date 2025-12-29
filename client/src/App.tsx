@@ -24,7 +24,6 @@ import {
   UserOutlined,
   LogoutOutlined,
   SettingOutlined,
-  BugOutlined,
   MenuOutlined,
   TeamOutlined,
   HomeOutlined,
@@ -39,8 +38,6 @@ import PosPage from "./pages/PosPage";
 import CustomerDetails from "./components/CustomerDetails";
 import ProductDetails from "./components/ProductDetails";
 import LoginPage from "./pages/LoginPage";
-import Backups from "./components/Backups";
-import Issues from "./components/Issues";
 import Users from "./components/Users";
 import Settings from "./components/Settings";
 import Suppliers from "./components/Suppliers";
@@ -71,12 +68,10 @@ const MainLayout = () => {
     "/inventory": "3",
     "/customers": "4",
     "/reports": "5",
-    "/backups": "6",
-    "/issues": "7",
-    "/users": "8",
-    "/settings": "9",
-    "/suppliers": "10",
-    "/warehouses": "11",
+    "/users": "6",
+    "/settings": "7",
+    "/suppliers": "8",
+    "/warehouses": "9",
   };
 
   const [selectedKey, setSelectedKey] = useState(
@@ -117,8 +112,6 @@ const MainLayout = () => {
     canView("inventory") ||
     canView("customers") ||
     canView("reports") ||
-    canView("backups") ||
-    canView("issues") ||
     canView("users") ||
     canView("settings");
 
@@ -168,24 +161,12 @@ const MainLayout = () => {
     },
     {
       key: "6",
-      icon: <SettingOutlined />,
-      label: "Backups",
-      module: "backups" as ModuleName,
-    },
-    {
-      key: "7",
-      icon: <BugOutlined />,
-      label: "Issues",
-      module: "issues" as ModuleName,
-    },
-    {
-      key: "8",
       icon: <UserOutlined />,
       label: "Users",
       module: "users" as ModuleName,
     },
     {
-      key: "9",
+      key: "7",
       icon: <SettingOutlined />,
       label: "Settings",
       module: "settings" as ModuleName,
@@ -194,7 +175,7 @@ const MainLayout = () => {
     ...(supplierManagementEnabled
       ? [
           {
-            key: "10",
+            key: "8",
             icon: <TeamOutlined />,
             label: "Suppliers",
             module: "suppliers" as ModuleName,
@@ -205,7 +186,7 @@ const MainLayout = () => {
     ...(warehouseManagementEnabled
       ? [
           {
-            key: "11",
+            key: "9",
             icon: <HomeOutlined />,
             label: "Warehouses",
             module: "warehouses" as ModuleName,
@@ -396,22 +377,6 @@ const MainLayout = () => {
               element={
                 <PermissionGuard module="reports">
                   <Reports />
-                </PermissionGuard>
-              }
-            />
-            <Route
-              path="/backups"
-              element={
-                <PermissionGuard module="backups">
-                  <Backups />
-                </PermissionGuard>
-              }
-            />
-            <Route
-              path="/issues"
-              element={
-                <PermissionGuard module="issues">
-                  <Issues />
                 </PermissionGuard>
               }
             />

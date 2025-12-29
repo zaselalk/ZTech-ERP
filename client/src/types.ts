@@ -226,3 +226,9 @@ export interface Quotation {
   items?: QuotationItem[];
   createdAt: string;
 }
+
+export interface Backup {
+  filename: string;
+  size: number;
+  createdAt: string;
+}
