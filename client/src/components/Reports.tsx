@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DatePicker, Typography, Row, Card, Tabs } from "antd";
 import {
   LineChartOutlined,
   FileTextOutlined,
   WarningOutlined,
+  DollarOutlined,
 } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
 import {
@@ -20,11 +21,16 @@ import {
   Filler,
 } from "chart.js";
 import ReceiptModal from "./ReceiptModal";
-import { SalesReportTable, LowStockTable } from "./features/reports";
+import {
+  SalesReportTable,
+  LowStockTable,
+  ProfitReportSection,
+} from "./features/reports";
 import { DailySalesTrend } from "./features/sales/DailySalesTrend";
 import { PaymentMethods } from "./features/sales/PaymentMethods";
 import { SalesByCustomer } from "./features/sales/SalesByCustomer";
 import { SalesSummary } from "./features/sales/SalesSummary";
+import { settingsService } from "../services";
 
 // Register Chart.js components
 ChartJS.register(
@@ -49,6 +55,20 @@ const Reports = () => {
   >(null);
   const [selectedSaleId, setSelectedSaleId] = useState<number | null>(null);
   const [isReceiptModalVisible, setIsReceiptModalVisible] = useState(false);
+  const [enableProfitTracking, setEnableProfitTracking] = useState(false);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const settings = await settingsService.getSettings();
+      setEnableProfitTracking(settings.enableProfitTracking ?? false);
+    } catch (error) {
+      console.error("Failed to fetch settings", error);
+    }
+  };
 
   const handleViewReceipt = (saleId: number) => {
     setSelectedSaleId(saleId);
@@ -91,6 +111,22 @@ const Reports = () => {
         </div>
       ),
     },
+    ...(enableProfitTracking
+      ? [
+          {
+            key: "profit-loss",
+            label: (
+              <span className="flex items-center gap-2">
+                <DollarOutlined />
+                Profit & Loss
+              </span>
+            ),
+            children: (
+              <ProfitReportSection startDate={startStr} endDate={endStr} />
+            ),
+          },
+        ]
+      : []),
     {
       key: "sales-report",
       label: (

@@ -42,6 +42,7 @@ const Products = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [enableSupplierManagement, setEnableSupplierManagement] =
     useState(false);
+  const [enableProfitTracking, setEnableProfitTracking] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -52,6 +53,7 @@ const Products = () => {
     try {
       const settings = await settingsService.getSettings();
       setEnableSupplierManagement(settings.enableSupplierManagement ?? false);
+      setEnableProfitTracking(settings.enableProfitTracking ?? false);
 
       // Only fetch suppliers if the feature is enabled
       if (settings.enableSupplierManagement) {
@@ -96,6 +98,9 @@ const Products = () => {
     const productDetails = {
       ...product,
       price: product?.price ? parseFloat(product.price.toString()) : undefined,
+      cost_price: product?.cost_price
+        ? parseFloat(product.cost_price.toString())
+        : undefined,
       discount: product?.discount
         ? parseFloat(product.discount.toString())
         : undefined,
@@ -270,6 +275,7 @@ const Products = () => {
           onEdit={showModal}
           refreshTrigger={refreshTrigger}
           searchText={searchText}
+          enableProfitTracking={enableProfitTracking}
         />
       </Card>
 
@@ -281,6 +287,7 @@ const Products = () => {
         onCancel={handleCancel}
         suppliers={suppliers}
         enableSupplierManagement={enableSupplierManagement}
+        enableProfitTracking={enableProfitTracking}
       />
     </div>
   );

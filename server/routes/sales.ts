@@ -341,13 +341,14 @@ router.post(
 
         subtotalAfterItemDiscounts += itemPrice * item.quantity;
 
-        // Create the SaleItem with discount details
+        // Create the SaleItem with discount details and cost_price
         await SaleItem.create(
           {
             SaleId: sale.id,
             ProductId: item.ProductId,
             quantity: item.quantity,
-            price: product.price, // Store original price
+            price: product.price, // Store original selling price
+            cost_price: product.cost_price || null, // Store cost price for profit calculation (if enabled)
             discount: itemDiscountValue,
             discount_type: item.discount_type || "Fixed",
             productName: product.name,

@@ -58,6 +58,11 @@ export = (
         allowNull: false,
         defaultValue: "Percentage",
       },
+      cost_price: {
+        type: dataTypes.DECIMAL(10, 2),
+        allowNull: true,
+        defaultValue: null,
+      },
     },
     {
       sequelize,
