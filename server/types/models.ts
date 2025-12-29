@@ -252,6 +252,7 @@ export interface SettingsAttributes {
   email: string | null;
   website: string | null;
   receiptFooter: string | null;
+  logoUrl: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -270,6 +271,7 @@ export class Settings
   public email!: string | null;
   public website!: string | null;
   public receiptFooter!: string | null;
+  public logoUrl!: string | null;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }

@@ -28,5 +28,6 @@ export function registerRoutes(app: Express): void {
   app.use("/api/issues", requireAuth, requireAdmin, issuesRoutes);
   app.use("/api/users", requireAuth, requireAdmin, usersRoutes);
   app.use("/api/quotations", requireAuth, quotationsRoutes);
-  app.use("/api/settings", requireAuth, settingsRoutes);
+  // Settings: GET is public (for logo on login page), other methods require auth
+  app.use("/api/settings", settingsRoutes);
 }

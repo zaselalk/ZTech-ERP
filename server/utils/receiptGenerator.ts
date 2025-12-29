@@ -1,6 +1,8 @@
 import PDFDocument from "pdfkit-table";
 import fs from "fs";
 import path from "path";
+import https from "https";
+import http from "http";
 import db from "../db/models";
 
 interface SaleItem {
@@ -29,6 +31,28 @@ interface Sale {
   total_amount: number;
 }
 
+// Helper function to download image from URL
+const downloadImage = (url: string): Promise<Buffer> => {
+  return new Promise((resolve, reject) => {
+    const protocol = url.startsWith("https") ? https : http;
+    protocol
+      .get(url, (response) => {
+        if (response.statusCode === 301 || response.statusCode === 302) {
+          // Handle redirects
+          downloadImage(response.headers.location as string)
+            .then(resolve)
+            .catch(reject);
+          return;
+        }
+        const chunks: Buffer[] = [];
+        response.on("data", (chunk) => chunks.push(chunk));
+        response.on("end", () => resolve(Buffer.concat(chunks)));
+        response.on("error", reject);
+      })
+      .on("error", reject);
+  });
+};
+
 export const generateReceiptPdf = async (sale: Sale): Promise<Buffer> => {
   const settings = await db.Settings.findOne();
   const businessName = settings?.businessName || "Storyflix Pvt Ltd";
@@ -37,6 +61,17 @@ export const generateReceiptPdf = async (sale: Sale): Promise<Buffer> => {
   const phone = settings?.phone || "+94706995585(WhatsApp) / +94712114841";
   const email = settings?.email || "digital@storyflix.lk";
   const footer = settings?.receiptFooter || "Thank you for your business!";
+  const logoUrl = settings?.logoUrl || null;
+
+  // Pre-download logo if URL is provided
+  let logoBuffer: Buffer | null = null;
+  if (logoUrl) {
+    try {
+      logoBuffer = await downloadImage(logoUrl);
+    } catch (logoError) {
+      console.warn("Failed to download logo from URL:", logoError);
+    }
+  }
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 30, size: "A4" });
@@ -90,14 +125,28 @@ export const generateReceiptPdf = async (sale: Sale): Promise<Buffer> => {
     const hasSinhala = (text: string) => /[\u0D80-\u0DFF]/.test(text);
 
     // --- Header Section ---
-    // Logo
-    const logoPath = path.join(
-      __dirname,
-      "../../client/public/logo/storyflix-logo.png"
-    );
+    // Logo - try to use configured logo URL, fallback to local file
+    let logoAdded = false;
 
-    if (fs.existsSync(logoPath)) {
-      doc.image(logoPath, 14, 15, { width: 40, height: 25 });
+    if (logoBuffer) {
+      try {
+        doc.image(logoBuffer, 14, 15, { width: 40, height: 25 });
+        logoAdded = true;
+      } catch (logoError) {
+        console.warn("Failed to add logo from buffer:", logoError);
+      }
+    }
+
+    // Fallback to local logo file
+    if (!logoAdded) {
+      const logoPath = path.join(
+        __dirname,
+        "../../client/public/logo/storyflix-logo.png"
+      );
+
+      if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, 14, 15, { width: 40, height: 25 });
+      }
     }
 
     // Company Name
