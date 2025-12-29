@@ -1,6 +1,13 @@
-import { Layout, Typography, Button, Space, Result } from "antd";
+import { useState, useEffect } from "react";
+import { Layout, Typography, Button, Space, Result, Badge, Drawer } from "antd";
 import { useNavigate } from "react-router-dom";
-import { FileTextOutlined } from "@ant-design/icons";
+import {
+  FileTextOutlined,
+  ShoppingCartOutlined,
+  MenuOutlined,
+  HomeOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
 import ReceiptModal from "../components/ReceiptModal";
 import ItemDiscountModal from "../components/features/pos/ItemDiscountModal";
 import PosSearch from "../components/features/pos/PosSearch";
@@ -13,13 +20,26 @@ import ConvertQuotationModal from "../components/features/pos/ConvertQuotationMo
 import { usePos } from "../components/features/pos/usePos";
 import { authService } from "../services";
 import { usePermissions } from "../hooks/usePermissions";
+import { formatCurrency } from "../utils";
 
-const { Header, Content, Sider } = Layout;
+const { Content } = Layout;
 const { Title } = Typography;
 
 const PosPage = () => {
   const navigate = useNavigate();
   const { canView } = usePermissions();
+  const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect screen size for responsive layout
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Check if user has access to POS
   const hasPosAccess = canView("pos");
@@ -57,6 +77,7 @@ const PosPage = () => {
     subtotal,
     subtotalAfterItemDiscounts,
     total,
+    hasSavedCart,
     setCartDiscountInput,
     setCartDiscountType,
     setIsCheckoutVisible,
@@ -74,18 +95,24 @@ const PosPage = () => {
     resetSale,
     handleClearCart,
     refreshProductData,
+    saveCartToLocal,
+    restoreCartFromLocal,
   } = usePos();
 
   // Show forbidden message if user doesn't have POS access
   if (!hasPosAccess) {
     return (
-      <Layout className="min-h-screen">
+      <Layout className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         <Result
           status="403"
           title="403"
           subTitle="Sorry, you don't have permission to access the Point of Sale."
           extra={
-            <Button type="primary" onClick={() => navigate("/login")}>
+            <Button
+              type="primary"
+              size="large"
+              onClick={() => navigate("/login")}
+            >
               Go to Login
             </Button>
           }
@@ -94,75 +121,128 @@ const PosPage = () => {
     );
   }
 
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
-    <Layout className="min-h-screen">
-      <Header className="flex justify-between items-center">
-        <Title level={3} style={{ color: "white", margin: 0 }}>
-          Point of Sale
-        </Title>
-        <Space>
-          <Button
-            icon={<FileTextOutlined />}
-            onClick={() => {
-              setIsQuotationListVisible(true);
-            }}
-          >
-            View Quotations
-          </Button>
-          {hasAdminAccess && (
-            <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
-          )}
-          {/* show logout button for users without admin access */}
-          {!hasAdminAccess && (
+    <Layout className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Modern Header */}
+      <header className="pos-header sticky top-0 z-50 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 shadow-lg">
+        <div className="flex justify-between items-center px-4 md:px-6 py-3 md:py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <ShoppingCartOutlined className="text-xl text-white" />
+            </div>
+            <div>
+              <Title level={4} className="!text-white !m-0 hidden sm:block">
+                Point of Sale
+              </Title>
+              <Title level={5} className="!text-white !m-0 sm:hidden">
+                POS
+              </Title>
+            </div>
+          </div>
+
+          {/* Desktop Actions */}
+          <Space className="hidden md:flex" size="middle">
             <Button
-              danger
-              onClick={() => {
-                // ask for confirmation before logout
-                if (window.confirm("Are you sure you want to logout?")) {
-                  authService.removeToken();
-                  navigate("/login");
-                }
-              }}
+              icon={<FileTextOutlined />}
+              onClick={() => setIsQuotationListVisible(true)}
+              className="pos-header-btn"
             >
-              Logout
+              Quotations
             </Button>
-          )}
-        </Space>
-      </Header>
-      <Layout className="h-[calc(100vh-64px)]">
-        <Content className="p-6 flex-1 flex flex-col">
-          <PosSearch
-            searchQuery={searchQuery}
-            searchType={searchType}
-            onSearchQueryChange={debouncedSearch}
-            onSearchTypeChange={setSearchType}
-            onSearch={handleSearch}
-            searchInputRef={searchInputRef}
-          />
-          <div
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              background: "white",
-              borderRadius: "8px",
-              padding: "16px",
-            }}
-          >
-            <PosProductList
-              products={searchResults !== null ? searchResults : topSellers}
-              cart={cart}
-              onAddToCart={handleAddToCart}
-              loading={
-                searchResults !== null ? loadingSearch : loadingTopSellers
-              }
+            {hasAdminAccess && (
+              <Button
+                icon={<HomeOutlined />}
+                onClick={() => navigate("/")}
+                className="pos-header-btn"
+              >
+                Dashboard
+              </Button>
+            )}
+            {!hasAdminAccess && (
+              <Button
+                icon={<LogoutOutlined />}
+                danger
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to logout?")) {
+                    authService.removeToken();
+                    navigate("/login");
+                  }
+                }}
+              >
+                Logout
+              </Button>
+            )}
+          </Space>
+
+          {/* Mobile Actions */}
+          <Space className="md:hidden" size="small">
+            <Badge count={cartItemCount} offset={[-2, 2]}>
+              <Button
+                type="primary"
+                icon={<ShoppingCartOutlined />}
+                onClick={() => setIsMobileCartOpen(true)}
+                className="!bg-white/20 !border-white/30 hover:!bg-white/30"
+              />
+            </Badge>
+            <Button
+              icon={<MenuOutlined />}
+              onClick={() => setIsQuotationListVisible(true)}
+              className="!bg-white/20 !border-white/30 hover:!bg-white/30 !text-white"
+            />
+            {hasAdminAccess ? (
+              <Button
+                icon={<HomeOutlined />}
+                onClick={() => navigate("/")}
+                className="!bg-white/20 !border-white/30 hover:!bg-white/30 !text-white"
+              />
+            ) : (
+              <Button
+                icon={<LogoutOutlined />}
+                danger
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to logout?")) {
+                    authService.removeToken();
+                    navigate("/login");
+                  }
+                }}
+              />
+            )}
+          </Space>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <div className="pos-main-container flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-hidden">
+        {/* Products Section */}
+        <Content className="flex-1 flex flex-col p-3 md:p-4 lg:p-6 overflow-hidden">
+          <div className="mb-4">
+            <PosSearch
+              searchQuery={searchQuery}
+              searchType={searchType}
+              onSearchQueryChange={debouncedSearch}
+              onSearchTypeChange={setSearchType}
+              onSearch={handleSearch}
+              searchInputRef={searchInputRef}
             />
           </div>
+          <div className="pos-product-container flex-1 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="h-full overflow-y-auto p-3 md:p-4">
+              <PosProductList
+                products={searchResults !== null ? searchResults : topSellers}
+                cart={cart}
+                onAddToCart={handleAddToCart}
+                loading={
+                  searchResults !== null ? loadingSearch : loadingTopSellers
+                }
+              />
+            </div>
+          </div>
         </Content>
-        <Sider
-          width="50%"
-          theme="light"
-          className="p-0 border-l border-[#f0f0f0] flex-1"
-        >
+
+        {/* Desktop Cart Sidebar */}
+        <aside className="hidden lg:flex lg:w-[480px] xl:w-[520px] border-l border-slate-200 bg-white shadow-lg">
           <PosCart
             cart={cart}
             subtotal={subtotal}
@@ -177,9 +257,78 @@ const PosPage = () => {
             onClearCart={handleClearCart}
             onSaveQuotation={() => setIsQuotationModalVisible(true)}
             onCheckout={() => setIsCheckoutVisible(true)}
+            onSaveToLocal={saveCartToLocal}
+            hasSavedCart={hasSavedCart}
+            onRestoreCart={restoreCartFromLocal}
           />
-        </Sider>
-      </Layout>
+        </aside>
+
+        {/* Mobile Cart Drawer */}
+        <Drawer
+          title={
+            <div className="flex items-center gap-2">
+              <ShoppingCartOutlined className="text-indigo-600" />
+              <span>Shopping Cart</span>
+              <Badge count={cartItemCount} className="ml-2" />
+            </div>
+          }
+          placement="right"
+          width="100%"
+          open={isMobileCartOpen && isMobile}
+          onClose={() => setIsMobileCartOpen(false)}
+          className="pos-mobile-cart-drawer"
+          styles={{
+            body: { padding: 0 },
+            header: { borderBottom: "1px solid #f0f0f0" },
+          }}
+        >
+          <PosCart
+            cart={cart}
+            subtotal={subtotal}
+            subtotalAfterItemDiscounts={subtotalAfterItemDiscounts}
+            total={total}
+            cartDiscountInput={cartDiscountInput}
+            cartDiscountType={cartDiscountType}
+            onQuantityChange={handleQuantityChange}
+            onEditItem={setEditingItem}
+            onCartDiscountChange={setCartDiscountInput}
+            onCartDiscountTypeChange={setCartDiscountType}
+            onClearCart={handleClearCart}
+            onSaveQuotation={() => {
+              setIsMobileCartOpen(false);
+              setIsQuotationModalVisible(true);
+            }}
+            onCheckout={() => {
+              setIsMobileCartOpen(false);
+              setIsCheckoutVisible(true);
+            }}
+            onSaveToLocal={saveCartToLocal}
+            hasSavedCart={hasSavedCart}
+            onRestoreCart={restoreCartFromLocal}
+          />
+        </Drawer>
+
+        {/* Mobile Floating Cart Button */}
+        {isMobile && cart.length > 0 && !isMobileCartOpen && (
+          <div className="fixed bottom-4 left-4 right-4 z-40 lg:hidden">
+            <Button
+              type="primary"
+              size="large"
+              block
+              onClick={() => setIsMobileCartOpen(true)}
+              className="pos-mobile-cart-btn h-14 rounded-xl shadow-xl"
+              icon={<ShoppingCartOutlined />}
+            >
+              <span className="flex items-center justify-center gap-2">
+                View Cart ({cartItemCount} items) -{" "}
+                <span className="font-bold">{formatCurrency(total)}</span>
+              </span>
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Modals */}
       {isCheckoutVisible && (
         <CheckoutModal
           visible={isCheckoutVisible}

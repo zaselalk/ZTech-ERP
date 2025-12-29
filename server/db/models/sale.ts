@@ -22,13 +22,14 @@ export = (
           "Card",
           "Consignment",
           "Paid",
-          "Cash On Delivery"
+          "Cash On Delivery",
+          "Credit"
         ),
         allowNull: false,
       },
       CustomerId: {
         type: dataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: "Customers",
           key: "id",

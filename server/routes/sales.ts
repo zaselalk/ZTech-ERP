@@ -24,8 +24,14 @@ interface CartDiscount {
 }
 
 interface CreateSaleRequestBody {
-  CustomerId: number;
-  payment_method: "Cash" | "Card" | "Consignment";
+  CustomerId?: number | null;
+  payment_method:
+    | "Cash"
+    | "Card"
+    | "Consignment"
+    | "Paid"
+    | "Cash On Delivery"
+    | "Credit";
   items: SaleItem[];
   cartDiscount?: CartDiscount;
 }
@@ -281,8 +287,16 @@ router.post(
     // cartDiscount is the overall discount object { type, value }
     const { CustomerId, payment_method, items, cartDiscount } = req.body;
 
-    if (!CustomerId || !payment_method || !items || items.length === 0) {
+    if (!payment_method || !items || items.length === 0) {
       res.status(400).json({ message: "Missing required fields" });
+      return;
+    }
+
+    // Credit payment requires a customer
+    if (payment_method === "Credit" && !CustomerId) {
+      res
+        .status(400)
+        .json({ message: "Customer is required for credit sales" });
       return;
     }
 
@@ -292,7 +306,12 @@ router.post(
     try {
       // Create the main Sale record first. The final total will be updated later.
       const sale = await Sale.create(
-        { CustomerId, payment_method, total_amount: 0, discount: 0 },
+        {
+          CustomerId: CustomerId || null,
+          payment_method,
+          total_amount: 0,
+          discount: 0,
+        },
         { transaction: t }
       );
 

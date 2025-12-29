@@ -153,3 +153,357 @@ body {
 .loading {
   animation: pulse 2s infinite;
 }
+
+/* ========================================
+   POS PAGE STYLES
+   ======================================== */
+
+/* POS Header Buttons */
+.pos-header-btn {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  transition: all 0.2s ease;
+}
+
+.pos-header-btn:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-1px);
+}
+
+/* POS Search Container */
+.pos-search-container {
+  transition: box-shadow 0.2s ease;
+}
+
+.pos-search-container:focus-within {
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.pos-search-input .ant-input-group-addon {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.pos-search-input .ant-input-search-button {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  border-color: #6366f1 !important;
+}
+
+.pos-search-input .ant-input-search-button:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+}
+
+.pos-search-toggle .ant-segmented-item-selected {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  color: white !important;
+}
+
+/* POS Product Cards */
+.pos-product-card {
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0;
+}
+
+.pos-product-card:hover {
+  border-color: #6366f1;
+  transform: translateY(-2px);
+}
+
+.pos-product-card.ring-2 {
+  border-color: #6366f1;
+}
+
+.pos-add-btn {
+  border-radius: 8px !important;
+}
+
+/* POS Cart Styles */
+.pos-cart {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.pos-cart-item {
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0;
+}
+
+.pos-cart-item:hover {
+  border-color: #c7d2fe;
+}
+
+/* Compact Cart Item Styling */
+.pos-cart-item-compact {
+  background: white;
+}
+
+.pos-cart-item-compact:hover {
+  background: #f8fafc;
+}
+
+.pos-cart-item-compact .ant-input-number {
+  border-radius: 0 !important;
+}
+
+.pos-cart-item-compact .ant-input-number-input {
+  padding: 0 !important;
+  height: 24px !important;
+  line-height: 24px !important;
+}
+
+.pos-cart-item-compact .ant-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pos-cart-summary {
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.pos-checkout-btn {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  transition: all 0.2s ease;
+}
+
+.pos-checkout-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+
+.pos-checkout-btn:disabled {
+  background: #e2e8f0 !important;
+  color: #94a3b8 !important;
+}
+
+/* Mobile Cart Floating Button */
+.pos-mobile-cart-btn {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  border: none !important;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4) !important;
+}
+
+.pos-mobile-cart-btn:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+}
+
+/* POS Mobile Cart Drawer */
+.pos-mobile-cart-drawer .ant-drawer-content-wrapper {
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .pos-mobile-cart-drawer .ant-drawer-content-wrapper {
+    max-width: 420px;
+  }
+}
+
+/* Product Grid Responsive */
+.pos-product-grid {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* Quantity Stepper Styling */
+.pos-cart-item .ant-input-number {
+  border-radius: 0 !important;
+}
+
+.pos-cart-item .ant-input-number-input {
+  text-align: center;
+}
+
+/* Discount Button */
+.pos-discount-btn {
+  border-radius: 6px !important;
+}
+
+/* Animation for adding items */
+@keyframes addToCart {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pos-product-card:active {
+  animation: addToCart 0.2s ease-out;
+}
+
+/* POS Page specific overrides */
+.pos-main-container {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Better touch targets on mobile */
+@media (max-width: 768px) {
+  .pos-product-card {
+    min-height: 100px;
+  }
+
+  .pos-cart-item {
+    padding: 12px !important;
+  }
+
+  .pos-add-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Smooth scrolling for product container */
+.pos-product-container {
+  scroll-behavior: smooth;
+}
+
+/* Empty state styling */
+.pos-cart .ant-empty-description {
+  color: #64748b;
+}
+/* Checkout Modal Enhancements */
+.ant-modal .payment-method-select .ant-select-selector {
+  height: 44px !important;
+  padding: 8px 12px !important;
+  display: flex;
+  align-items: center;
+}
+
+.ant-modal .payment-method-select .ant-select-selection-item {
+  display: flex;
+  align-items: center;
+}
+
+/* Animation for modal appearance */
+.ant-modal-content {
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Button hover effects for quick amount buttons */
+.ant-btn-sm {
+  transition: all 0.2s ease;
+}
+
+.ant-btn-sm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Input focus states */
+.ant-input-number-focused {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
+}
+
+/* Gradient button enhancement */
+.ant-btn-primary[class*="gradient"] {
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  transition: all 0.3s ease;
+}
+
+.ant-btn-primary[class*="gradient"]:hover {
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+  transform: translateY(-1px);
+}
+/* Payment Method Radio Button Cards */
+.payment-method-radio-group .ant-radio-button-wrapper {
+  height: auto !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.payment-method-radio-group .ant-radio-button-wrapper::before {
+  display: none !important;
+}
+
+.payment-method-card {
+  cursor: pointer;
+  background: white;
+  border: 2px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.payment-method-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card {
+  border-width: 3px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+  transform: translateY(-2px);
+}
+
+/* Cash - Green */
+.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card:has(.text-green-600) {
+  border-color: #10b981 !important;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+}
+
+/* Card - Blue */
+.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card:has(.text-blue-600) {
+  border-color: #3b82f6 !important;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+}
+
+/* Credit - Amber */
+.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card:has(.text-amber-600) {
+  border-color: #f59e0b !important;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+}
+
+/* Paid - Teal */
+.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card:has(.text-teal-600) {
+  border-color: #14b8a6 !important;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%) !important;
+}
+
+/* Cash On Delivery - Orange */
+.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card:has(.text-orange-600) {
+  border-color: #f97316 !important;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%) !important;
+}
+
+/* Hide the default radio circle */
+.payment-method-radio-group .ant-radio-button-wrapper input[type="radio"] {
+  display: none !important;
+}
+
+/* Add checkmark indicator when selected */
+.payment-method-radio-group .ant-radio-button-wrapper-checked .payment-method-card::after {
+  content: "✓";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}

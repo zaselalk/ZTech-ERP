@@ -5,6 +5,15 @@ import { productService } from "../../../services";
 import { Product, Sale, Quotation } from "../../../types";
 import { CartItem } from "./types";
 
+const SAVED_CART_KEY = "pos_saved_cart";
+
+interface SavedCartData {
+  cart: CartItem[];
+  cartDiscountInput: number;
+  cartDiscountType: "Fixed" | "Percentage";
+  savedAt: string;
+}
+
 export const usePos = () => {
   const [topSellers, setTopSellers] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -31,9 +40,12 @@ export const usePos = () => {
   // loading states
   const [loadingTopSellers, setLoadingTopSellers] = useState(false);
   const [loadingSearch, setLoadingSearch] = useState(false);
+  const [hasSavedCart, setHasSavedCart] = useState(false);
 
   useEffect(() => {
     fetchTopSellers();
+    // Check if there's a saved cart on load
+    checkSavedCart();
   }, []);
 
   useEffect(() => {
@@ -45,6 +57,55 @@ export const usePos = () => {
       handleSearch(searchQuery);
     }
   }, [searchType]);
+
+  const checkSavedCart = (): void => {
+    try {
+      const saved = localStorage.getItem(SAVED_CART_KEY);
+      setHasSavedCart(!!saved);
+    } catch {
+      setHasSavedCart(false);
+    }
+  };
+
+  const saveCartToLocal = (): void => {
+    if (cart.length === 0) {
+      message.warning("Cart is empty, nothing to save");
+      return;
+    }
+    try {
+      const dataToSave: SavedCartData = {
+        cart,
+        cartDiscountInput,
+        cartDiscountType,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(SAVED_CART_KEY, JSON.stringify(dataToSave));
+      setHasSavedCart(true);
+      message.success("Cart saved temporarily");
+    } catch {
+      message.error("Failed to save cart");
+    }
+  };
+
+  const restoreCartFromLocal = (): void => {
+    try {
+      const saved = localStorage.getItem(SAVED_CART_KEY);
+      if (!saved) {
+        message.info("No saved cart found");
+        return;
+      }
+      const data: SavedCartData = JSON.parse(saved);
+      setCart(data.cart);
+      setCartDiscountInput(data.cartDiscountInput);
+      setCartDiscountType(data.cartDiscountType);
+      // Clear saved cart after restoring
+      localStorage.removeItem(SAVED_CART_KEY);
+      setHasSavedCart(false);
+      message.success("Cart restored successfully");
+    } catch {
+      message.error("Failed to restore cart");
+    }
+  };
 
   const fetchTopSellers = async (): Promise<void> => {
     setLoadingTopSellers(true);
@@ -236,6 +297,7 @@ export const usePos = () => {
     subtotal,
     subtotalAfterItemDiscounts,
     total,
+    hasSavedCart,
     setCartDiscountInput,
     setCartDiscountType,
     setIsCheckoutVisible,
@@ -253,5 +315,7 @@ export const usePos = () => {
     resetSale,
     handleClearCart,
     refreshProductData,
+    saveCartToLocal,
+    restoreCartFromLocal,
   };
 };
