@@ -110,6 +110,7 @@ export interface ProductAttributes {
   category: string | null;
   quantity: number;
   price: number;
+  cost_price: number;
   reorder_threshold: number;
   discount: number;
   discount_type: "Fixed" | "Percentage";
@@ -135,6 +136,7 @@ export interface SaleItemAttributes {
   ProductId: number;
   quantity: number;
   price: number;
+  cost_price: number;
   discount: number;
   discount_type: "Fixed" | "Percentage";
   productName?: string;
@@ -239,6 +241,7 @@ export class Product
   public category!: string | null;
   public quantity!: number;
   public price!: number;
+  public cost_price!: number;
   public reorder_threshold!: number;
   public discount!: number;
   public discount_type!: "Fixed" | "Percentage";
@@ -268,6 +271,7 @@ export class SaleItem
   public ProductId!: number;
   public quantity!: number;
   public price!: number;
+  public cost_price!: number;
   public discount!: number;
   public discount_type!: "Fixed" | "Percentage";
   public productName?: string;

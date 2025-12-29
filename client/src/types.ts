@@ -124,6 +124,7 @@ export interface SaleItemResponse {
   ProductId: number | null;
   quantity: number;
   price: string;
+  cost_price: string;
   discount: string;
   discount_type: "Fixed" | "Percentage";
   productName?: string;
@@ -164,6 +165,7 @@ export interface Product {
   supplier?: string | null;
   category?: string | null;
   price: number;
+  cost_price?: number;
   quantity?: number;
   reorder_threshold?: number;
   discount?: number;

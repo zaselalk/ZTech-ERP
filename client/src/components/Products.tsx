@@ -96,6 +96,9 @@ const Products = () => {
     const productDetails = {
       ...product,
       price: product?.price ? parseFloat(product.price.toString()) : undefined,
+      cost_price: product?.cost_price
+        ? parseFloat(product.cost_price.toString())
+        : undefined,
       discount: product?.discount
         ? parseFloat(product.discount.toString())
         : undefined,

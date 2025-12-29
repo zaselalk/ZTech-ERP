@@ -54,14 +54,35 @@ export const ProductForm = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              name="price"
-              label="Price (Rs.)"
-              rules={[{ required: true, type: "number" }]}
+              name="cost_price"
+              label="Cost Price (Rs.)"
+              rules={[{ required: true, type: "number", min: 0 }]}
+              tooltip="The price you paid to acquire this product"
             >
-              <InputNumber style={{ width: "100%" }} />
+              <InputNumber
+                style={{ width: "100%" }}
+                min={0}
+                placeholder="Enter cost price"
+              />
             </Form.Item>
           </Col>
+          <Col span={12}>
+            <Form.Item
+              name="price"
+              label="Selling Price (Rs.)"
+              rules={[{ required: true, type: "number", min: 0 }]}
+              tooltip="The price you sell this product for"
+            >
+              <InputNumber
+                style={{ width: "100%" }}
+                min={0}
+                placeholder="Enter selling price"
+              />
+            </Form.Item>
+          </Col>
+        </Row>
 
+        <Row gutter={16}>
           {enableSupplierManagement && (
             <Col span={12}>
               <Form.Item name="supplier" label="Supplier">

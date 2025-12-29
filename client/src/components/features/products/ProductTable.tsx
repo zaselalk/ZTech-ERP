@@ -140,7 +140,23 @@ export const ProductTable = ({
       onFilter: (value, record) => record.category === value,
     },
     {
-      title: "Price",
+      title: "Cost",
+      dataIndex: "cost_price",
+      key: "cost_price",
+      responsive: ["xl"],
+      render: (cost_price: number | string) => (
+        <span className="text-gray-700">
+          {formatCurrency(
+            typeof cost_price === "number"
+              ? cost_price
+              : parseFloat(cost_price || "0")
+          )}
+        </span>
+      ),
+      sorter: (a, b) => Number(a.cost_price || 0) - Number(b.cost_price || 0),
+    },
+    {
+      title: "Selling Price",
       dataIndex: "price",
       key: "price",
       render: (price: number | string) => (

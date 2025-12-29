@@ -4,6 +4,7 @@ import {
   LineChartOutlined,
   FileTextOutlined,
   WarningOutlined,
+  DollarOutlined,
 } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
 import {
@@ -20,7 +21,11 @@ import {
   Filler,
 } from "chart.js";
 import ReceiptModal from "./ReceiptModal";
-import { SalesReportTable, LowStockTable } from "./features/reports";
+import {
+  SalesReportTable,
+  LowStockTable,
+  ProfitReportSection,
+} from "./features/reports";
 import { DailySalesTrend } from "./features/sales/DailySalesTrend";
 import { PaymentMethods } from "./features/sales/PaymentMethods";
 import { SalesByCustomer } from "./features/sales/SalesByCustomer";
@@ -90,6 +95,16 @@ const Reports = () => {
           </Row>
         </div>
       ),
+    },
+    {
+      key: "profit-loss",
+      label: (
+        <span className="flex items-center gap-2">
+          <DollarOutlined />
+          Profit & Loss
+        </span>
+      ),
+      children: <ProfitReportSection startDate={startStr} endDate={endStr} />,
     },
     {
       key: "sales-report",
