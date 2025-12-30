@@ -15,3 +15,4 @@ export { warehouseService } from "./warehouseService";
 export { purchaseService } from "./purchaseService";
 export { saleReturnService } from "./saleReturnService";
 export { purchaseReturnService } from "./purchaseReturnService";
+export { serviceService } from "./serviceService";

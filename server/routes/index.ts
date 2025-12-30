@@ -17,6 +17,7 @@ import warehousesRoutes from "./warehouses";
 import purchasesRoutes from "./purchases";
 import saleReturnsRoutes from "./saleReturns";
 import purchaseReturnsRoutes from "./purchaseReturns";
+import servicesRoutes from "./services";
 
 import { requireAuth } from "../middleware/requireAuth";
 import { requireViewPermission } from "../middleware/requirePermission";
@@ -124,6 +125,14 @@ export function registerRoutes(app: Express): void {
     requireAuth,
     requireViewPermission("suppliers"),
     purchaseReturnsRoutes
+  );
+
+  // Services routes - requires inventory module permission (feature must be enabled)
+  app.use(
+    "/api/services",
+    requireAuth,
+    requireViewPermission("inventory"),
+    servicesRoutes
   );
 
   // Settings: GET is public (for logo on login page), other methods require settings permission

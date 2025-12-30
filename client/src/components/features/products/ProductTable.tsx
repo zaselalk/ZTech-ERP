@@ -213,43 +213,50 @@ export const ProductTable = ({
       title: "Actions",
       key: "actions",
       width: screens.md ? 200 : 140,
-      render: (_: unknown, record: Product) => (
-        <Space size="small">
-          <Tooltip title="Add Stock">
-            <Button
-              type="text"
-              icon={<PlusOutlined />}
-              onClick={() => handleAddStock(record)}
-              className="text-green-500 hover:text-green-600"
-            />
-          </Tooltip>
-          {enableVariantManagement && (
-            <Tooltip title="Manage Variants">
+      render: (_: unknown, record: Product) => {
+        return (
+          <Space size="small">
+            <Tooltip title="Add Stock">
               <Button
                 type="text"
-                icon={<AppstoreOutlined />}
-                onClick={() => setVariantProduct(record)}
-                className="text-purple-500 hover:text-purple-600"
+                icon={<PlusOutlined />}
+                onClick={() => handleAddStock(record)}
+                className="text-green-500 hover:text-green-600"
               />
             </Tooltip>
-          )}
-          <Tooltip title="Edit">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => onEdit(record)}
-              className="text-blue-500 hover:text-blue-600"
-            />
-          </Tooltip>
-          <Link to={`/products/${record.id}`}>
-            <Tooltip title="View Details">
-              <Button type="primary" ghost size="small" icon={<EyeOutlined />}>
-                {screens.md && "Details"}
-              </Button>
+            {enableVariantManagement && (
+              <Tooltip title="Manage Variants">
+                <Button
+                  type="text"
+                  icon={<AppstoreOutlined />}
+                  onClick={() => setVariantProduct(record)}
+                  className="text-purple-500 hover:text-purple-600"
+                />
+              </Tooltip>
+            )}
+            <Tooltip title="Edit">
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={() => onEdit(record)}
+                className="text-blue-500 hover:text-blue-600"
+              />
             </Tooltip>
-          </Link>
-        </Space>
-      ),
+            <Link to={`/products/${record.id}`}>
+              <Tooltip title="View Details">
+                <Button
+                  type="primary"
+                  ghost
+                  size="small"
+                  icon={<EyeOutlined />}
+                >
+                  {screens.md && "Details"}
+                </Button>
+              </Tooltip>
+            </Link>
+          </Space>
+        );
+      },
     },
   ];
 

@@ -143,8 +143,12 @@ const Products = () => {
         await productService.createProduct(sanitizedValues);
       }
 
+      const itemTypeLabel =
+        sanitizedValues.item_type === "Service" ? "Service" : "Product";
       message.success(
-        `Product ${editingProduct ? "updated" : "created"} successfully`
+        `${itemTypeLabel} ${
+          editingProduct ? "updated" : "created"
+        } successfully`
       );
       setRefreshTrigger((prev) => prev + 1);
       handleCancel();

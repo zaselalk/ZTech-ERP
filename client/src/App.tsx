@@ -27,6 +27,7 @@ import {
   MenuOutlined,
   TeamOutlined,
   HomeOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 
 import Customers from "./components/Customers";
@@ -44,6 +45,7 @@ import Suppliers from "./components/Suppliers";
 import SupplierDetails from "./components/SupplierDetails";
 import Warehouses from "./components/Warehouses";
 import WarehouseDetails from "./components/WarehouseDetails";
+import Services from "./components/Services";
 import PermissionGuard from "./components/PermissionGuard";
 import { authService, settingsService } from "./services";
 import { usePermissions } from "./hooks/usePermissions";
@@ -72,6 +74,7 @@ const MainLayout = () => {
     "/settings": "7",
     "/suppliers": "8",
     "/warehouses": "9",
+    "/services": "10",
   };
 
   const [selectedKey, setSelectedKey] = useState(
@@ -82,6 +85,8 @@ const MainLayout = () => {
   const [supplierManagementEnabled, setSupplierManagementEnabled] =
     useState(false);
   const [warehouseManagementEnabled, setWarehouseManagementEnabled] =
+    useState(false);
+  const [serviceManagementEnabled, setServiceManagementEnabled] =
     useState(false);
   const username = authService.getUsername();
 
@@ -98,6 +103,7 @@ const MainLayout = () => {
         setWarehouseManagementEnabled(
           settings.enableWarehouseManagement ?? false
         );
+        setServiceManagementEnabled(settings.enableServiceManagement ?? false);
       } catch (error) {
         console.error("Failed to load settings:", error);
       }
@@ -190,6 +196,17 @@ const MainLayout = () => {
             icon: <HomeOutlined />,
             label: "Warehouses",
             module: "warehouses" as ModuleName,
+          },
+        ]
+      : []),
+    // Conditionally add Services menu item based on settings
+    ...(serviceManagementEnabled
+      ? [
+          {
+            key: "10",
+            icon: <ToolOutlined />,
+            label: "Services",
+            module: "services" as ModuleName,
           },
         ]
       : []),
@@ -434,6 +451,17 @@ const MainLayout = () => {
                 element={
                   <PermissionGuard module="warehouses">
                     <WarehouseDetails />
+                  </PermissionGuard>
+                }
+              />
+            )}
+            {/* Services route - only available when service management is enabled */}
+            {serviceManagementEnabled && (
+              <Route
+                path="/services"
+                element={
+                  <PermissionGuard module="services">
+                    <Services />
                   </PermissionGuard>
                 }
               />

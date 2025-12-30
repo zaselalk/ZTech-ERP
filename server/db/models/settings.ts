@@ -78,6 +78,11 @@ export = (
         allowNull: false,
         defaultValue: false,
       },
+      enableServiceManagement: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       taxName: {
         type: dataTypes.STRING,
         allowNull: true,

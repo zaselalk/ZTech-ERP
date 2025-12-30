@@ -24,6 +24,7 @@ export interface UserPermissions {
   pos: ModulePermissions;
   suppliers: ModulePermissions;
   warehouses: ModulePermissions;
+  services: ModulePermissions;
 }
 
 // All available modules
@@ -41,6 +42,7 @@ export const ALL_MODULES = [
   "pos",
   "suppliers",
   "warehouses",
+  "services",
 ] as const;
 
 export type ModuleName = (typeof ALL_MODULES)[number];
@@ -60,6 +62,7 @@ export const FULL_PERMISSIONS: UserPermissions = {
   pos: { view: true, create: true, edit: true, delete: true },
   suppliers: { view: true, create: true, edit: true, delete: true },
   warehouses: { view: true, create: true, edit: true, delete: true },
+  services: { view: true, create: true, edit: true, delete: true },
 };
 
 // Default permissions for new users (POS only)
@@ -77,6 +80,7 @@ export const DEFAULT_PERMISSIONS: UserPermissions = {
   pos: { view: true, create: true, edit: false, delete: false },
   suppliers: { view: false, create: false, edit: false, delete: false },
   warehouses: { view: false, create: false, edit: false, delete: false },
+  services: { view: false, create: false, edit: false, delete: false },
 };
 
 // User attributes
@@ -114,6 +118,23 @@ export interface ProductAttributes {
   reorder_threshold: number;
   discount: number;
   discount_type: "Fixed" | "Percentage";
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// Service attributes
+export interface ServiceAttributes {
+  id: number;
+  code: string | null;
+  name: string;
+  description: string | null;
+  category: string | null;
+  price: number;
+  cost_price: number | null;
+  discount: number;
+  discount_type: "Fixed" | "Percentage";
+  duration: number | null;
+  isActive: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -189,6 +210,8 @@ export interface CustomerCreationAttributes
   extends Optional<CustomerAttributes, "id" | "createdAt" | "updatedAt"> {}
 export interface ProductCreationAttributes
   extends Optional<ProductAttributes, "id" | "createdAt" | "updatedAt"> {}
+export interface ServiceCreationAttributes
+  extends Optional<ServiceAttributes, "id" | "createdAt" | "updatedAt"> {}
 export interface SaleCreationAttributes
   extends Optional<SaleAttributes, "id" | "createdAt" | "updatedAt"> {}
 export interface SaleItemCreationAttributes
@@ -245,6 +268,25 @@ export class Product
   public reorder_threshold!: number;
   public discount!: number;
   public discount_type!: "Fixed" | "Percentage";
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+export class Service
+  extends Model<ServiceAttributes, ServiceCreationAttributes>
+  implements ServiceAttributes
+{
+  public id!: number;
+  public code!: string | null;
+  public name!: string;
+  public description!: string | null;
+  public category!: string | null;
+  public price!: number;
+  public cost_price!: number | null;
+  public discount!: number;
+  public discount_type!: "Fixed" | "Percentage";
+  public duration!: number | null;
+  public isActive!: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -343,6 +385,7 @@ export interface SettingsAttributes {
   enableBrandManagement: boolean;
   enableTaxManagement: boolean;
   enableVariantManagement: boolean;
+  enableServiceManagement: boolean;
   taxName: string | null;
   taxRate: number | null;
   taxIncludedInPrice: boolean;
@@ -372,6 +415,7 @@ export class Settings
   public enableBrandManagement!: boolean;
   public enableTaxManagement!: boolean;
   public enableVariantManagement!: boolean;
+  public enableServiceManagement!: boolean;
   public taxName!: string | null;
   public taxRate!: number | null;
   public taxIncludedInPrice!: boolean;

@@ -18,9 +18,7 @@ import {
   DollarOutlined,
   BarcodeOutlined,
   TagOutlined,
-  PercentageOutlined,
   TeamOutlined,
-  InboxOutlined,
   AlertOutlined,
 } from "@ant-design/icons";
 import { Product } from "../../../types";
@@ -146,7 +144,10 @@ export const ProductForm = ({
                 name="name"
                 label="Product Name"
                 rules={[
-                  { required: true, message: "Please enter product name" },
+                  {
+                    required: true,
+                    message: "Please enter product name",
+                  },
                 ]}
               >
                 <Input
@@ -170,7 +171,6 @@ export const ProductForm = ({
                   style={{ width: "100%" }}
                   min={0}
                   placeholder="0"
-                  prefix={<InboxOutlined className="text-gray-400" />}
                 />
               </Form.Item>
 
