@@ -46,6 +46,7 @@ const Products = () => {
   const [enableCategoryManagement, setEnableCategoryManagement] =
     useState(false);
   const [enableBrandManagement, setEnableBrandManagement] = useState(false);
+  const [enableVariantManagement, setEnableVariantManagement] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -59,6 +60,7 @@ const Products = () => {
       setEnableProfitTracking(settings.enableProfitTracking ?? false);
       setEnableCategoryManagement(settings.enableCategoryManagement ?? false);
       setEnableBrandManagement(settings.enableBrandManagement ?? false);
+      setEnableVariantManagement(settings.enableVariantManagement ?? false);
 
       // Only fetch suppliers if the feature is enabled
       if (settings.enableSupplierManagement) {
@@ -285,6 +287,7 @@ const Products = () => {
           enableProfitTracking={enableProfitTracking}
           enableCategoryManagement={enableCategoryManagement}
           enableBrandManagement={enableBrandManagement}
+          enableVariantManagement={enableVariantManagement}
         />
       </Card>
 
@@ -299,6 +302,7 @@ const Products = () => {
         enableProfitTracking={enableProfitTracking}
         enableCategoryManagement={enableCategoryManagement}
         enableBrandManagement={enableBrandManagement}
+        enableVariantManagement={enableVariantManagement}
       />
     </div>
   );

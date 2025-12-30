@@ -72,5 +72,13 @@ export = (
     }
   );
 
+  // Define associations
+  (Product as any).associate = (models: any) => {
+    Product.hasMany(models.ProductVariant, {
+      foreignKey: "ProductId",
+      as: "variants",
+    });
+  };
+
   return Product;
 };

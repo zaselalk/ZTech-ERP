@@ -17,10 +17,12 @@ import {
   PlusOutlined,
   EyeOutlined,
   BarcodeOutlined,
+  AppstoreOutlined,
 } from "@ant-design/icons";
 import { Product } from "../../../types";
 import { formatCurrency } from "../../../utils";
 import { productService } from "../../../services";
+import { ProductVariantManager } from "./ProductVariantManager";
 import type { ColumnsType, ColumnType } from "antd/es/table";
 
 const { useBreakpoint } = Grid;
@@ -32,6 +34,7 @@ interface ProductTableProps {
   enableProfitTracking?: boolean;
   enableCategoryManagement?: boolean;
   enableBrandManagement?: boolean;
+  enableVariantManagement?: boolean;
 }
 
 export const ProductTable = ({
@@ -41,12 +44,14 @@ export const ProductTable = ({
   enableProfitTracking = false,
   enableCategoryManagement = false,
   enableBrandManagement = false,
+  enableVariantManagement = false,
 }: ProductTableProps) => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [stockModalVisible, setStockModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [variantProduct, setVariantProduct] = useState<Product | null>(null);
   const [stockForm] = Form.useForm();
   const screens = useBreakpoint();
 
@@ -218,6 +223,16 @@ export const ProductTable = ({
               className="text-green-500 hover:text-green-600"
             />
           </Tooltip>
+          {enableVariantManagement && (
+            <Tooltip title="Manage Variants">
+              <Button
+                type="text"
+                icon={<AppstoreOutlined />}
+                onClick={() => setVariantProduct(record)}
+                className="text-purple-500 hover:text-purple-600"
+              />
+            </Tooltip>
+          )}
           <Tooltip title="Edit">
             <Button
               type="text"
@@ -333,6 +348,23 @@ export const ProductTable = ({
           </div>
         )}
       </Modal>
+
+      {/* Product Variant Manager */}
+      {enableVariantManagement && variantProduct && (
+        <ProductVariantManager
+          visible={!!variantProduct}
+          productId={variantProduct.id}
+          productName={variantProduct.name}
+          productPrice={Number(variantProduct.price) || 0}
+          productCostPrice={
+            variantProduct.cost_price
+              ? Number(variantProduct.cost_price)
+              : undefined
+          }
+          onClose={() => setVariantProduct(null)}
+          enableProfitTracking={enableProfitTracking}
+        />
+      )}
     </>
   );
 };

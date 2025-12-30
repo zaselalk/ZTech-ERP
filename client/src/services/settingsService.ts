@@ -17,6 +17,7 @@ export interface Settings {
   enableCategoryManagement: boolean;
   enableBrandManagement: boolean;
   enableTaxManagement: boolean;
+  enableVariantManagement: boolean;
   taxName: string | null;
   taxRate: number | null;
   taxIncludedInPrice: boolean;

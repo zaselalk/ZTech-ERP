@@ -1,4 +1,5 @@
 export { productService } from "./productService";
+export { productVariantService } from "./productVariantService";
 export { customerService } from "./customerService";
 export { salesService } from "./salesService";
 export { reportService } from "./reportService";

@@ -39,6 +39,7 @@ import {
   TagsOutlined,
   TagOutlined,
   PercentageOutlined,
+  AppstoreOutlined,
 } from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload/interface";
 import { settingsService, backupService, issueService } from "../services";
@@ -228,6 +229,7 @@ interface AdvancedFeaturesProps {
   enableCategoryManagement: boolean;
   enableBrandManagement: boolean;
   enableTaxManagement: boolean;
+  enableVariantManagement: boolean;
   taxName: string;
   taxRate: number | null;
   taxIncludedInPrice: boolean;
@@ -237,6 +239,7 @@ interface AdvancedFeaturesProps {
   setEnableCategoryManagement: (value: boolean) => void;
   setEnableBrandManagement: (value: boolean) => void;
   setEnableTaxManagement: (value: boolean) => void;
+  setEnableVariantManagement: (value: boolean) => void;
   setTaxName: (value: string) => void;
   setTaxRate: (value: number | null) => void;
   setTaxIncludedInPrice: (value: boolean) => void;
@@ -251,6 +254,7 @@ const AdvancedFeaturesTab: React.FC<AdvancedFeaturesProps> = ({
   enableCategoryManagement,
   enableBrandManagement,
   enableTaxManagement,
+  enableVariantManagement,
   taxName,
   taxRate,
   taxIncludedInPrice,
@@ -260,6 +264,7 @@ const AdvancedFeaturesTab: React.FC<AdvancedFeaturesProps> = ({
   setEnableCategoryManagement,
   setEnableBrandManagement,
   setEnableTaxManagement,
+  setEnableVariantManagement,
   setTaxName,
   setTaxRate,
   setTaxIncludedInPrice,
@@ -439,6 +444,33 @@ const AdvancedFeaturesTab: React.FC<AdvancedFeaturesProps> = ({
               <Alert
                 className="mt-3"
                 message="Configure tax below"
+                type="info"
+                showIcon
+              />
+            )}
+          </div>
+
+          {/* Product Variant Management */}
+          <div className="bg-linear-to-br from-indigo-50 to-indigo-100/50 p-4 rounded-xl border border-indigo-100 transition-all hover:shadow-md">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center">
+                <AppstoreOutlined className="text-white text-lg" />
+              </div>
+              <Switch
+                checked={enableVariantManagement}
+                onChange={setEnableVariantManagement}
+              />
+            </div>
+            <div className="font-semibold text-gray-800 mb-1">
+              Product Variants
+            </div>
+            <Text type="secondary" className="text-xs">
+              Create product variations (size, color, etc.)
+            </Text>
+            {enableVariantManagement && (
+              <Alert
+                className="mt-3"
+                message="Available after saving"
                 type="info"
                 showIcon
               />
@@ -789,6 +821,7 @@ const Settings: React.FC = () => {
     useState(false);
   const [enableBrandManagement, setEnableBrandManagement] = useState(false);
   const [enableTaxManagement, setEnableTaxManagement] = useState(false);
+  const [enableVariantManagement, setEnableVariantManagement] = useState(false);
   const [taxName, setTaxName] = useState<string>("");
   const [taxRate, setTaxRate] = useState<number | null>(null);
   const [taxIncludedInPrice, setTaxIncludedInPrice] = useState(false);
@@ -811,6 +844,7 @@ const Settings: React.FC = () => {
       setEnableCategoryManagement(data.enableCategoryManagement ?? false);
       setEnableBrandManagement(data.enableBrandManagement ?? false);
       setEnableTaxManagement(data.enableTaxManagement ?? false);
+      setEnableVariantManagement(data.enableVariantManagement ?? false);
       setTaxName(data.taxName ?? "");
       setTaxRate(data.taxRate ?? null);
       setTaxIncludedInPrice(data.taxIncludedInPrice ?? false);
@@ -833,6 +867,7 @@ const Settings: React.FC = () => {
         enableCategoryManagement,
         enableBrandManagement,
         enableTaxManagement,
+        enableVariantManagement,
         taxName: taxName || null,
         taxRate,
         taxIncludedInPrice,
@@ -939,6 +974,7 @@ const Settings: React.FC = () => {
           enableCategoryManagement={enableCategoryManagement}
           enableBrandManagement={enableBrandManagement}
           enableTaxManagement={enableTaxManagement}
+          enableVariantManagement={enableVariantManagement}
           taxName={taxName}
           taxRate={taxRate}
           taxIncludedInPrice={taxIncludedInPrice}
@@ -948,6 +984,7 @@ const Settings: React.FC = () => {
           setEnableCategoryManagement={setEnableCategoryManagement}
           setEnableBrandManagement={setEnableBrandManagement}
           setEnableTaxManagement={setEnableTaxManagement}
+          setEnableVariantManagement={setEnableVariantManagement}
           setTaxName={setTaxName}
           setTaxRate={setTaxRate}
           setTaxIncludedInPrice={setTaxIncludedInPrice}

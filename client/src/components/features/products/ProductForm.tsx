@@ -1,5 +1,17 @@
-import { Modal, Form, Input, InputNumber, Select, Row, Col } from "antd";
+import { useState } from "react";
+import {
+  Modal,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Row,
+  Col,
+  Button,
+} from "antd";
+import { AppstoreOutlined } from "@ant-design/icons";
 import { Product } from "../../../types";
+import { ProductVariantManager } from "./ProductVariantManager";
 
 interface Supplier {
   id: number;
@@ -17,6 +29,7 @@ interface ProductFormProps {
   enableProfitTracking?: boolean;
   enableCategoryManagement?: boolean;
   enableBrandManagement?: boolean;
+  enableVariantManagement?: boolean;
 }
 
 export const ProductForm = ({
@@ -30,164 +43,207 @@ export const ProductForm = ({
   enableProfitTracking = false,
   enableCategoryManagement = false,
   enableBrandManagement = false,
+  enableVariantManagement = false,
 }: ProductFormProps) => {
-  return (
-    <Modal
-      title={editingProduct ? "Edit Product" : "Add Product"}
-      open={visible}
-      onOk={onOk}
-      onCancel={onCancel}
-      width={800}
-    >
-      <Form form={form} layout="vertical">
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item name="name" label="Name" rules={[{ required: true }]}>
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="quantity"
-              label="Quantity"
-              rules={[{ required: true, type: "integer" }]}
-            >
-              <InputNumber style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-        </Row>
+  const [variantModalVisible, setVariantModalVisible] = useState(false);
 
-        <Row gutter={16}>
-          {enableProfitTracking && (
+  return (
+    <>
+      <Modal
+        title={editingProduct ? "Edit Product" : "Add Product"}
+        open={visible}
+        onOk={onOk}
+        onCancel={onCancel}
+        width={800}
+        footer={[
+          <Button key="cancel" onClick={onCancel}>
+            Cancel
+          </Button>,
+          enableVariantManagement && editingProduct && (
+            <Button
+              key="variants"
+              icon={<AppstoreOutlined />}
+              onClick={() => setVariantModalVisible(true)}
+            >
+              Manage Variants
+            </Button>
+          ),
+          <Button key="submit" type="primary" onClick={onOk}>
+            {editingProduct ? "Update" : "Create"}
+          </Button>,
+        ].filter(Boolean)}
+      >
+        <Form form={form} layout="vertical">
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+                <Input />
+              </Form.Item>
+            </Col>
             <Col span={12}>
               <Form.Item
-                name="cost_price"
-                label="Cost Price (Rs.)"
-                rules={[{ type: "number", min: 0 }]}
-                tooltip="The price you paid to acquire this product"
+                name="quantity"
+                label="Quantity"
+                rules={[{ required: true, type: "integer" }]}
+              >
+                <InputNumber style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            {enableProfitTracking && (
+              <Col span={12}>
+                <Form.Item
+                  name="cost_price"
+                  label="Cost Price (Rs.)"
+                  rules={[{ type: "number", min: 0 }]}
+                  tooltip="The price you paid to acquire this product"
+                >
+                  <InputNumber
+                    style={{ width: "100%" }}
+                    min={0}
+                    placeholder="Enter cost price"
+                  />
+                </Form.Item>
+              </Col>
+            )}
+            <Col span={enableProfitTracking ? 12 : 24}>
+              <Form.Item
+                name="price"
+                label={
+                  enableProfitTracking ? "Selling Price (Rs.)" : "Price (Rs.)"
+                }
+                rules={[{ required: true, type: "number", min: 0 }]}
+                tooltip={
+                  enableProfitTracking
+                    ? "The price you sell this product for"
+                    : undefined
+                }
               >
                 <InputNumber
                   style={{ width: "100%" }}
                   min={0}
-                  placeholder="Enter cost price"
+                  placeholder={
+                    enableProfitTracking ? "Enter selling price" : "Enter price"
+                  }
                 />
               </Form.Item>
             </Col>
-          )}
-          <Col span={enableProfitTracking ? 12 : 24}>
-            <Form.Item
-              name="price"
-              label={
-                enableProfitTracking ? "Selling Price (Rs.)" : "Price (Rs.)"
-              }
-              rules={[{ required: true, type: "number", min: 0 }]}
-              tooltip={
-                enableProfitTracking
-                  ? "The price you sell this product for"
-                  : undefined
-              }
-            >
-              <InputNumber
-                style={{ width: "100%" }}
-                min={0}
-                placeholder={
-                  enableProfitTracking ? "Enter selling price" : "Enter price"
-                }
-              />
-            </Form.Item>
-          </Col>
-        </Row>
+          </Row>
 
-        <Row gutter={16}>
-          {enableSupplierManagement && (
+          <Row gutter={16}>
+            {enableSupplierManagement && (
+              <Col span={12}>
+                <Form.Item name="supplier" label="Supplier">
+                  <Select
+                    allowClear
+                    showSearch
+                    placeholder="Select a supplier"
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      (option?.children as unknown as string)
+                        ?.toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                  >
+                    {suppliers.map((supplier) => (
+                      <Select.Option key={supplier.id} value={supplier.name}>
+                        {supplier.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+            )}
+          </Row>
+
+          <Row gutter={16}>
+            {enableCategoryManagement && (
+              <Col span={12}>
+                <Form.Item name="category" label="Category">
+                  <Input />
+                </Form.Item>
+              </Col>
+            )}
+            <Col span={enableCategoryManagement ? 12 : 24}>
+              <Form.Item name="barcode" label="Barcode">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            {enableBrandManagement && (
+              <Col span={12}>
+                <Form.Item name="brand" label="Brand">
+                  <Input />
+                </Form.Item>
+              </Col>
+            )}
+            <Col span={enableBrandManagement ? 12 : 24}>
+              <Form.Item
+                name="reorder_threshold"
+                label="Reorder Threshold"
+                initialValue={1}
+                rules={[{ type: "integer" }]}
+              >
+                <InputNumber style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="supplier" label="Supplier">
-                <Select
-                  allowClear
-                  showSearch
-                  placeholder="Select a supplier"
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    (option?.children as unknown as string)
-                      ?.toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                >
-                  {suppliers.map((supplier) => (
-                    <Select.Option key={supplier.id} value={supplier.name}>
-                      {supplier.name}
-                    </Select.Option>
-                  ))}
+              <Form.Item
+                name="discount"
+                label="Discount"
+                initialValue={0}
+                rules={[{ type: "number" }]}
+              >
+                <InputNumber
+                  style={{ width: "100%" }}
+                  min={0}
+                  placeholder="Enter discount value"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="discount_type"
+                label="Discount Type"
+                initialValue="Fixed"
+              >
+                <Select>
+                  <Select.Option value="Fixed">
+                    Fixed Amount (Rs.)
+                  </Select.Option>
+                  <Select.Option value="Percentage">
+                    Percentage (%)
+                  </Select.Option>
                 </Select>
               </Form.Item>
             </Col>
-          )}
-        </Row>
+          </Row>
+        </Form>
+      </Modal>
 
-        <Row gutter={16}>
-          {enableCategoryManagement && (
-            <Col span={12}>
-              <Form.Item name="category" label="Category">
-                <Input />
-              </Form.Item>
-            </Col>
-          )}
-          <Col span={enableCategoryManagement ? 12 : 24}>
-            <Form.Item name="barcode" label="Barcode">
-              <Input />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          {enableBrandManagement && (
-            <Col span={12}>
-              <Form.Item name="brand" label="Brand">
-                <Input />
-              </Form.Item>
-            </Col>
-          )}
-          <Col span={enableBrandManagement ? 12 : 24}>
-            <Form.Item
-              name="reorder_threshold"
-              label="Reorder Threshold"
-              initialValue={1}
-              rules={[{ type: "integer" }]}
-            >
-              <InputNumber style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="discount"
-              label="Discount"
-              initialValue={0}
-              rules={[{ type: "number" }]}
-            >
-              <InputNumber
-                style={{ width: "100%" }}
-                min={0}
-                placeholder="Enter discount value"
-              />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="discount_type"
-              label="Discount Type"
-              initialValue="Fixed"
-            >
-              <Select>
-                <Select.Option value="Fixed">Fixed Amount (Rs.)</Select.Option>
-                <Select.Option value="Percentage">Percentage (%)</Select.Option>
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
-      </Form>
-    </Modal>
+      {/* Product Variant Manager Modal */}
+      {enableVariantManagement && editingProduct && (
+        <ProductVariantManager
+          visible={variantModalVisible}
+          productId={editingProduct.id}
+          productName={editingProduct.name}
+          productPrice={Number(editingProduct.price) || 0}
+          productCostPrice={
+            editingProduct.cost_price
+              ? Number(editingProduct.cost_price)
+              : undefined
+          }
+          onClose={() => setVariantModalVisible(false)}
+          enableProfitTracking={enableProfitTracking}
+        />
+      )}
+    </>
   );
 };

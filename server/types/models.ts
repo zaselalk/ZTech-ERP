@@ -342,6 +342,7 @@ export interface SettingsAttributes {
   enableCategoryManagement: boolean;
   enableBrandManagement: boolean;
   enableTaxManagement: boolean;
+  enableVariantManagement: boolean;
   taxName: string | null;
   taxRate: number | null;
   taxIncludedInPrice: boolean;
@@ -370,6 +371,7 @@ export class Settings
   public enableCategoryManagement!: boolean;
   public enableBrandManagement!: boolean;
   public enableTaxManagement!: boolean;
+  public enableVariantManagement!: boolean;
   public taxName!: string | null;
   public taxRate!: number | null;
   public taxIncludedInPrice!: boolean;
@@ -656,6 +658,46 @@ export class PurchaseReturn
   public reason!: string | null;
   public notes!: string | null;
   public returnDate!: Date;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// ProductVariant attributes
+export interface ProductVariantAttributes {
+  id: number;
+  ProductId: number;
+  name: string;
+  sku: string | null;
+  barcode: string | null;
+  price: number | null;
+  cost_price: number | null;
+  quantity: number;
+  attributes: Record<string, string> | null;
+  isActive: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface ProductVariantCreationAttributes
+  extends Optional<
+    ProductVariantAttributes,
+    "id" | "createdAt" | "updatedAt"
+  > {}
+
+export class ProductVariant
+  extends Model<ProductVariantAttributes, ProductVariantCreationAttributes>
+  implements ProductVariantAttributes
+{
+  public id!: number;
+  public ProductId!: number;
+  public name!: string;
+  public sku!: string | null;
+  public barcode!: string | null;
+  public price!: number | null;
+  public cost_price!: number | null;
+  public quantity!: number;
+  public attributes!: Record<string, string> | null;
+  public isActive!: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }

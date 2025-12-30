@@ -18,6 +18,7 @@ import {
   SaleReturnItem,
   PurchaseReturn,
   PurchaseReturnItem,
+  ProductVariant,
 } from "../../types/models";
 
 const fs = require("fs");
@@ -48,6 +49,7 @@ interface DB {
   SaleReturnItem: ModelStatic<SaleReturnItem>;
   PurchaseReturn: ModelStatic<PurchaseReturn>;
   PurchaseReturnItem: ModelStatic<PurchaseReturnItem>;
+  ProductVariant: ModelStatic<ProductVariant>;
 }
 
 const db = {} as DB;

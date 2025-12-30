@@ -3,6 +3,7 @@ import passport from "../auth/passport";
 import authRoutes from "./auth";
 import customerRoutes from "./customers";
 import productRoutes from "./products";
+import productVariantsRoutes from "./productVariants";
 import salesRoutes from "./sales";
 import reportsRoutes from "./reports";
 import dashboardRoutes from "./dashboard";
@@ -40,6 +41,9 @@ export function registerRoutes(app: Express): void {
     requireViewPermission("inventory"),
     productRoutes
   );
+
+  // Product Variants routes - requires inventory module permission
+  app.use("/api/product-variants", requireAuth, productVariantsRoutes);
 
   // Sales routes - requires sales module permission (view) or pos (create for new sales)
   app.use("/api/sales", requireAuth, salesRoutes);

@@ -171,6 +171,22 @@ export interface Product {
   discount?: number;
   discount_type?: "Fixed" | "Percentage";
   SaleItem?: SaleItem; // present in sale responses
+  variants?: ProductVariant[]; // product variants
+}
+
+export interface ProductVariant {
+  id: number;
+  ProductId: number;
+  name: string;
+  sku: string | null;
+  barcode: string | null;
+  price: number | null;
+  cost_price: number | null;
+  quantity: number;
+  attributes: Record<string, string> | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Sale {
