@@ -434,3 +434,103 @@ export class Warehouse
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
+
+// Purchase attributes
+export interface PurchaseAttributes {
+  id: number;
+  SupplierId: number;
+  invoiceNumber: string | null;
+  total_amount: number;
+  paid_amount: number;
+  payment_status: "Unpaid" | "Partial" | "Paid";
+  notes: string | null;
+  purchaseDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface PurchaseCreationAttributes
+  extends Optional<PurchaseAttributes, "id" | "createdAt" | "updatedAt"> {}
+
+export class Purchase
+  extends Model<PurchaseAttributes, PurchaseCreationAttributes>
+  implements PurchaseAttributes
+{
+  public id!: number;
+  public SupplierId!: number;
+  public invoiceNumber!: string | null;
+  public total_amount!: number;
+  public paid_amount!: number;
+  public payment_status!: "Unpaid" | "Partial" | "Paid";
+  public notes!: string | null;
+  public purchaseDate!: Date;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// PurchaseItem attributes
+export interface PurchaseItemAttributes {
+  id: number;
+  PurchaseId: number;
+  ProductId: number | null;
+  productName: string | null;
+  quantity: number;
+  unit_cost: number;
+  total_cost: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface PurchaseItemCreationAttributes
+  extends Optional<PurchaseItemAttributes, "id" | "createdAt" | "updatedAt"> {}
+
+export class PurchaseItem
+  extends Model<PurchaseItemAttributes, PurchaseItemCreationAttributes>
+  implements PurchaseItemAttributes
+{
+  public id!: number;
+  public PurchaseId!: number;
+  public ProductId!: number | null;
+  public productName!: string | null;
+  public quantity!: number;
+  public unit_cost!: number;
+  public total_cost!: number;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// SupplierPayment attributes
+export interface SupplierPaymentAttributes {
+  id: number;
+  SupplierId: number;
+  PurchaseId: number | null;
+  amount: number;
+  payment_method: "Cash" | "Card" | "Bank Transfer" | "Cheque";
+  reference: string | null;
+  notes: string | null;
+  paymentDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface SupplierPaymentCreationAttributes
+  extends Optional<
+    SupplierPaymentAttributes,
+    "id" | "createdAt" | "updatedAt"
+  > {}
+
+export class SupplierPayment
+  extends Model<SupplierPaymentAttributes, SupplierPaymentCreationAttributes>
+  implements SupplierPaymentAttributes
+{
+  public id!: number;
+  public SupplierId!: number;
+  public PurchaseId!: number | null;
+  public amount!: number;
+  public payment_method!: "Cash" | "Card" | "Bank Transfer" | "Cheque";
+  public reference!: string | null;
+  public notes!: string | null;
+  public paymentDate!: Date;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
