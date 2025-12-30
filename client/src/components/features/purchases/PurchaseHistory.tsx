@@ -15,11 +15,13 @@ import {
   DollarOutlined,
   DeleteOutlined,
   ExclamationCircleOutlined,
+  UndoOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { Purchase, purchaseService } from "../../../services/purchaseService";
 import { formatCurrency } from "../../../utils";
 import dayjs from "dayjs";
+import { PurchaseReturnModal } from "./PurchaseReturnModal";
 
 const { Text } = Typography;
 const { confirm } = Modal;
@@ -40,6 +42,10 @@ const PurchaseHistory: React.FC<PurchaseHistoryProps> = ({
   onViewDetails,
 }) => {
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [returnModalVisible, setReturnModalVisible] = useState(false);
+  const [selectedPurchaseForReturn, setSelectedPurchaseForReturn] = useState<
+    number | null
+  >(null);
 
   const handleDelete = (purchase: Purchase) => {
     confirm({
@@ -160,7 +166,7 @@ const PurchaseHistory: React.FC<PurchaseHistoryProps> = ({
     {
       title: "Actions",
       key: "actions",
-      width: 150,
+      width: 180,
       fixed: "right",
       render: (_, record) => (
         <Space size="small">
@@ -181,6 +187,17 @@ const PurchaseHistory: React.FC<PurchaseHistoryProps> = ({
               />
             </Tooltip>
           )}
+          <Tooltip title="Return to Supplier">
+            <Button
+              type="text"
+              icon={<UndoOutlined />}
+              className="text-orange-500"
+              onClick={() => {
+                setSelectedPurchaseForReturn(record.id);
+                setReturnModalVisible(true);
+              }}
+            />
+          </Tooltip>
           <Tooltip title="Delete">
             <Button
               type="text"
@@ -205,19 +222,30 @@ const PurchaseHistory: React.FC<PurchaseHistoryProps> = ({
   }
 
   return (
-    <Table
-      columns={columns}
-      dataSource={purchases}
-      rowKey="id"
-      loading={loading}
-      pagination={{
-        pageSize: 10,
-        showSizeChanger: true,
-        showTotal: (total) => `Total ${total} purchases`,
-      }}
-      scroll={{ x: "max-content" }}
-      size="small"
-    />
+    <>
+      <Table
+        columns={columns}
+        dataSource={purchases}
+        rowKey="id"
+        loading={loading}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Total ${total} purchases`,
+        }}
+        scroll={{ x: "max-content" }}
+        size="small"
+      />
+      <PurchaseReturnModal
+        visible={returnModalVisible}
+        purchaseId={selectedPurchaseForReturn}
+        onClose={() => {
+          setReturnModalVisible(false);
+          setSelectedPurchaseForReturn(null);
+        }}
+        onSuccess={onRefresh}
+      />
+    </>
   );
 };
 

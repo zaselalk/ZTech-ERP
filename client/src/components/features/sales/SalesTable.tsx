@@ -1,9 +1,10 @@
-import { Button, Table, Tag, message } from "antd";
-import { EyeOutlined } from "@ant-design/icons";
+import { Button, Table, Tag, message, Space } from "antd";
+import { EyeOutlined, UndoOutlined } from "@ant-design/icons";
 import { useEffect, useState, useMemo } from "react";
 import { salesService } from "../../../services";
 import { Sale } from "../../../types";
 import { formatCurrency } from "../../../utils";
+import { SaleReturnModal } from "./SaleReturnModal";
 
 interface SalesTableProps {
   onViewReceipt: (saleId: number) => void;
@@ -22,6 +23,10 @@ export const SalesTable = ({
 }: SalesTableProps) => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [returnModalVisible, setReturnModalVisible] = useState(false);
+  const [selectedSaleForReturn, setSelectedSaleForReturn] = useState<
+    number | null
+  >(null);
 
   useEffect(() => {
     fetchSales();
@@ -143,39 +148,73 @@ export const SalesTable = ({
     {
       title: "Actions",
       key: "actions",
-      width: 120,
+      width: 160,
       render: (_: unknown, record: Sale) => (
-        <Button
-          type="link"
-          icon={<EyeOutlined />}
-          onClick={() => onViewReceipt(record.id)}
-        >
-          Receipt
-        </Button>
+        <Space>
+          <Button
+            type="link"
+            icon={<EyeOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewReceipt(record.id);
+            }}
+            size="small"
+          >
+            Receipt
+          </Button>
+          <Button
+            type="link"
+            icon={<UndoOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedSaleForReturn(record.id);
+              setReturnModalVisible(true);
+            }}
+            size="small"
+            danger
+          >
+            Return
+          </Button>
+        </Space>
       ),
     },
   ];
 
+  const handleReturnSuccess = () => {
+    fetchSales();
+  };
+
   return (
-    <Table
-      columns={salesColumns}
-      dataSource={filteredSales}
-      rowKey="id"
-      loading={isLoading}
-      pagination={{
-        pageSize: 10,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        showTotal: (total, range) =>
-          `${range[0]}-${range[1]} of ${total} sales`,
-      }}
-      scroll={{ x: 800 }}
-      size="middle"
-      onRow={(record) => ({
-        onClick: () => onViewReceipt(record.id),
-        style: { cursor: "pointer" },
-      })}
-      rowClassName="hover:bg-blue-50 transition-colors"
-    />
+    <>
+      <Table
+        columns={salesColumns}
+        dataSource={filteredSales}
+        rowKey="id"
+        loading={isLoading}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} of ${total} sales`,
+        }}
+        scroll={{ x: 800 }}
+        size="middle"
+        onRow={(record) => ({
+          onClick: () => onViewReceipt(record.id),
+          style: { cursor: "pointer" },
+        })}
+        rowClassName="hover:bg-blue-50 transition-colors"
+      />
+      <SaleReturnModal
+        visible={returnModalVisible}
+        saleId={selectedSaleForReturn}
+        onClose={() => {
+          setReturnModalVisible(false);
+          setSelectedSaleForReturn(null);
+        }}
+        onSuccess={handleReturnSuccess}
+      />
+    </>
   );
 };
