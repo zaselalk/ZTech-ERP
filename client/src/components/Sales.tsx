@@ -8,6 +8,7 @@ import {
   Input,
   Button,
   DatePicker,
+  Tabs,
 } from "antd";
 import {
   DollarOutlined,
@@ -16,10 +17,12 @@ import {
   ShoppingCartOutlined,
   PercentageOutlined,
   CalendarOutlined,
+  UndoOutlined,
 } from "@ant-design/icons";
 import { Dayjs } from "dayjs";
 import ReceiptModal from "./ReceiptModal";
 import { SalesTable } from "./features/sales/SalesTable";
+import { SaleReturnsList } from "./features/sales/SaleReturnsList";
 import { salesService } from "../services";
 import { formatCurrency } from "../utils";
 
@@ -41,6 +44,7 @@ const Sales = () => {
   const [receiptVisible, setReceiptVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [activeTab, setActiveTab] = useState("sales");
   const [stats, setStats] = useState<SalesStats>({
     totalSales: 0,
     totalTransactions: 0,
@@ -186,41 +190,72 @@ const Sales = () => {
         className="shadow-sm"
         styles={{ body: { padding: "16px sm:24px" } }}
       >
-        {/* Search and Actions Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <Input
-            placeholder="Search sales by customer, payment method..."
-            prefix={<SearchOutlined className="text-gray-400" />}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="w-full sm:max-w-md"
-            allowClear
-            size="large"
-          />
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <RangePicker
-              onChange={(dates) =>
-                setDateRange(dates as [Dayjs | null, Dayjs | null] | null)
-              }
-              className="w-full sm:w-auto"
-              placeholder={["Start Date", "End Date"]}
-            />
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={handleRefresh}
-              className="w-full sm:w-auto"
-            >
-              Refresh
-            </Button>
-          </div>
-        </div>
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={[
+            {
+              key: "sales",
+              label: (
+                <span>
+                  <ShoppingCartOutlined />
+                  Sales History
+                </span>
+              ),
+              children: (
+                <>
+                  {/* Search and Actions Bar */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                    <Input
+                      placeholder="Search sales by customer, payment method..."
+                      prefix={<SearchOutlined className="text-gray-400" />}
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      className="w-full sm:max-w-md"
+                      allowClear
+                      size="large"
+                    />
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      <RangePicker
+                        onChange={(dates) =>
+                          setDateRange(
+                            dates as [Dayjs | null, Dayjs | null] | null
+                          )
+                        }
+                        className="w-full sm:w-auto"
+                        placeholder={["Start Date", "End Date"]}
+                      />
+                      <Button
+                        icon={<ReloadOutlined />}
+                        onClick={handleRefresh}
+                        className="w-full sm:w-auto"
+                      >
+                        Refresh
+                      </Button>
+                    </div>
+                  </div>
 
-        <SalesTable
-          onViewReceipt={handleViewReceipt}
-          startDate={startStr}
-          endDate={endStr}
-          searchText={searchText}
-          refreshTrigger={refreshTrigger}
+                  <SalesTable
+                    onViewReceipt={handleViewReceipt}
+                    startDate={startStr}
+                    endDate={endStr}
+                    searchText={searchText}
+                    refreshTrigger={refreshTrigger}
+                  />
+                </>
+              ),
+            },
+            {
+              key: "returns",
+              label: (
+                <span>
+                  <UndoOutlined />
+                  Sale Returns
+                </span>
+              ),
+              children: <SaleReturnsList refreshTrigger={refreshTrigger} />,
+            },
+          ]}
         />
       </Card>
 

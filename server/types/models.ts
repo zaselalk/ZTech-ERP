@@ -534,3 +534,159 @@ export class SupplierPayment
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
+
+// SaleReturn attributes
+export interface SaleReturnAttributes {
+  id: number;
+  SaleId: number;
+  CustomerId: number | null;
+  total_amount: number;
+  refund_method: "Cash" | "Card" | "Credit" | "Exchange";
+  reason: string | null;
+  notes: string | null;
+  returnDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface SaleReturnCreationAttributes
+  extends Optional<SaleReturnAttributes, "id" | "createdAt" | "updatedAt"> {}
+
+export class SaleReturn
+  extends Model<SaleReturnAttributes, SaleReturnCreationAttributes>
+  implements SaleReturnAttributes
+{
+  public id!: number;
+  public SaleId!: number;
+  public CustomerId!: number | null;
+  public total_amount!: number;
+  public refund_method!: "Cash" | "Card" | "Credit" | "Exchange";
+  public reason!: string | null;
+  public notes!: string | null;
+  public returnDate!: Date;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// SaleReturnItem attributes
+export interface SaleReturnItemAttributes {
+  id: number;
+  SaleReturnId: number;
+  SaleItemId: number | null;
+  ProductId: number | null;
+  productName: string | null;
+  quantity: number;
+  price: number;
+  cost_price: number | null;
+  refund_amount: number;
+  reason: string | null;
+  restockInventory: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface SaleReturnItemCreationAttributes
+  extends Optional<
+    SaleReturnItemAttributes,
+    "id" | "createdAt" | "updatedAt"
+  > {}
+
+export class SaleReturnItem
+  extends Model<SaleReturnItemAttributes, SaleReturnItemCreationAttributes>
+  implements SaleReturnItemAttributes
+{
+  public id!: number;
+  public SaleReturnId!: number;
+  public SaleItemId!: number | null;
+  public ProductId!: number | null;
+  public productName!: string | null;
+  public quantity!: number;
+  public price!: number;
+  public cost_price!: number | null;
+  public refund_amount!: number;
+  public reason!: string | null;
+  public restockInventory!: boolean;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// PurchaseReturn attributes
+export interface PurchaseReturnAttributes {
+  id: number;
+  PurchaseId: number;
+  SupplierId: number;
+  total_amount: number;
+  refund_status: "Pending" | "Partial" | "Completed";
+  refund_received: number;
+  reason: string | null;
+  notes: string | null;
+  returnDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface PurchaseReturnCreationAttributes
+  extends Optional<
+    PurchaseReturnAttributes,
+    "id" | "createdAt" | "updatedAt"
+  > {}
+
+export class PurchaseReturn
+  extends Model<PurchaseReturnAttributes, PurchaseReturnCreationAttributes>
+  implements PurchaseReturnAttributes
+{
+  public id!: number;
+  public PurchaseId!: number;
+  public SupplierId!: number;
+  public total_amount!: number;
+  public refund_status!: "Pending" | "Partial" | "Completed";
+  public refund_received!: number;
+  public reason!: string | null;
+  public notes!: string | null;
+  public returnDate!: Date;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// PurchaseReturnItem attributes
+export interface PurchaseReturnItemAttributes {
+  id: number;
+  PurchaseReturnId: number;
+  PurchaseItemId: number | null;
+  ProductId: number | null;
+  productName: string | null;
+  quantity: number;
+  unit_cost: number;
+  refund_amount: number;
+  reason: string | null;
+  updateInventory: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface PurchaseReturnItemCreationAttributes
+  extends Optional<
+    PurchaseReturnItemAttributes,
+    "id" | "createdAt" | "updatedAt"
+  > {}
+
+export class PurchaseReturnItem
+  extends Model<
+    PurchaseReturnItemAttributes,
+    PurchaseReturnItemCreationAttributes
+  >
+  implements PurchaseReturnItemAttributes
+{
+  public id!: number;
+  public PurchaseReturnId!: number;
+  public PurchaseItemId!: number | null;
+  public ProductId!: number | null;
+  public productName!: string | null;
+  public quantity!: number;
+  public unit_cost!: number;
+  public refund_amount!: number;
+  public reason!: string | null;
+  public updateInventory!: boolean;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}

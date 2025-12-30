@@ -33,6 +33,7 @@ import {
   WalletOutlined,
   HistoryOutlined,
   PlusOutlined,
+  UndoOutlined,
 } from "@ant-design/icons";
 import { supplierService, Supplier } from "../services/supplierService";
 import {
@@ -49,6 +50,7 @@ import {
   PurchaseHistory,
   PaymentHistory,
   PurchaseDetailsModal,
+  PurchaseReturnsList,
 } from "./features/purchases";
 
 const { Title, Text } = Typography;
@@ -653,6 +655,20 @@ const SupplierDetails = () => {
                 }
               >
                 <PaymentHistory payments={payments} loading={paymentsLoading} />
+              </Card>
+            ),
+          },
+          {
+            key: "returns",
+            label: (
+              <span>
+                <UndoOutlined />
+                Purchase Returns
+              </span>
+            ),
+            children: (
+              <Card className="shadow-sm">
+                <PurchaseReturnsList supplierId={Number(id)} />
               </Card>
             ),
           },

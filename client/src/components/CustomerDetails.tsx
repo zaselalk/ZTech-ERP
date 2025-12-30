@@ -38,12 +38,14 @@ import {
   FileTextOutlined,
   EyeOutlined,
   WalletOutlined,
+  UndoOutlined,
 } from "@ant-design/icons";
 import { customerService } from "../services";
 import { formatCurrency } from "../utils";
 import dayjs from "dayjs";
 import ReceiptModal from "./ReceiptModal";
 import type { ColumnsType } from "antd/es/table";
+import { SaleReturnsList } from "./features/sales";
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -525,6 +527,23 @@ const CustomerDetails = () => {
                 description="No sales found for this customer"
               />
             )}
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Sale Returns Section */}
+      <Row gutter={[24, 24]}>
+        <Col xs={24}>
+          <Card
+            className="shadow-sm"
+            title={
+              <div className="flex items-center gap-2">
+                <UndoOutlined className="text-orange-500" />
+                <span>Sale Returns</span>
+              </div>
+            }
+          >
+            <SaleReturnsList customerId={Number(id)} />
           </Card>
         </Col>
       </Row>
