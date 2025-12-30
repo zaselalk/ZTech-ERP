@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Card,
@@ -15,6 +15,8 @@ import {
   Grid,
   Avatar,
   Input,
+  Tabs,
+  Space,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -27,10 +29,29 @@ import {
   InboxOutlined,
   DollarOutlined,
   SearchOutlined,
+  ShoppingCartOutlined,
+  WalletOutlined,
+  HistoryOutlined,
+  PlusOutlined,
+  UndoOutlined,
 } from "@ant-design/icons";
 import { supplierService, Supplier } from "../services/supplierService";
+import {
+  purchaseService,
+  Purchase,
+  SupplierPayment,
+  SupplierBalance,
+} from "../services/purchaseService";
 import { formatCurrency } from "../utils";
 import type { ColumnsType } from "antd/es/table";
+import {
+  PurchaseModal,
+  PaymentModal,
+  PurchaseHistory,
+  PaymentHistory,
+  PurchaseDetailsModal,
+  PurchaseReturnsList,
+} from "./features/purchases";
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -54,31 +75,108 @@ const SupplierDetails = () => {
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
 
-  useEffect(() => {
-    const fetchSupplierDetails = async () => {
-      try {
-        const supplierResponse = await supplierService.getSupplierById(id!);
-        setSupplier(supplierResponse);
+  // Purchase related state
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [payments, setPayments] = useState<SupplierPayment[]>([]);
+  const [balance, setBalance] = useState<SupplierBalance | null>(null);
+  const [purchasesLoading, setPurchasesLoading] = useState(false);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
 
-        const productsResponse = await supplierService.getSupplierProducts(id!);
-        setProducts(productsResponse);
-      } catch (error) {
-        message.error("Failed to fetch supplier details");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Modal states
+  const [purchaseModalVisible, setPurchaseModalVisible] = useState(false);
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+  const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(
+    null
+  );
 
-    fetchSupplierDetails();
+  const [activeTab, setActiveTab] = useState("products");
+
+  const fetchSupplierDetails = useCallback(async () => {
+    try {
+      const supplierResponse = await supplierService.getSupplierById(id!);
+      setSupplier(supplierResponse);
+
+      const productsResponse = await supplierService.getSupplierProducts(id!);
+      setProducts(productsResponse);
+    } catch (error) {
+      message.error("Failed to fetch supplier details");
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  const fetchPurchases = useCallback(async () => {
+    setPurchasesLoading(true);
+    try {
+      const data = await purchaseService.getSupplierPurchases(Number(id));
+      setPurchases(data);
+    } catch (error) {
+      message.error("Failed to fetch purchases");
+    } finally {
+      setPurchasesLoading(false);
+    }
+  }, [id]);
+
+  const fetchPayments = useCallback(async () => {
+    setPaymentsLoading(true);
+    try {
+      const data = await purchaseService.getSupplierPayments(Number(id));
+      setPayments(data);
+    } catch (error) {
+      message.error("Failed to fetch payments");
+    } finally {
+      setPaymentsLoading(false);
+    }
+  }, [id]);
+
+  const fetchBalance = useCallback(async () => {
+    try {
+      const data = await purchaseService.getSupplierBalance(Number(id));
+      setBalance(data);
+    } catch (error) {
+      // Balance might fail if there are no purchases yet
+      console.log("No balance data available");
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchSupplierDetails();
+    fetchPurchases();
+    fetchPayments();
+    fetchBalance();
+  }, [fetchSupplierDetails, fetchPurchases, fetchPayments, fetchBalance]);
+
+  const handlePurchaseSuccess = () => {
+    fetchPurchases();
+    fetchBalance();
+    fetchSupplierDetails(); // Refresh products as inventory might have changed
+  };
+
+  const handlePaymentSuccess = () => {
+    fetchPayments();
+    fetchPurchases();
+    fetchBalance();
+  };
+
+  const handleViewDetails = async (purchase: Purchase) => {
+    try {
+      const fullPurchase = await purchaseService.getPurchaseById(purchase.id);
+      setSelectedPurchase(fullPurchase);
+      setDetailsModalVisible(true);
+    } catch (error) {
+      message.error("Failed to fetch purchase details");
+    }
+  };
+
+  const handleAddPaymentToPurchase = (purchase: Purchase) => {
+    setSelectedPurchase(purchase);
+    setPaymentModalVisible(true);
+  };
 
   // Calculate statistics
   const totalProducts = products.length;
   const totalStockValue = products.reduce(
-    (sum, product) => sum + (product.buyPrice || 0) * product.quantity,
-    0
-  );
-  const totalCreditAmount = products.reduce(
     (sum, product) => sum + (product.buyPrice || 0) * product.quantity,
     0
   );
@@ -243,10 +341,29 @@ const SupplierDetails = () => {
               Supplier Details
             </Title>
             <Text className="text-gray-500">
-              View supplier information and products
+              View supplier information, purchases and payments
             </Text>
           </div>
         </div>
+        <Space>
+          <Button
+            type="primary"
+            icon={<ShoppingCartOutlined />}
+            onClick={() => setPurchaseModalVisible(true)}
+          >
+            New Purchase
+          </Button>
+          <Button
+            icon={<DollarOutlined />}
+            onClick={() => {
+              setSelectedPurchase(null);
+              setPaymentModalVisible(true);
+            }}
+            disabled={!balance || balance.totalOwed <= 0}
+          >
+            Make Payment
+          </Button>
+        </Space>
       </div>
 
       {/* Supplier Profile Card */}
@@ -310,21 +427,39 @@ const SupplierDetails = () => {
             </div>
           </Col>
 
-          {/* Right Side - Credit Amount */}
+          {/* Right Side - Balance Due */}
           <Col xs={24} lg={12}>
-            <div className="bg-linear-to-r from-blue-50 to-cyan-50 rounded-lg p-4 sm:p-6 h-full flex flex-col justify-center">
+            <div className="bg-linear-to-r from-red-50 to-orange-50 rounded-lg p-4 sm:p-6 h-full flex flex-col justify-center">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <Text className="text-gray-500 text-sm">
-                    Total Stock Value (Amount to Pay)
+                    Balance Due to Supplier
                   </Text>
                   <div className="flex items-center gap-2 mt-1">
-                    <DollarOutlined className="text-2xl text-blue-500" />
-                    <span className="text-2xl sm:text-3xl font-bold text-blue-600">
-                      {formatCurrency(totalCreditAmount)}
+                    <DollarOutlined className="text-2xl text-red-500" />
+                    <span className="text-2xl sm:text-3xl font-bold text-red-600">
+                      {formatCurrency(balance?.totalOwed || 0)}
                     </span>
                   </div>
+                  <Text className="text-gray-400 text-xs mt-2">
+                    Total Purchases:{" "}
+                    {formatCurrency(balance?.totalPurchases || 0)} | Total Paid:{" "}
+                    {formatCurrency(balance?.totalPaid || 0)}
+                  </Text>
                 </div>
+                {balance && balance.totalOwed > 0 && (
+                  <Button
+                    type="primary"
+                    danger
+                    icon={<DollarOutlined />}
+                    onClick={() => {
+                      setSelectedPurchase(null);
+                      setPaymentModalVisible(true);
+                    }}
+                  >
+                    Pay Now
+                  </Button>
+                )}
               </div>
             </div>
           </Col>
@@ -333,7 +468,7 @@ const SupplierDetails = () => {
 
       {/* Statistics Cards */}
       <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={6}>
           <Card className="shadow-sm h-full">
             <Statistic
               title={
@@ -347,13 +482,13 @@ const SupplierDetails = () => {
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={6}>
           <Card className="shadow-sm h-full">
             <Statistic
               title={
                 <span className="flex items-center gap-2">
                   <DollarOutlined className="text-blue-500" />
-                  Total Stock Value
+                  Stock Value
                 </span>
               }
               value={totalStockValue}
@@ -363,66 +498,215 @@ const SupplierDetails = () => {
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={6}>
           <Card className="shadow-sm h-full">
             <Statistic
               title={
                 <span className="flex items-center gap-2">
-                  <InboxOutlined className="text-green-500" />
-                  Items in Stock
+                  <ShoppingCartOutlined className="text-orange-500" />
+                  Total Purchases
                 </span>
               }
-              value={products.reduce((sum, p) => sum + p.quantity, 0)}
+              value={purchases.length}
+              valueStyle={{ color: "#fa8c16" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="shadow-sm h-full">
+            <Statistic
+              title={
+                <span className="flex items-center gap-2">
+                  <WalletOutlined className="text-green-500" />
+                  Total Paid
+                </span>
+              }
+              value={balance?.totalPaid || 0}
+              precision={2}
+              prefix="Rs."
               valueStyle={{ color: "#52c41a" }}
             />
           </Card>
         </Col>
       </Row>
 
-      {/* Products Table */}
-      <Card
-        title={
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <span className="flex items-center gap-2">
-              <InboxOutlined className="text-blue-500" />
-              Products from this Supplier
-            </span>
-            <Input
-              placeholder="Search products..."
-              prefix={<SearchOutlined className="text-gray-400" />}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              className="w-full sm:w-64"
-              allowClear
-            />
-          </div>
-        }
-        className="shadow-sm"
-      >
-        {filteredProducts.length === 0 ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={
-              searchText
-                ? "No products match your search"
-                : "No products from this supplier"
-            }
-          />
-        ) : (
-          <Table
-            columns={productColumns}
-            dataSource={filteredProducts}
-            rowKey="id"
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              showTotal: (total) => `Total ${total} products`,
-            }}
-            scroll={{ x: "max-content" }}
-            size={screens.md ? "middle" : "small"}
-          />
-        )}
-      </Card>
+      {/* Tabs for Products, Purchases, Payments */}
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        size={screens.md ? "large" : "middle"}
+        items={[
+          {
+            key: "products",
+            label: (
+              <span>
+                <InboxOutlined />
+                Products
+              </span>
+            ),
+            children: (
+              <Card className="shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                  <span className="flex items-center gap-2 font-medium">
+                    <InboxOutlined className="text-blue-500" />
+                    Products from this Supplier
+                  </span>
+                  <Input
+                    placeholder="Search products..."
+                    prefix={<SearchOutlined className="text-gray-400" />}
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    className="w-full sm:w-64"
+                    allowClear
+                  />
+                </div>
+                {filteredProducts.length === 0 ? (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={
+                      searchText
+                        ? "No products match your search"
+                        : "No products from this supplier"
+                    }
+                  />
+                ) : (
+                  <Table
+                    columns={productColumns}
+                    dataSource={filteredProducts}
+                    rowKey="id"
+                    pagination={{
+                      pageSize: 10,
+                      showSizeChanger: true,
+                      showTotal: (total) => `Total ${total} products`,
+                    }}
+                    scroll={{ x: "max-content" }}
+                    size={screens.md ? "middle" : "small"}
+                  />
+                )}
+              </Card>
+            ),
+          },
+          {
+            key: "purchases",
+            label: (
+              <span>
+                <ShoppingCartOutlined />
+                Purchases
+              </span>
+            ),
+            children: (
+              <Card
+                className="shadow-sm"
+                title={
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <ShoppingCartOutlined className="text-blue-500" />
+                      Purchase History
+                    </span>
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={() => setPurchaseModalVisible(true)}
+                    >
+                      New Purchase
+                    </Button>
+                  </div>
+                }
+              >
+                <PurchaseHistory
+                  purchases={purchases}
+                  loading={purchasesLoading}
+                  onRefresh={handlePurchaseSuccess}
+                  onAddPayment={handleAddPaymentToPurchase}
+                  onViewDetails={handleViewDetails}
+                />
+              </Card>
+            ),
+          },
+          {
+            key: "payments",
+            label: (
+              <span>
+                <WalletOutlined />
+                Payments
+              </span>
+            ),
+            children: (
+              <Card
+                className="shadow-sm"
+                title={
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <HistoryOutlined className="text-green-500" />
+                      Payment History
+                    </span>
+                    <Button
+                      type="primary"
+                      icon={<DollarOutlined />}
+                      onClick={() => {
+                        setSelectedPurchase(null);
+                        setPaymentModalVisible(true);
+                      }}
+                      disabled={!balance || balance.totalOwed <= 0}
+                    >
+                      Make Payment
+                    </Button>
+                  </div>
+                }
+              >
+                <PaymentHistory payments={payments} loading={paymentsLoading} />
+              </Card>
+            ),
+          },
+          {
+            key: "returns",
+            label: (
+              <span>
+                <UndoOutlined />
+                Purchase Returns
+              </span>
+            ),
+            children: (
+              <Card className="shadow-sm">
+                <PurchaseReturnsList supplierId={Number(id)} />
+              </Card>
+            ),
+          },
+        ]}
+      />
+
+      {/* Purchase Modal */}
+      <PurchaseModal
+        visible={purchaseModalVisible}
+        onClose={() => setPurchaseModalVisible(false)}
+        onSuccess={handlePurchaseSuccess}
+        supplierId={Number(id)}
+        supplierName={supplier.name}
+      />
+
+      {/* Payment Modal */}
+      <PaymentModal
+        visible={paymentModalVisible}
+        onClose={() => {
+          setPaymentModalVisible(false);
+          setSelectedPurchase(null);
+        }}
+        onSuccess={handlePaymentSuccess}
+        supplierId={Number(id)}
+        supplierName={supplier.name}
+        balance={balance}
+        purchases={purchases}
+      />
+
+      {/* Purchase Details Modal */}
+      <PurchaseDetailsModal
+        visible={detailsModalVisible}
+        onClose={() => {
+          setDetailsModalVisible(false);
+          setSelectedPurchase(null);
+        }}
+        purchase={selectedPurchase}
+      />
     </div>
   );
 };

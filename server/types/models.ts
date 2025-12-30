@@ -434,3 +434,259 @@ export class Warehouse
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
+
+// Purchase attributes
+export interface PurchaseAttributes {
+  id: number;
+  SupplierId: number;
+  invoiceNumber: string | null;
+  total_amount: number;
+  paid_amount: number;
+  payment_status: "Unpaid" | "Partial" | "Paid";
+  notes: string | null;
+  purchaseDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface PurchaseCreationAttributes
+  extends Optional<PurchaseAttributes, "id" | "createdAt" | "updatedAt"> {}
+
+export class Purchase
+  extends Model<PurchaseAttributes, PurchaseCreationAttributes>
+  implements PurchaseAttributes
+{
+  public id!: number;
+  public SupplierId!: number;
+  public invoiceNumber!: string | null;
+  public total_amount!: number;
+  public paid_amount!: number;
+  public payment_status!: "Unpaid" | "Partial" | "Paid";
+  public notes!: string | null;
+  public purchaseDate!: Date;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// PurchaseItem attributes
+export interface PurchaseItemAttributes {
+  id: number;
+  PurchaseId: number;
+  ProductId: number | null;
+  productName: string | null;
+  quantity: number;
+  unit_cost: number;
+  total_cost: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface PurchaseItemCreationAttributes
+  extends Optional<PurchaseItemAttributes, "id" | "createdAt" | "updatedAt"> {}
+
+export class PurchaseItem
+  extends Model<PurchaseItemAttributes, PurchaseItemCreationAttributes>
+  implements PurchaseItemAttributes
+{
+  public id!: number;
+  public PurchaseId!: number;
+  public ProductId!: number | null;
+  public productName!: string | null;
+  public quantity!: number;
+  public unit_cost!: number;
+  public total_cost!: number;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// SupplierPayment attributes
+export interface SupplierPaymentAttributes {
+  id: number;
+  SupplierId: number;
+  PurchaseId: number | null;
+  amount: number;
+  payment_method: "Cash" | "Card" | "Bank Transfer" | "Cheque";
+  reference: string | null;
+  notes: string | null;
+  paymentDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface SupplierPaymentCreationAttributes
+  extends Optional<
+    SupplierPaymentAttributes,
+    "id" | "createdAt" | "updatedAt"
+  > {}
+
+export class SupplierPayment
+  extends Model<SupplierPaymentAttributes, SupplierPaymentCreationAttributes>
+  implements SupplierPaymentAttributes
+{
+  public id!: number;
+  public SupplierId!: number;
+  public PurchaseId!: number | null;
+  public amount!: number;
+  public payment_method!: "Cash" | "Card" | "Bank Transfer" | "Cheque";
+  public reference!: string | null;
+  public notes!: string | null;
+  public paymentDate!: Date;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// SaleReturn attributes
+export interface SaleReturnAttributes {
+  id: number;
+  SaleId: number;
+  CustomerId: number | null;
+  total_amount: number;
+  refund_method: "Cash" | "Card" | "Credit" | "Exchange";
+  reason: string | null;
+  notes: string | null;
+  returnDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface SaleReturnCreationAttributes
+  extends Optional<SaleReturnAttributes, "id" | "createdAt" | "updatedAt"> {}
+
+export class SaleReturn
+  extends Model<SaleReturnAttributes, SaleReturnCreationAttributes>
+  implements SaleReturnAttributes
+{
+  public id!: number;
+  public SaleId!: number;
+  public CustomerId!: number | null;
+  public total_amount!: number;
+  public refund_method!: "Cash" | "Card" | "Credit" | "Exchange";
+  public reason!: string | null;
+  public notes!: string | null;
+  public returnDate!: Date;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// SaleReturnItem attributes
+export interface SaleReturnItemAttributes {
+  id: number;
+  SaleReturnId: number;
+  SaleItemId: number | null;
+  ProductId: number | null;
+  productName: string | null;
+  quantity: number;
+  price: number;
+  cost_price: number | null;
+  refund_amount: number;
+  reason: string | null;
+  restockInventory: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface SaleReturnItemCreationAttributes
+  extends Optional<
+    SaleReturnItemAttributes,
+    "id" | "createdAt" | "updatedAt"
+  > {}
+
+export class SaleReturnItem
+  extends Model<SaleReturnItemAttributes, SaleReturnItemCreationAttributes>
+  implements SaleReturnItemAttributes
+{
+  public id!: number;
+  public SaleReturnId!: number;
+  public SaleItemId!: number | null;
+  public ProductId!: number | null;
+  public productName!: string | null;
+  public quantity!: number;
+  public price!: number;
+  public cost_price!: number | null;
+  public refund_amount!: number;
+  public reason!: string | null;
+  public restockInventory!: boolean;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// PurchaseReturn attributes
+export interface PurchaseReturnAttributes {
+  id: number;
+  PurchaseId: number;
+  SupplierId: number;
+  total_amount: number;
+  refund_status: "Pending" | "Partial" | "Completed";
+  refund_received: number;
+  reason: string | null;
+  notes: string | null;
+  returnDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface PurchaseReturnCreationAttributes
+  extends Optional<
+    PurchaseReturnAttributes,
+    "id" | "createdAt" | "updatedAt"
+  > {}
+
+export class PurchaseReturn
+  extends Model<PurchaseReturnAttributes, PurchaseReturnCreationAttributes>
+  implements PurchaseReturnAttributes
+{
+  public id!: number;
+  public PurchaseId!: number;
+  public SupplierId!: number;
+  public total_amount!: number;
+  public refund_status!: "Pending" | "Partial" | "Completed";
+  public refund_received!: number;
+  public reason!: string | null;
+  public notes!: string | null;
+  public returnDate!: Date;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// PurchaseReturnItem attributes
+export interface PurchaseReturnItemAttributes {
+  id: number;
+  PurchaseReturnId: number;
+  PurchaseItemId: number | null;
+  ProductId: number | null;
+  productName: string | null;
+  quantity: number;
+  unit_cost: number;
+  refund_amount: number;
+  reason: string | null;
+  updateInventory: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface PurchaseReturnItemCreationAttributes
+  extends Optional<
+    PurchaseReturnItemAttributes,
+    "id" | "createdAt" | "updatedAt"
+  > {}
+
+export class PurchaseReturnItem
+  extends Model<
+    PurchaseReturnItemAttributes,
+    PurchaseReturnItemCreationAttributes
+  >
+  implements PurchaseReturnItemAttributes
+{
+  public id!: number;
+  public PurchaseReturnId!: number;
+  public PurchaseItemId!: number | null;
+  public ProductId!: number | null;
+  public productName!: string | null;
+  public quantity!: number;
+  public unit_cost!: number;
+  public refund_amount!: number;
+  public reason!: string | null;
+  public updateInventory!: boolean;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
