@@ -68,6 +68,26 @@ export = (
         allowNull: false,
         defaultValue: false,
       },
+      enableTaxManagement: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      taxName: {
+        type: dataTypes.STRING,
+        allowNull: true,
+        defaultValue: null,
+      },
+      taxRate: {
+        type: dataTypes.DECIMAL(5, 2),
+        allowNull: true,
+        defaultValue: null,
+      },
+      taxIncludedInPrice: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       sequelize,

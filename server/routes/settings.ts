@@ -42,6 +42,10 @@ router.get("/", async (req: Request, res: Response) => {
         enableProfitTracking: false,
         enableCategoryManagement: false,
         enableBrandManagement: false,
+        enableTaxManagement: false,
+        taxName: null,
+        taxRate: null,
+        taxIncludedInPrice: false,
       });
     }
 
@@ -72,6 +76,10 @@ router.put(
         enableProfitTracking,
         enableCategoryManagement,
         enableBrandManagement,
+        enableTaxManagement,
+        taxName,
+        taxRate,
+        taxIncludedInPrice,
       } = req.body;
 
       let settings = await db.Settings.findOne();
@@ -90,6 +98,10 @@ router.put(
           enableProfitTracking,
           enableCategoryManagement,
           enableBrandManagement,
+          enableTaxManagement,
+          taxName,
+          taxRate,
+          taxIncludedInPrice,
         });
       } else {
         settings = await db.Settings.create({
@@ -105,6 +117,10 @@ router.put(
           enableProfitTracking: enableProfitTracking ?? false,
           enableCategoryManagement: enableCategoryManagement ?? false,
           enableBrandManagement: enableBrandManagement ?? false,
+          enableTaxManagement: enableTaxManagement ?? false,
+          taxName: taxName ?? null,
+          taxRate: taxRate ?? null,
+          taxIncludedInPrice: taxIncludedInPrice ?? false,
         });
       }
 
@@ -170,6 +186,10 @@ router.post(
           enableProfitTracking: false,
           enableCategoryManagement: false,
           enableBrandManagement: false,
+          enableTaxManagement: false,
+          taxName: null,
+          taxRate: null,
+          taxIncludedInPrice: false,
         });
       }
 

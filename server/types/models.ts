@@ -341,6 +341,10 @@ export interface SettingsAttributes {
   enableProfitTracking: boolean;
   enableCategoryManagement: boolean;
   enableBrandManagement: boolean;
+  enableTaxManagement: boolean;
+  taxName: string | null;
+  taxRate: number | null;
+  taxIncludedInPrice: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -365,6 +369,10 @@ export class Settings
   public enableProfitTracking!: boolean;
   public enableCategoryManagement!: boolean;
   public enableBrandManagement!: boolean;
+  public enableTaxManagement!: boolean;
+  public taxName!: string | null;
+  public taxRate!: number | null;
+  public taxIncludedInPrice!: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }

@@ -16,6 +16,10 @@ export interface Settings {
   enableProfitTracking: boolean;
   enableCategoryManagement: boolean;
   enableBrandManagement: boolean;
+  enableTaxManagement: boolean;
+  taxName: string | null;
+  taxRate: number | null;
+  taxIncludedInPrice: boolean;
 }
 
 export const settingsService = {

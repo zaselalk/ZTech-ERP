@@ -16,6 +16,7 @@ import {
   Space,
   Modal,
   Typography,
+  InputNumber,
 } from "antd";
 import {
   UploadOutlined,
@@ -37,6 +38,7 @@ import {
   ControlOutlined,
   TagsOutlined,
   TagOutlined,
+  PercentageOutlined,
 } from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload/interface";
 import { settingsService, backupService, issueService } from "../services";
@@ -225,11 +227,19 @@ interface AdvancedFeaturesProps {
   enableProfitTracking: boolean;
   enableCategoryManagement: boolean;
   enableBrandManagement: boolean;
+  enableTaxManagement: boolean;
+  taxName: string;
+  taxRate: number | null;
+  taxIncludedInPrice: boolean;
   setEnableSupplierManagement: (value: boolean) => void;
   setEnableWarehouseManagement: (value: boolean) => void;
   setEnableProfitTracking: (value: boolean) => void;
   setEnableCategoryManagement: (value: boolean) => void;
   setEnableBrandManagement: (value: boolean) => void;
+  setEnableTaxManagement: (value: boolean) => void;
+  setTaxName: (value: string) => void;
+  setTaxRate: (value: number | null) => void;
+  setTaxIncludedInPrice: (value: boolean) => void;
   onSave: () => void;
 }
 
@@ -240,11 +250,19 @@ const AdvancedFeaturesTab: React.FC<AdvancedFeaturesProps> = ({
   enableProfitTracking,
   enableCategoryManagement,
   enableBrandManagement,
+  enableTaxManagement,
+  taxName,
+  taxRate,
+  taxIncludedInPrice,
   setEnableSupplierManagement,
   setEnableWarehouseManagement,
   setEnableProfitTracking,
   setEnableCategoryManagement,
   setEnableBrandManagement,
+  setEnableTaxManagement,
+  setTaxName,
+  setTaxRate,
+  setTaxIncludedInPrice,
   onSave,
 }) => {
   return (
@@ -399,7 +417,91 @@ const AdvancedFeaturesTab: React.FC<AdvancedFeaturesProps> = ({
               />
             )}
           </div>
+
+          {/* Tax Management */}
+          <div className="bg-linear-to-br from-rose-50 to-rose-100/50 p-4 rounded-xl border border-rose-100 transition-all hover:shadow-md">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 bg-rose-500 rounded-lg flex items-center justify-center">
+                <PercentageOutlined className="text-white text-lg" />
+              </div>
+              <Switch
+                checked={enableTaxManagement}
+                onChange={setEnableTaxManagement}
+              />
+            </div>
+            <div className="font-semibold text-gray-800 mb-1">
+              Tax Management
+            </div>
+            <Text type="secondary" className="text-xs">
+              Apply taxes to sales automatically
+            </Text>
+            {enableTaxManagement && (
+              <Alert
+                className="mt-3"
+                message="Configure tax below"
+                type="info"
+                showIcon
+              />
+            )}
+          </div>
         </div>
+
+        {/* Tax Configuration - Only shown when tax management is enabled */}
+        {enableTaxManagement && (
+          <Card
+            className="mt-6 border-rose-200 bg-rose-50/30"
+            title={
+              <span className="flex items-center gap-2">
+                <PercentageOutlined className="text-rose-500" />
+                Tax Configuration
+              </span>
+            }
+            size="small"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tax Name
+                </label>
+                <Input
+                  placeholder="e.g., VAT, GST, Sales Tax"
+                  value={taxName}
+                  onChange={(e) => setTaxName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tax Rate (%)
+                </label>
+                <InputNumber
+                  style={{ width: "100%" }}
+                  min={0}
+                  max={100}
+                  precision={2}
+                  placeholder="e.g., 10"
+                  value={taxRate}
+                  onChange={(value) => setTaxRate(value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tax Included in Price
+                </label>
+                <div className="flex items-center gap-2 mt-2">
+                  <Switch
+                    checked={taxIncludedInPrice}
+                    onChange={setTaxIncludedInPrice}
+                  />
+                  <Text type="secondary" className="text-xs">
+                    {taxIncludedInPrice
+                      ? "Prices already include tax"
+                      : "Tax will be added to prices"}
+                  </Text>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
 
         <div className="mt-6 pt-4 border-t border-gray-100">
           <Button
@@ -686,6 +788,10 @@ const Settings: React.FC = () => {
   const [enableCategoryManagement, setEnableCategoryManagement] =
     useState(false);
   const [enableBrandManagement, setEnableBrandManagement] = useState(false);
+  const [enableTaxManagement, setEnableTaxManagement] = useState(false);
+  const [taxName, setTaxName] = useState<string>("");
+  const [taxRate, setTaxRate] = useState<number | null>(null);
+  const [taxIncludedInPrice, setTaxIncludedInPrice] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
   const { canView } = usePermissions();
 
@@ -704,6 +810,10 @@ const Settings: React.FC = () => {
       setEnableProfitTracking(data.enableProfitTracking ?? false);
       setEnableCategoryManagement(data.enableCategoryManagement ?? false);
       setEnableBrandManagement(data.enableBrandManagement ?? false);
+      setEnableTaxManagement(data.enableTaxManagement ?? false);
+      setTaxName(data.taxName ?? "");
+      setTaxRate(data.taxRate ?? null);
+      setTaxIncludedInPrice(data.taxIncludedInPrice ?? false);
     } catch (error) {
       console.error("Error fetching settings:", error);
       message.error("Failed to load settings");
@@ -722,6 +832,10 @@ const Settings: React.FC = () => {
         enableProfitTracking,
         enableCategoryManagement,
         enableBrandManagement,
+        enableTaxManagement,
+        taxName: taxName || null,
+        taxRate,
+        taxIncludedInPrice,
       });
       message.success("Settings updated successfully");
       window.location.reload();
@@ -824,11 +938,19 @@ const Settings: React.FC = () => {
           enableProfitTracking={enableProfitTracking}
           enableCategoryManagement={enableCategoryManagement}
           enableBrandManagement={enableBrandManagement}
+          enableTaxManagement={enableTaxManagement}
+          taxName={taxName}
+          taxRate={taxRate}
+          taxIncludedInPrice={taxIncludedInPrice}
           setEnableSupplierManagement={setEnableSupplierManagement}
           setEnableWarehouseManagement={setEnableWarehouseManagement}
           setEnableProfitTracking={setEnableProfitTracking}
           setEnableCategoryManagement={setEnableCategoryManagement}
           setEnableBrandManagement={setEnableBrandManagement}
+          setEnableTaxManagement={setEnableTaxManagement}
+          setTaxName={setTaxName}
+          setTaxRate={setTaxRate}
+          setTaxIncludedInPrice={setTaxIncludedInPrice}
           onSave={() => form.submit()}
         />
       ),
