@@ -1,17 +1,5 @@
-import { useState } from "react";
-import {
-  Form,
-  InputNumber,
-  Typography,
-  Row,
-  Col,
-  Switch,
-  Button,
-  Space,
-  Tag,
-  Radio,
-  Select,
-} from "antd";
+import { useState, useEffect } from "react";
+import { Form, InputNumber, Switch, Button, Radio, Select } from "antd";
 import {
   UserOutlined,
   DollarOutlined,
@@ -19,12 +7,13 @@ import {
   FileTextOutlined,
   CheckCircleOutlined,
   CarOutlined,
+  InfoCircleOutlined,
+  WalletOutlined,
 } from "@ant-design/icons";
 import type { FormInstance } from "antd/es/form";
 import { Customer } from "../../../types";
 import { formatCurrency } from "../../../utils";
 
-const { Title, Text } = Typography;
 const { Option } = Select;
 
 interface PaymentFormProps {
@@ -34,12 +23,55 @@ interface PaymentFormProps {
   cart?: { id: number; quantity: number }[];
 }
 
-const PaymentForm = ({
-  form,
-  total,
-  customers,
-  cart = [],
-}: PaymentFormProps) => {
+const paymentMethods = [
+  {
+    value: "Cash",
+    label: "Cash",
+    icon: DollarOutlined,
+    bgColor: "bg-emerald-50",
+    activeColor: "bg-emerald-500",
+    iconColor: "text-emerald-600",
+    activeBorderColor: "border-emerald-500",
+  },
+  {
+    value: "Card",
+    label: "Card",
+    icon: CreditCardOutlined,
+    bgColor: "bg-blue-50",
+    activeColor: "bg-blue-500",
+    iconColor: "text-blue-600",
+    activeBorderColor: "border-blue-500",
+  },
+  {
+    value: "Credit",
+    label: "Credit",
+    icon: FileTextOutlined,
+    bgColor: "bg-amber-50",
+    activeColor: "bg-amber-500",
+    iconColor: "text-amber-600",
+    activeBorderColor: "border-amber-500",
+  },
+  {
+    value: "Paid",
+    label: "Paid",
+    icon: CheckCircleOutlined,
+    bgColor: "bg-violet-50",
+    activeColor: "bg-violet-500",
+    iconColor: "text-violet-600",
+    activeBorderColor: "border-violet-500",
+  },
+  {
+    value: "Cash On Delivery",
+    label: "COD",
+    icon: CarOutlined,
+    bgColor: "bg-orange-50",
+    activeColor: "bg-orange-500",
+    iconColor: "text-orange-600",
+    activeBorderColor: "border-orange-500",
+  },
+];
+
+const PaymentForm = ({ form, total, customers }: PaymentFormProps) => {
   const paymentMethod = Form.useWatch("payment_method", form);
   const customerId = Form.useWatch("CustomerId", form);
   const [amountTendered, setAmountTendered] = useState<number>(0);
@@ -48,6 +80,13 @@ const PaymentForm = ({
 
   const selectedCustomer = customers.find((c) => c.id === customerId);
 
+  // Auto-enable customer select when Credit is chosen
+  useEffect(() => {
+    if (paymentMethod === "Credit" && !showCustomerSelect) {
+      setShowCustomerSelect(true);
+    }
+  }, [paymentMethod]);
+
   const handleCustomerToggle = (checked: boolean) => {
     setShowCustomerSelect(checked);
     if (!checked) {
@@ -55,265 +94,363 @@ const PaymentForm = ({
     }
   };
 
+  // Quick amount suggestions
+  const getQuickAmounts = () => {
+    const roundTo100 = Math.ceil(total / 100) * 100;
+    const roundTo500 = Math.ceil(total / 500) * 500;
+    const roundTo1000 = Math.ceil(total / 1000) * 1000;
+    const amounts = [total, roundTo100, roundTo500, roundTo1000];
+    return [...new Set(amounts)].slice(0, 4);
+  };
+
   return (
-    <>
-      {/* Total Display */}
-      <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 mb-6 shadow-lg">
-        <Text className="text-indigo-100 text-sm font-medium block mb-1">
-          Total Amount Due
-        </Text>
-        <Title level={1} className="!m-0 !text-white !text-4xl font-bold">
-          {formatCurrency(total)}
-        </Title>
-        <div className="mt-2 pt-2 border-t border-indigo-400/30">
-          <Text className="text-indigo-100 text-xs">
-            {cart.length} item{cart.length !== 1 ? "s" : ""} in cart
-          </Text>
-        </div>
-      </div>
-
-      {/* Optional Customer Section */}
-      <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <UserOutlined className="text-slate-600" />
-            <Text strong className="text-slate-800">
-              Add Customer
-            </Text>
-            <Tag color="blue" className="text-xs">
-              Optional
-            </Tag>
+    <div className="grid grid-cols-2 gap-5">
+      {/* LEFT COLUMN - Customer & Payment Method */}
+      <div className="space-y-4">
+        {/* Customer Section */}
+        <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-200/80">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                <UserOutlined className="text-slate-500 text-sm" />
+              </div>
+              <div>
+                <p className="font-medium text-slate-800 m-0 text-sm">
+                  Customer
+                </p>
+                <p className="text-[11px] text-slate-500 m-0">Optional</p>
+              </div>
+            </div>
+            <Switch
+              checked={showCustomerSelect}
+              onChange={handleCustomerToggle}
+              size="small"
+              className="bg-slate-300"
+            />
           </div>
-          <Switch
-            checked={showCustomerSelect}
-            onChange={handleCustomerToggle}
-          />
+
+          {showCustomerSelect && (
+            <Form.Item name="CustomerId" className="mb-0">
+              <Select
+                placeholder="Search customer..."
+                showSearch
+                allowClear
+                size="middle"
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  (option?.children as unknown as string)
+                    ?.toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+                className="w-full"
+              >
+                {customers.map((customer) => (
+                  <Option key={customer.id} value={customer.id}>
+                    {customer.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          )}
         </div>
 
-        {showCustomerSelect && (
-          <Form.Item name="CustomerId" className="mb-0">
-            <Select
-              placeholder="Search or select a customer..."
-              showSearch
-              allowClear
-              size="large"
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                (option?.children as unknown as string)
-                  ?.toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-              className="w-full"
-            >
-              {customers.map((customer) => (
-                <Option key={customer.id} value={customer.id}>
-                  {customer.name}
-                </Option>
-              ))}
-            </Select>
+        {/* Payment Method */}
+        <div>
+          <p className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+            <WalletOutlined className="text-indigo-500" />
+            Payment Method
+          </p>
+          <Form.Item
+            name="payment_method"
+            rules={[{ required: true, message: "Select a payment method" }]}
+            className="mb-0"
+          >
+            <Radio.Group className="w-full payment-method-group">
+              <div className="flex gap-2">
+                {paymentMethods.map((method) => {
+                  const Icon = method.icon;
+                  const isSelected = paymentMethod === method.value;
+                  return (
+                    <Radio.Button
+                      key={method.value}
+                      value={method.value}
+                      className="payment-method-btn flex-1"
+                    >
+                      <div
+                        className={`
+                          flex flex-col items-center justify-center py-2 px-1 rounded-lg
+                          border-2 transition-all duration-200 cursor-pointer h-full
+                          ${
+                            isSelected
+                              ? `${method.bgColor} ${method.activeBorderColor}`
+                              : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                          }
+                        `}
+                      >
+                        <div
+                          className={`
+                            w-9 h-9 rounded-lg flex items-center justify-center mb-1
+                            transition-all duration-200
+                            ${
+                              isSelected
+                                ? `${method.activeColor}`
+                                : method.bgColor
+                            }
+                          `}
+                        >
+                          <Icon
+                            className={`text-lg ${
+                              isSelected ? "text-white" : method.iconColor
+                            }`}
+                          />
+                        </div>
+                        <span
+                          className={`text-xs font-medium ${
+                            isSelected ? "text-slate-800" : "text-slate-600"
+                          }`}
+                        >
+                          {method.label}
+                        </span>
+                      </div>
+                    </Radio.Button>
+                  );
+                })}
+              </div>
+            </Radio.Group>
           </Form.Item>
+        </div>
+
+        {/* Credit Warning */}
+        {paymentMethod === "Credit" && !selectedCustomer && (
+          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <InfoCircleOutlined className="text-amber-500 mt-0.5" />
+            <div>
+              <p className="font-medium text-amber-800 m-0 text-sm">
+                Customer Required
+              </p>
+              <p className="text-amber-700 text-xs m-0">
+                Select a customer for credit sales
+              </p>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Payment Method - Required */}
-      <Form.Item
-        name="payment_method"
-        label={
-          <Text strong className="text-slate-800 text-base">
-            Payment Method
-          </Text>
-        }
-        rules={[{ required: true, message: "Please select a payment method" }]}
-        className="mb-5"
-      >
-        <Radio.Group className="w-full payment-method-radio-group">
-          <Row gutter={[12, 12]}>
-            <Col xs={12} sm={12}>
-              <Radio.Button
-                value="Cash"
-                className="payment-method-card w-full h-20 flex items-center justify-center border-2 rounded-xl transition-all hover:border-green-400 hover:bg-green-50"
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <DollarOutlined className="text-2xl text-green-600" />
-                  <Text className="text-sm font-medium">Cash</Text>
-                </div>
-              </Radio.Button>
-            </Col>
-            <Col xs={12} sm={12}>
-              <Radio.Button
-                value="Card"
-                className="payment-method-card w-full h-20 flex items-center justify-center border-2 rounded-xl transition-all hover:border-blue-400 hover:bg-blue-50"
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <CreditCardOutlined className="text-2xl text-blue-600" />
-                  <Text className="text-sm font-medium">Card</Text>
-                </div>
-              </Radio.Button>
-            </Col>
-            <Col xs={12} sm={12}>
-              <Radio.Button
-                value="Credit"
-                className="payment-method-card w-full h-20 flex items-center justify-center border-2 rounded-xl transition-all hover:border-amber-400 hover:bg-amber-50"
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <FileTextOutlined className="text-2xl text-amber-600" />
-                  <Text className="text-sm font-medium">Credit</Text>
-                </div>
-              </Radio.Button>
-            </Col>
-            <Col xs={12} sm={12}>
-              <Radio.Button
-                value="Paid"
-                className="payment-method-card w-full h-20 flex items-center justify-center border-2 rounded-xl transition-all hover:border-teal-400 hover:bg-teal-50"
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <CheckCircleOutlined className="text-2xl text-teal-600" />
-                  <Text className="text-sm font-medium">Paid</Text>
-                </div>
-              </Radio.Button>
-            </Col>
-            <Col span={24}>
-              <Radio.Button
-                value="Cash On Delivery"
-                className="payment-method-card w-full h-20 flex items-center justify-center border-2 rounded-xl transition-all hover:border-orange-400 hover:bg-orange-50"
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <CarOutlined className="text-2xl text-orange-600" />
-                  <Text className="text-sm font-medium">Cash On Delivery</Text>
-                </div>
-              </Radio.Button>
-            </Col>
-          </Row>
-        </Radio.Group>
-      </Form.Item>
+      {/* RIGHT COLUMN - Payment Details */}
+      <div className="space-y-4">
+        {/* Cash Payment Section */}
+        {paymentMethod === "Cash" && (
+          <div className="bg-linear-to-br from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-4 h-full">
+            <p className="text-sm font-semibold text-emerald-800 mb-3 flex items-center gap-2">
+              <DollarOutlined className="text-emerald-600" />
+              Cash Payment
+            </p>
 
-      {/* Credit Warning - only show when customer is selected */}
-      {paymentMethod === "Credit" && !selectedCustomer && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-          <Text className="text-amber-700">
-            ⚠️ Please select a customer for credit sales
-          </Text>
-        </div>
-      )}
-
-      {paymentMethod === "Credit" && selectedCustomer && (
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 mb-4 shadow-sm">
-          <div className="flex items-start justify-between mb-2">
-            <div>
-              <Text className="text-blue-900 font-medium block">
-                Customer: {selectedCustomer.name}
-              </Text>
-              <Text className="text-sm text-blue-700">
-                Current Credit Balance:{" "}
-                <strong className="text-blue-800 text-base">
-                  {formatCurrency(selectedCustomer.credit_balance || 0)}
-                </strong>
-              </Text>
+            {/* Quick Amounts */}
+            <p className="text-xs font-medium text-emerald-700 mb-2">
+              Quick Select
+            </p>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {getQuickAmounts().map((amount, index) => (
+                <Button
+                  key={`${amount}-${index}`}
+                  size="small"
+                  onClick={() => setAmountTendered(amount)}
+                  className={`
+                    h-8 px-3 rounded-lg font-medium text-xs transition-all
+                    ${
+                      amountTendered === amount
+                        ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600 hover:border-emerald-600"
+                        : "bg-white border-emerald-200 text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50"
+                    }
+                  `}
+                >
+                  {index === 0
+                    ? "Exact"
+                    : formatCurrency(amount).replace(".00", "")}
+                </Button>
+              ))}
             </div>
-          </div>
-          <div className="mt-3 pt-3 border-t border-blue-200">
-            <div className="flex justify-between items-center">
-              <Text className="text-sm text-blue-700">New Balance:</Text>
-              <Text className="text-base font-bold text-blue-900">
-                {formatCurrency((selectedCustomer.credit_balance || 0) + total)}
-              </Text>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Cash Payment - Amount Tendered */}
-      {paymentMethod === "Cash" && (
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5 shadow-sm">
-          {/* Quick Amount Buttons */}
-          <div className="mb-4">
-            <Text strong className="block mb-2 text-green-900">
-              Quick Amount
-            </Text>
-            <Space wrap size="small">
-              <Button
-                size="small"
-                onClick={() => setAmountTendered(total)}
-                className="bg-white border-green-300 text-green-700 hover:bg-green-50"
-              >
-                Exact
-              </Button>
-              <Button
-                size="small"
-                onClick={() => setAmountTendered(Math.ceil(total / 100) * 100)}
-                className="bg-white border-green-300 text-green-700 hover:bg-green-50"
-              >
-                {formatCurrency(Math.ceil(total / 100) * 100)}
-              </Button>
-              <Button
-                size="small"
-                onClick={() => setAmountTendered(Math.ceil(total / 500) * 500)}
-                className="bg-white border-green-300 text-green-700 hover:bg-green-50"
-              >
-                {formatCurrency(Math.ceil(total / 500) * 500)}
-              </Button>
-              <Button
-                size="small"
-                onClick={() =>
-                  setAmountTendered(Math.ceil(total / 1000) * 1000)
-                }
-                className="bg-white border-green-300 text-green-700 hover:bg-green-50"
-              >
-                {formatCurrency(Math.ceil(total / 1000) * 1000)}
-              </Button>
-            </Space>
-          </div>
-
-          <Row gutter={16} align="middle">
-            <Col span={12}>
-              <Text strong className="block mb-2 text-green-900">
-                Amount Tendered
-              </Text>
+            {/* Amount Input */}
+            <div className="mb-4">
+              <p className="text-xs font-medium text-emerald-700 mb-1.5">
+                Amount Received
+              </p>
               <InputNumber
                 min={0}
-                className="w-full"
+                className="w-full checkout-amount-input"
                 size="large"
                 value={amountTendered}
                 onChange={(val) => setAmountTendered(val ?? 0)}
-                prefix="Rs."
-                autoFocus
-                status={
-                  amountTendered > 0 && amountTendered < total
-                    ? "warning"
-                    : undefined
-                }
+                prefix={<span className="text-slate-500">Rs.</span>}
+                controls={false}
               />
-              {amountTendered > 0 && amountTendered < total && (
-                <Text type="warning" className="text-xs mt-1 block">
-                  Amount is less than total
-                </Text>
-              )}
-            </Col>
-            <Col span={12}>
-              <Text strong className="block mb-2 text-green-900">
-                Change
-              </Text>
+            </div>
+
+            {/* Change Display */}
+            <div>
+              <p className="text-xs font-medium text-emerald-700 mb-1.5">
+                Change Due
+              </p>
               <div
-                className={`p-3 rounded-lg text-center ${
-                  change >= 0
-                    ? "bg-green-100 border-2 border-green-300"
-                    : "bg-red-100 border-2 border-red-300"
-                }`}
+                className={`
+                  h-14 rounded-xl flex items-center justify-center text-2xl font-bold
+                  transition-all duration-200
+                  ${
+                    change >= 0
+                      ? "bg-emerald-100 border-2 border-emerald-300 text-emerald-700"
+                      : "bg-red-100 border-2 border-red-300 text-red-600"
+                  }
+                `}
               >
-                <Title
-                  level={3}
-                  className={`!m-0 ${
-                    change >= 0 ? "!text-green-700" : "!text-red-600"
-                  }`}
-                >
-                  {formatCurrency(change > 0 ? change : 0)}
-                </Title>
+                {formatCurrency(change > 0 ? change : 0)}
               </div>
-            </Col>
-          </Row>
-        </div>
-      )}
-    </>
+            </div>
+
+            {amountTendered > 0 && amountTendered < total && (
+              <p className="text-xs text-amber-600 mt-2 m-0 flex items-center gap-1">
+                <InfoCircleOutlined /> Amount is less than total
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Credit Balance Info */}
+        {paymentMethod === "Credit" && selectedCustomer && (
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 h-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <UserOutlined className="text-blue-600 text-lg" />
+              </div>
+              <div>
+                <p className="font-semibold text-blue-900 m-0 text-base">
+                  {selectedCustomer.name}
+                </p>
+                <p className="text-xs text-blue-600 m-0">Credit Account</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="bg-white/70 rounded-xl p-4 border border-blue-100">
+                <p className="text-xs text-blue-600 m-0 mb-1">
+                  Current Credit Balance
+                </p>
+                <p className="text-2xl font-bold text-blue-800 m-0">
+                  {formatCurrency(Number(selectedCustomer.credit_balance) || 0)}
+                </p>
+              </div>
+              <div className="bg-blue-100/50 rounded-xl p-4 border border-blue-200">
+                <p className="text-xs text-blue-700 m-0 mb-1">
+                  Balance After This Sale
+                </p>
+                <p className="text-2xl font-bold text-blue-900 m-0">
+                  {formatCurrency(
+                    (Number(selectedCustomer.credit_balance) || 0) +
+                      Number(total)
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Card/Paid/COD - Simple confirmation */}
+        {(paymentMethod === "Card" ||
+          paymentMethod === "Paid" ||
+          paymentMethod === "Cash On Delivery") && (
+          <div
+            className={`
+            rounded-xl p-4 h-full flex flex-col items-center justify-center text-center
+            ${
+              paymentMethod === "Card"
+                ? "bg-gradient-to-br from-blue-50 to-sky-50 border border-blue-200"
+                : ""
+            }
+            ${
+              paymentMethod === "Paid"
+                ? "bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200"
+                : ""
+            }
+            ${
+              paymentMethod === "Cash On Delivery"
+                ? "bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200"
+                : ""
+            }
+          `}
+          >
+            <div
+              className={`
+              w-16 h-16 rounded-2xl flex items-center justify-center mb-3
+              ${paymentMethod === "Card" ? "bg-blue-500" : ""}
+              ${paymentMethod === "Paid" ? "bg-violet-500" : ""}
+              ${paymentMethod === "Cash On Delivery" ? "bg-orange-500" : ""}
+            `}
+            >
+              {paymentMethod === "Card" && (
+                <CreditCardOutlined className="text-white text-2xl" />
+              )}
+              {paymentMethod === "Paid" && (
+                <CheckCircleOutlined className="text-white text-2xl" />
+              )}
+              {paymentMethod === "Cash On Delivery" && (
+                <CarOutlined className="text-white text-2xl" />
+              )}
+            </div>
+            <p
+              className={`
+              font-semibold text-lg m-0 mb-1
+              ${paymentMethod === "Card" ? "text-blue-800" : ""}
+              ${paymentMethod === "Paid" ? "text-violet-800" : ""}
+              ${paymentMethod === "Cash On Delivery" ? "text-orange-800" : ""}
+            `}
+            >
+              {paymentMethod === "Card" && "Card Payment"}
+              {paymentMethod === "Paid" && "Already Paid"}
+              {paymentMethod === "Cash On Delivery" && "Cash On Delivery"}
+            </p>
+            <p className="text-slate-600 text-sm m-0">
+              {paymentMethod === "Card" &&
+                "Payment will be processed via card terminal"}
+              {paymentMethod === "Paid" &&
+                "Customer has already completed payment"}
+              {paymentMethod === "Cash On Delivery" &&
+                "Payment will be collected on delivery"}
+            </p>
+          </div>
+        )}
+
+        {/* Credit - No customer selected placeholder */}
+        {paymentMethod === "Credit" && !selectedCustomer && (
+          <div className="bg-slate-50 rounded-xl p-4 h-full flex flex-col items-center justify-center text-center border border-slate-200 border-dashed">
+            <div className="w-14 h-14 rounded-full bg-slate-200 flex items-center justify-center mb-3">
+              <UserOutlined className="text-slate-400 text-xl" />
+            </div>
+            <p className="font-medium text-slate-600 m-0 mb-1">
+              No Customer Selected
+            </p>
+            <p className="text-slate-500 text-sm m-0">
+              Select a customer to view credit details
+            </p>
+          </div>
+        )}
+
+        {/* Default - No payment method selected */}
+        {!paymentMethod && (
+          <div className="bg-slate-50 rounded-xl p-4 h-full flex flex-col items-center justify-center text-center border border-slate-200 border-dashed">
+            <div className="w-14 h-14 rounded-full bg-slate-200 flex items-center justify-center mb-3">
+              <WalletOutlined className="text-slate-400 text-xl" />
+            </div>
+            <p className="font-medium text-slate-600 m-0 mb-1">
+              Select Payment Method
+            </p>
+            <p className="text-slate-500 text-sm m-0">
+              Choose how the customer will pay
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

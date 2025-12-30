@@ -15,6 +15,11 @@ module.exports = {
             type: Sequelize.DECIMAL(10, 2),
             allowNull: true,
             defaultValue: null,
-            await queryInterface.removeColumn("SaleItems", "cost_price");
-        },
+        });
+    },
+
+    async down(queryInterface, Sequelize) {
+        await queryInterface.removeColumn("Products", "cost_price");
+        await queryInterface.removeColumn("SaleItems", "cost_price");
+    },
 };

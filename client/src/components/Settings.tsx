@@ -10,8 +10,12 @@ import {
   Image,
   Popconfirm,
   Switch,
-  Divider,
   Alert,
+  Tabs,
+  Table,
+  Space,
+  Modal,
+  Typography,
 } from "antd";
 import {
   UploadOutlined,
@@ -19,12 +23,576 @@ import {
   TeamOutlined,
   HomeOutlined,
   DollarOutlined,
+  SettingOutlined,
+  CloudUploadOutlined,
+  BugOutlined,
+  ReloadOutlined,
+  RollbackOutlined,
+  PlusOutlined,
+  GithubOutlined,
+  ShopOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload/interface";
-import { settingsService } from "../services/settingsService";
+import { settingsService, backupService, issueService } from "../services";
+import { Backup } from "../types";
+import { GithubIssue } from "../services/issueService";
+import IssueList from "./features/issues/IssueList";
+import IssueDetailModal from "./features/issues/IssueDetailModal";
+import CreateIssueModal from "./features/issues/CreateIssueModal";
+import { usePermissions } from "../hooks/usePermissions";
 
+const { Title, Text } = Typography;
 const DEFAULT_LOGO = "/logo/storyflix-logo.png";
 
+// ============== General Settings Tab ==============
+interface GeneralSettingsProps {
+  form: ReturnType<typeof Form.useForm>[0];
+  loading: boolean;
+  saving: boolean;
+  logoUrl: string | null;
+  uploadingLogo: boolean;
+  enableSupplierManagement: boolean;
+  enableWarehouseManagement: boolean;
+  enableProfitTracking: boolean;
+  onFinish: (values: any) => void;
+  onLogoUpload: (file: RcFile) => boolean;
+  onDeleteLogo: () => void;
+  setEnableSupplierManagement: (value: boolean) => void;
+  setEnableWarehouseManagement: (value: boolean) => void;
+  setEnableProfitTracking: (value: boolean) => void;
+}
+
+const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
+  form,
+  saving,
+  logoUrl,
+  uploadingLogo,
+  enableSupplierManagement,
+  enableWarehouseManagement,
+  enableProfitTracking,
+  onFinish,
+  onLogoUpload,
+  onDeleteLogo,
+  setEnableSupplierManagement,
+  setEnableWarehouseManagement,
+  setEnableProfitTracking,
+}) => {
+  return (
+    <div className="space-y-6">
+      {/* Business Branding Section */}
+      <Card
+        className="shadow-sm border-0"
+        styles={{ header: { borderBottom: "1px solid #f0f0f0" } }}
+      >
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Logo Section */}
+          <div className="md:w-64 shrink-0">
+            <div className="text-center">
+              <div className="mb-4 p-6 bg-linear-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-dashed border-gray-200 inline-block">
+                <Image
+                  src={logoUrl || DEFAULT_LOGO}
+                  alt="Business Logo"
+                  width={120}
+                  height={120}
+                  style={{ objectFit: "contain" }}
+                  fallback={DEFAULT_LOGO}
+                  className="rounded-lg"
+                />
+              </div>
+
+              <div className="flex gap-2 justify-center flex-wrap">
+                <Upload
+                  accept="image/*"
+                  showUploadList={false}
+                  beforeUpload={onLogoUpload}
+                  disabled={uploadingLogo}
+                >
+                  <Button
+                    icon={<UploadOutlined />}
+                    loading={uploadingLogo}
+                    type="primary"
+                    size="small"
+                  >
+                    {logoUrl ? "Change" : "Upload"}
+                  </Button>
+                </Upload>
+
+                {logoUrl && (
+                  <Popconfirm
+                    title="Remove Logo"
+                    description="Are you sure? The default logo will be used."
+                    onConfirm={onDeleteLogo}
+                    okText="Yes"
+                    cancelText="No"
+                  >
+                    <Button
+                      icon={<DeleteOutlined />}
+                      danger
+                      size="small"
+                      disabled={uploadingLogo}
+                    >
+                      Remove
+                    </Button>
+                  </Popconfirm>
+                )}
+              </div>
+
+              <Text type="secondary" className="text-xs mt-3 block">
+                Square image, max 2MB
+                <br />
+                PNG, JPG, GIF, WebP
+              </Text>
+            </div>
+          </div>
+
+          {/* Business Info Form */}
+          <div className="flex-1">
+            <Title level={5} className="mb-4! flex items-center gap-2">
+              <ShopOutlined className="text-blue-500" />
+              Business Information
+            </Title>
+            <Form form={form} layout="vertical" onFinish={onFinish}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                <Form.Item
+                  name="businessName"
+                  label="Business Name"
+                  rules={[
+                    { required: true, message: "Please enter business name" },
+                  ]}
+                >
+                  <Input
+                    prefix={<ShopOutlined className="text-gray-400" />}
+                    placeholder="ZTech POS"
+                  />
+                </Form.Item>
+
+                <Form.Item name="phone" label="Phone">
+                  <Input
+                    prefix={<PhoneOutlined className="text-gray-400" />}
+                    placeholder="0123456789"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="email"
+                  label="Email"
+                  rules={[
+                    { type: "email", message: "Please enter a valid email" },
+                  ]}
+                >
+                  <Input
+                    prefix={<MailOutlined className="text-gray-400" />}
+                    placeholder="info@example.com"
+                  />
+                </Form.Item>
+
+                <Form.Item name="website" label="Website">
+                  <Input
+                    prefix={<GlobalOutlined className="text-gray-400" />}
+                    placeholder="www.example.com"
+                  />
+                </Form.Item>
+              </div>
+
+              <Form.Item name="address" label="Address">
+                <Input.TextArea rows={2} placeholder="123 Main St, City" />
+              </Form.Item>
+
+              <Form.Item name="receiptFooter" label="Receipt Footer Message">
+                <Input.TextArea
+                  rows={2}
+                  placeholder="Thank you for shopping with us!"
+                />
+              </Form.Item>
+
+              <Form.Item className="mb-0 mt-4">
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={saving}
+                  icon={<SettingOutlined />}
+                >
+                  Save Changes
+                </Button>
+              </Form.Item>
+            </Form>
+          </div>
+        </div>
+      </Card>
+
+      {/* Advanced Features Section */}
+      <Card
+        title={
+          <span className="flex items-center gap-2">
+            <SettingOutlined className="text-purple-500" />
+            Advanced Features
+          </span>
+        }
+        className="shadow-sm border-0"
+        styles={{ header: { borderBottom: "1px solid #f0f0f0" } }}
+      >
+        <Text type="secondary" className="block mb-4">
+          Enable additional features to extend your POS system capabilities.
+        </Text>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Supplier Management */}
+          <div className="bg-linear-to-br from-blue-50 to-blue-100/50 p-4 rounded-xl border border-blue-100 transition-all hover:shadow-md">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                <TeamOutlined className="text-white text-lg" />
+              </div>
+              <Switch
+                checked={enableSupplierManagement}
+                onChange={setEnableSupplierManagement}
+              />
+            </div>
+            <div className="font-semibold text-gray-800 mb-1">
+              Supplier Management
+            </div>
+            <Text type="secondary" className="text-xs">
+              Track and manage your product suppliers
+            </Text>
+            {enableSupplierManagement && (
+              <Alert
+                className="mt-3"
+                message="Available after saving"
+                type="info"
+                showIcon
+                size-small
+              />
+            )}
+          </div>
+
+          {/* Warehouse Management */}
+          <div className="bg-linear-to-br from-green-50 to-green-100/50 p-4 rounded-xl border border-green-100 transition-all hover:shadow-md">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                <HomeOutlined className="text-white text-lg" />
+              </div>
+              <Switch
+                checked={enableWarehouseManagement}
+                onChange={setEnableWarehouseManagement}
+              />
+            </div>
+            <div className="font-semibold text-gray-800 mb-1">
+              Warehouse Management
+            </div>
+            <Text type="secondary" className="text-xs">
+              Manage multiple warehouse locations
+            </Text>
+            {enableWarehouseManagement && (
+              <Alert
+                className="mt-3"
+                message="Available after saving"
+                type="info"
+                showIcon
+              />
+            )}
+          </div>
+
+          {/* Profit Tracking */}
+          <div className="bg-linear-to-br from-purple-50 to-purple-100/50 p-4 rounded-xl border border-purple-100 transition-all hover:shadow-md">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                <DollarOutlined className="text-white text-lg" />
+              </div>
+              <Switch
+                checked={enableProfitTracking}
+                onChange={setEnableProfitTracking}
+              />
+            </div>
+            <div className="font-semibold text-gray-800 mb-1">
+              Profit & Loss Tracking
+            </div>
+            <Text type="secondary" className="text-xs">
+              Track product costs and calculate margins
+            </Text>
+            {enableProfitTracking && (
+              <Alert
+                className="mt-3"
+                message="Enables cost fields & reports"
+                type="info"
+                showIcon
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <Button
+            type="primary"
+            onClick={() => form.submit()}
+            loading={saving}
+            icon={<SettingOutlined />}
+          >
+            Save All Changes
+          </Button>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+// ============== Backups Tab ==============
+const BackupsTab: React.FC = () => {
+  const [backups, setBackups] = useState<Backup[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  const fetchBackups = async () => {
+    setLoading(true);
+    try {
+      const data = await backupService.getBackups();
+      setBackups(data);
+    } catch {
+      message.error("Failed to fetch backups");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBackups();
+  }, []);
+
+  const handleCreateBackup = async () => {
+    setCreating(true);
+    try {
+      await backupService.createBackup();
+      message.success("Backup created successfully");
+      fetchBackups();
+    } catch {
+      message.error("Failed to create backup");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleRestore = async (filename: string) => {
+    Modal.confirm({
+      title: "Restore Backup",
+      content:
+        "This will overwrite the current database. This action cannot be undone.",
+      okText: "Yes, Restore",
+      okType: "danger",
+      cancelText: "Cancel",
+      icon: <RollbackOutlined className="text-orange-500" />,
+      onOk: async () => {
+        const hide = message.loading("Restoring database...", 0);
+        try {
+          await backupService.restoreBackup(filename);
+          hide();
+          message.success("Database restored successfully");
+        } catch {
+          hide();
+          message.error("Failed to restore database");
+        }
+      },
+    });
+  };
+
+  const handleDelete = async (filename: string) => {
+    try {
+      await backupService.deleteBackup(filename);
+      message.success("Backup deleted successfully");
+      fetchBackups();
+    } catch {
+      message.error("Failed to delete backup");
+    }
+  };
+
+  const columns = [
+    {
+      title: "Filename",
+      dataIndex: "filename",
+      key: "filename",
+      render: (filename: string) => (
+        <span className="font-mono text-sm">{filename}</span>
+      ),
+    },
+    {
+      title: "Size",
+      dataIndex: "size",
+      key: "size",
+      render: (size: number) => (
+        <span className="text-gray-600">{(size / 1024).toFixed(2)} KB</span>
+      ),
+    },
+    {
+      title: "Created At",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) => (
+        <span className="text-gray-600">{new Date(date).toLocaleString()}</span>
+      ),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: unknown, record: Backup) => (
+        <Space>
+          <Button
+            icon={<RollbackOutlined />}
+            onClick={() => handleRestore(record.filename)}
+            size="small"
+          >
+            Restore
+          </Button>
+          <Popconfirm
+            title="Delete backup"
+            description="Are you sure to delete this backup?"
+            onConfirm={() => handleDelete(record.filename)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button icon={<DeleteOutlined />} type="text" danger size="small" />
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Header Actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-linear-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
+        <div>
+          <Title level={5} className="mb-1! flex items-center gap-2">
+            <CloudUploadOutlined className="text-blue-500" />
+            Database Backups
+          </Title>
+          <Text type="secondary" className="text-sm">
+            Create and manage database backups to protect your data
+          </Text>
+        </div>
+        <Space>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={fetchBackups}
+            loading={loading}
+          >
+            Refresh
+          </Button>
+          <Button
+            type="primary"
+            icon={<CloudUploadOutlined />}
+            onClick={handleCreateBackup}
+            loading={creating}
+          >
+            Create Backup
+          </Button>
+        </Space>
+      </div>
+
+      {/* Backups Table */}
+      <Card className="shadow-sm border-0">
+        <Table
+          columns={columns}
+          dataSource={backups}
+          rowKey="filename"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+          locale={{
+            emptyText: (
+              <div className="py-8 text-center">
+                <CloudUploadOutlined className="text-4xl text-gray-300 mb-2" />
+                <p className="text-gray-500">
+                  No backups found. Create your first backup above.
+                </p>
+              </div>
+            ),
+          }}
+        />
+      </Card>
+    </div>
+  );
+};
+
+// ============== Issues Tab ==============
+const IssuesTab: React.FC = () => {
+  const [issues, setIssues] = useState<GithubIssue[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState<GithubIssue | null>(null);
+
+  const fetchIssues = async () => {
+    setLoading(true);
+    try {
+      const data = await issueService.getIssues();
+      setIssues(data);
+    } catch {
+      message.error("Failed to fetch issues");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIssues();
+  }, []);
+
+  return (
+    <div className="space-y-4">
+      {/* Header Actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-linear-to-r from-orange-50 to-amber-50 p-4 rounded-xl border border-orange-100">
+        <div>
+          <Title level={5} className="mb-1! flex items-center gap-2">
+            <GithubOutlined className="text-gray-700" />
+            System Issues
+          </Title>
+          <Text type="secondary" className="text-sm">
+            Report bugs and track system issues on GitHub
+          </Text>
+        </div>
+        <Space>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={fetchIssues}
+            loading={loading}
+          >
+            Refresh
+          </Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setIsModalVisible(true)}
+          >
+            Submit Issue
+          </Button>
+        </Space>
+      </div>
+
+      {/* Issues List */}
+      <Card className="shadow-sm border-0">
+        <IssueList
+          issues={issues}
+          loading={loading}
+          onIssueClick={setSelectedIssue}
+        />
+      </Card>
+
+      <IssueDetailModal
+        issue={selectedIssue}
+        onClose={() => setSelectedIssue(null)}
+      />
+
+      <CreateIssueModal
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        onSuccess={() => {
+          setIsModalVisible(false);
+          fetchIssues();
+        }}
+      />
+    </div>
+  );
+};
+
+// ============== Main Settings Component ==============
 const Settings: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
@@ -36,6 +604,8 @@ const Settings: React.FC = () => {
   const [enableWarehouseManagement, setEnableWarehouseManagement] =
     useState(false);
   const [enableProfitTracking, setEnableProfitTracking] = useState(false);
+  const [activeTab, setActiveTab] = useState("general");
+  const { canView } = usePermissions();
 
   useEffect(() => {
     fetchSettings();
@@ -68,7 +638,6 @@ const Settings: React.FC = () => {
         enableProfitTracking,
       });
       message.success("Settings updated successfully");
-      // Reload page to update navigation if supplier/warehouse management was toggled
       window.location.reload();
     } catch (error) {
       console.error("Error updating settings:", error);
@@ -78,34 +647,34 @@ const Settings: React.FC = () => {
     }
   };
 
-  const handleLogoUpload = async (file: RcFile) => {
-    // Validate file type
+  const handleLogoUpload = (file: RcFile): boolean => {
     const isImage = file.type.startsWith("image/");
     if (!isImage) {
       message.error("You can only upload image files!");
       return false;
     }
 
-    // Validate file size (max 2MB)
     const isLt2M = file.size / 1024 / 1024 < 2;
     if (!isLt2M) {
       message.error("Image must be smaller than 2MB!");
       return false;
     }
 
-    try {
-      setUploadingLogo(true);
-      const response = await settingsService.uploadLogo(file);
-      setLogoUrl(response.logoUrl);
-      message.success("Logo uploaded successfully");
-    } catch (error) {
-      console.error("Error uploading logo:", error);
-      message.error("Failed to upload logo");
-    } finally {
-      setUploadingLogo(false);
-    }
+    (async () => {
+      try {
+        setUploadingLogo(true);
+        const response = await settingsService.uploadLogo(file);
+        setLogoUrl(response.logoUrl);
+        message.success("Logo uploaded successfully");
+      } catch (error) {
+        console.error("Error uploading logo:", error);
+        message.error("Failed to upload logo");
+      } finally {
+        setUploadingLogo(false);
+      }
+    })();
 
-    return false; // Prevent default upload behavior
+    return false;
   };
 
   const handleDeleteLogo = async () => {
@@ -130,205 +699,88 @@ const Settings: React.FC = () => {
     );
   }
 
+  // Build tabs based on permissions
+  const tabItems = [
+    {
+      key: "general",
+      label: (
+        <span className="flex items-center gap-2">
+          <SettingOutlined />
+          General
+        </span>
+      ),
+      children: (
+        <GeneralSettingsTab
+          form={form}
+          loading={loading}
+          saving={saving}
+          logoUrl={logoUrl}
+          uploadingLogo={uploadingLogo}
+          enableSupplierManagement={enableSupplierManagement}
+          enableWarehouseManagement={enableWarehouseManagement}
+          enableProfitTracking={enableProfitTracking}
+          onFinish={onFinish}
+          onLogoUpload={handleLogoUpload}
+          onDeleteLogo={handleDeleteLogo}
+          setEnableSupplierManagement={setEnableSupplierManagement}
+          setEnableWarehouseManagement={setEnableWarehouseManagement}
+          setEnableProfitTracking={setEnableProfitTracking}
+        />
+      ),
+    },
+  ];
+
+  // Add Backups tab if user has permission
+  if (canView("backups")) {
+    tabItems.push({
+      key: "backups",
+      label: (
+        <span className="flex items-center gap-2">
+          <CloudUploadOutlined />
+          Backups
+        </span>
+      ),
+      children: <BackupsTab />,
+    });
+  }
+
+  // Add Issues tab if user has permission
+  if (canView("issues")) {
+    tabItems.push({
+      key: "issues",
+      label: (
+        <span className="flex items-center gap-2">
+          <BugOutlined />
+          Issues
+        </span>
+      ),
+      children: <IssuesTab />,
+    });
+  }
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Business Settings</h1>
-
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Business Logo Card */}
-        <Card title="Business Logo" className="lg:w-80 shrink-0">
-          <div className="flex flex-col items-center">
-            <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
-              <Image
-                src={logoUrl || DEFAULT_LOGO}
-                alt="Business Logo"
-                width={150}
-                height={150}
-                style={{ objectFit: "contain" }}
-                fallback={DEFAULT_LOGO}
-              />
-            </div>
-
-            <div className="flex gap-2 flex-wrap justify-center">
-              <Upload
-                accept="image/*"
-                showUploadList={false}
-                beforeUpload={handleLogoUpload}
-                disabled={uploadingLogo}
-              >
-                <Button
-                  icon={<UploadOutlined />}
-                  loading={uploadingLogo}
-                  type="primary"
-                >
-                  {logoUrl ? "Change Logo" : "Upload Logo"}
-                </Button>
-              </Upload>
-
-              {logoUrl && (
-                <Popconfirm
-                  title="Remove Logo"
-                  description="Are you sure you want to remove the logo? The default logo will be used."
-                  onConfirm={handleDeleteLogo}
-                  okText="Yes"
-                  cancelText="No"
-                >
-                  <Button
-                    icon={<DeleteOutlined />}
-                    danger
-                    disabled={uploadingLogo}
-                  >
-                    Remove
-                  </Button>
-                </Popconfirm>
-              )}
-            </div>
-
-            <p className="text-xs text-gray-500 mt-3 text-center">
-              Recommended: Square image, max 2MB
-              <br />
-              Formats: PNG, JPG, GIF, WebP
-            </p>
+    <div className="p-2 sm:p-4 md:p-6">
+      {/* Page Header */}
+      <div className="mb-6">
+        <Title level={2} className="mb-1! flex items-center gap-3">
+          <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+            <SettingOutlined className="text-white text-lg" />
           </div>
-        </Card>
-
-        {/* Business Details Card */}
-        <Card title="Business Details" className="flex-1">
-          <Form form={form} layout="vertical" onFinish={onFinish}>
-            <Form.Item
-              name="businessName"
-              label="Business Name"
-              rules={[
-                { required: true, message: "Please enter business name" },
-              ]}
-            >
-              <Input placeholder="ZTech POS" />
-            </Form.Item>
-
-            <Form.Item name="address" label="Address">
-              <Input.TextArea rows={3} placeholder="123 Main St, City" />
-            </Form.Item>
-
-            <Form.Item name="phone" label="Phone">
-              <Input placeholder="0123456789" />
-            </Form.Item>
-
-            <Form.Item
-              name="email"
-              label="Email"
-              rules={[{ type: "email", message: "Please enter a valid email" }]}
-            >
-              <Input placeholder="info@example.com" />
-            </Form.Item>
-
-            <Form.Item name="website" label="Website">
-              <Input placeholder="www.example.com" />
-            </Form.Item>
-
-            <Form.Item name="receiptFooter" label="Receipt Footer Message">
-              <Input.TextArea
-                rows={2}
-                placeholder="Thank you for shopping with us!"
-              />
-            </Form.Item>
-
-            <Divider />
-
-            {/* Advanced Features Section */}
-            <div className="mb-4">
-              <h3 className="text-lg font-medium mb-2">Advanced Features</h3>
-              <p className="text-gray-500 text-sm mb-4">
-                Enable additional features to extend your POS system
-                capabilities.
-              </p>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <TeamOutlined className="text-xl text-blue-500" />
-                  <div>
-                    <div className="font-medium">Supplier Management</div>
-                    <div className="text-gray-500 text-sm">
-                      Track and manage your product suppliers
-                    </div>
-                  </div>
-                </div>
-                <Switch
-                  checked={enableSupplierManagement}
-                  onChange={setEnableSupplierManagement}
-                />
-              </div>
-              {enableSupplierManagement && (
-                <Alert
-                  className="mt-3"
-                  message="Supplier management will be available in the sidebar after saving."
-                  type="info"
-                  showIcon
-                />
-              )}
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <HomeOutlined className="text-xl text-green-500" />
-                  <div>
-                    <div className="font-medium">Warehouse Management</div>
-                    <div className="text-gray-500 text-sm">
-                      Manage multiple warehouse locations
-                    </div>
-                  </div>
-                </div>
-                <Switch
-                  checked={enableWarehouseManagement}
-                  onChange={setEnableWarehouseManagement}
-                />
-              </div>
-              {enableWarehouseManagement && (
-                <Alert
-                  className="mt-3"
-                  message="Warehouse management will be available in the sidebar after saving."
-                  type="info"
-                  showIcon
-                />
-              )}
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <DollarOutlined className="text-xl text-purple-500" />
-                  <div>
-                    <div className="font-medium">Profit & Loss Tracking</div>
-                    <div className="text-gray-500 text-sm">
-                      Track product costs and calculate profit margins
-                    </div>
-                  </div>
-                </div>
-                <Switch
-                  checked={enableProfitTracking}
-                  onChange={setEnableProfitTracking}
-                />
-              </div>
-              {enableProfitTracking && (
-                <Alert
-                  className="mt-3"
-                  message="Profit tracking will add cost price fields to products and enable profit/loss reports."
-                  type="info"
-                  showIcon
-                />
-              )}
-            </div>
-
-            <Form.Item>
-              <Button type="primary" htmlType="submit" loading={saving}>
-                Save Changes
-              </Button>
-            </Form.Item>
-          </Form>
-        </Card>
+          Settings
+        </Title>
+        <Text type="secondary">
+          Manage your business settings, backups, and system issues
+        </Text>
       </div>
+
+      {/* Tabs */}
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={tabItems}
+        className="settings-tabs"
+        size="large"
+      />
     </div>
   );
 };

@@ -13,6 +13,7 @@ export interface Settings {
   logoUrl: string | null;
   enableSupplierManagement: boolean;
   enableWarehouseManagement: boolean;
+  enableProfitTracking: boolean;
 }
 
 export const settingsService = {

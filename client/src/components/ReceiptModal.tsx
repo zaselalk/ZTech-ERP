@@ -15,7 +15,7 @@ import {
   DownloadOutlined,
 } from "@ant-design/icons";
 import { useReactToPrint } from "react-to-print";
-import { formatCurrency } from "../utils";
+import { formatCurrency, formatNumber } from "../utils";
 import { salesService } from "../services";
 import { Sale, SaleItemResponse } from "../types";
 import { buildReceiptHtml } from "../utils/ReceiptBuilder";
@@ -241,47 +241,45 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
             pagination={false}
             size="small"
             bordered
-            className="mb-6"
+            className="mb-6 receipt-table"
             columns={[
               {
-                title: "DESCRIPTION",
+                title: "Item",
                 dataIndex: "productName",
                 key: "name",
-                width: "35%",
-                render: (text: string) => text || "Unknown Product",
+                width: 180,
+                render: (text: string, record: SaleItemResponse) => (
+                  <div>
+                    <span>{text || "Unknown Product"}</span>
+                    {parseFloat(record.discount) > 0 && (
+                      <div className="text-xs text-red-500">
+                        Disc: {record.discount}
+                        {record.discount_type === "Percentage" ? "%" : ""}
+                      </div>
+                    )}
+                  </div>
+                ),
               },
               {
-                title: "QTY",
+                title: "Qty",
                 dataIndex: "quantity",
                 key: "quantity",
                 align: "center",
-                width: "10%",
+                width: 50,
               },
               {
-                title: "RATE",
+                title: "Rate (Rs.)",
                 dataIndex: "price",
                 key: "price",
                 align: "right",
-                width: "18%",
-                render: (val: string) => formatCurrency(parseFloat(val)),
+                width: 100,
+                render: (val: string) => formatNumber(parseFloat(val)),
               },
               {
-                title: "DISC",
-                key: "discount",
-                align: "center",
-                width: "15%",
-                render: (_: unknown, record: SaleItemResponse) =>
-                  parseFloat(record.discount) > 0
-                    ? ` ${record.discount_type === "Fixed" ? "Rs." : ""} ${
-                        record.discount
-                      } ${record.discount_type === "Percentage" ? "%" : ""}`
-                    : "-",
-              },
-              {
-                title: "AMOUNT",
+                title: "Amount (Rs.)",
                 key: "total",
                 align: "right",
-                width: "22%",
+                width: 120,
                 render: (_: unknown, record: SaleItemResponse) => {
                   const discountType = record.discount_type;
                   const discountValue = parseFloat(record.discount) || 0;
@@ -295,7 +293,7 @@ const ReceiptModal = ({ saleId, visible, onClose }: ReceiptModalProps) => {
                       price = price - (price * discountValue) / 100;
                     }
                   }
-                  return formatCurrency(price * quantity);
+                  return <strong>{formatNumber(price * quantity)}</strong>;
                 },
               },
             ]}
