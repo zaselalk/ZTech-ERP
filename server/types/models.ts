@@ -339,6 +339,8 @@ export interface SettingsAttributes {
   enableSupplierManagement: boolean;
   enableWarehouseManagement: boolean;
   enableProfitTracking: boolean;
+  enableCategoryManagement: boolean;
+  enableBrandManagement: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -361,6 +363,8 @@ export class Settings
   public enableSupplierManagement!: boolean;
   public enableWarehouseManagement!: boolean;
   public enableProfitTracking!: boolean;
+  public enableCategoryManagement!: boolean;
+  public enableBrandManagement!: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }

@@ -58,6 +58,16 @@ export = (
         allowNull: false,
         defaultValue: false,
       },
+      enableCategoryManagement: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      enableBrandManagement: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       sequelize,

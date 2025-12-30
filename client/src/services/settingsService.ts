@@ -14,6 +14,8 @@ export interface Settings {
   enableSupplierManagement: boolean;
   enableWarehouseManagement: boolean;
   enableProfitTracking: boolean;
+  enableCategoryManagement: boolean;
+  enableBrandManagement: boolean;
 }
 
 export const settingsService = {

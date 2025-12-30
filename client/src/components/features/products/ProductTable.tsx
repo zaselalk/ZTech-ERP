@@ -21,7 +21,7 @@ import {
 import { Product } from "../../../types";
 import { formatCurrency } from "../../../utils";
 import { productService } from "../../../services";
-import type { ColumnsType } from "antd/es/table";
+import type { ColumnsType, ColumnType } from "antd/es/table";
 
 const { useBreakpoint } = Grid;
 
@@ -30,6 +30,8 @@ interface ProductTableProps {
   refreshTrigger?: number;
   searchText?: string;
   enableProfitTracking?: boolean;
+  enableCategoryManagement?: boolean;
+  enableBrandManagement?: boolean;
 }
 
 export const ProductTable = ({
@@ -37,6 +39,8 @@ export const ProductTable = ({
   refreshTrigger,
   searchText = "",
   enableProfitTracking = false,
+  enableCategoryManagement = false,
+  enableBrandManagement = false,
 }: ProductTableProps) => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
@@ -112,42 +116,51 @@ export const ProductTable = ({
       ),
       sorter: (a, b) => a.name.localeCompare(b.name),
     },
-    {
-      title: "Brand",
-      dataIndex: "brand",
-      key: "brand",
-      responsive: ["md"],
-      render: (brand: string) =>
-        brand ? (
-          <span className="text-gray-600">{brand}</span>
-        ) : (
-          <span className="text-gray-400">—</span>
-        ),
-      sorter: (a, b) => (a.brand || "").localeCompare(b.brand || ""),
-    },
-    {
-      title: "Category",
-      dataIndex: "category",
-      key: "category",
-      responsive: ["lg"],
-      render: (category: string) =>
-        category ? (
-          <Tag color="blue">{category}</Tag>
-        ) : (
-          <span className="text-gray-400">—</span>
-        ),
-      filters: [
-        ...new Set(products.map((p) => p.category).filter(Boolean)),
-      ].map((cat) => ({ text: cat!, value: cat! })),
-      onFilter: (value, record) => record.category === value,
-    },
+    ...(enableBrandManagement
+      ? ([
+          {
+            title: "Brand",
+            dataIndex: "brand",
+            key: "brand",
+            responsive: ["md"],
+            render: (brand: string) =>
+              brand ? (
+                <span className="text-gray-600">{brand}</span>
+              ) : (
+                <span className="text-gray-400">—</span>
+              ),
+            sorter: (a: Product, b: Product) =>
+              (a.brand || "").localeCompare(b.brand || ""),
+          },
+        ] as ColumnType<Product>[])
+      : []),
+    ...(enableCategoryManagement
+      ? ([
+          {
+            title: "Category",
+            dataIndex: "category",
+            key: "category",
+            responsive: ["lg"],
+            render: (category: string) =>
+              category ? (
+                <Tag color="blue">{category}</Tag>
+              ) : (
+                <span className="text-gray-400">—</span>
+              ),
+            filters: [
+              ...new Set(products.map((p) => p.category).filter(Boolean)),
+            ].map((cat) => ({ text: cat!, value: cat! })),
+            onFilter: (value, record) => record.category === value,
+          },
+        ] as ColumnType<Product>[])
+      : []),
     ...(enableProfitTracking
-      ? [
+      ? ([
           {
             title: "Cost",
             dataIndex: "cost_price",
             key: "cost_price",
-            responsive: ["xl"] as const,
+            responsive: ["xl"],
             render: (cost_price: number | string) => (
               <span className="text-gray-700">
                 {formatCurrency(
@@ -160,7 +173,7 @@ export const ProductTable = ({
             sorter: (a: Product, b: Product) =>
               Number(a.cost_price || 0) - Number(b.cost_price || 0),
           },
-        ]
+        ] as ColumnType<Product>[])
       : []),
     {
       title: enableProfitTracking ? "Selling Price" : "Price",

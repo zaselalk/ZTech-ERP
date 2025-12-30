@@ -35,6 +35,8 @@ import {
   MailOutlined,
   GlobalOutlined,
   ControlOutlined,
+  TagsOutlined,
+  TagOutlined,
 } from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload/interface";
 import { settingsService, backupService, issueService } from "../services";
@@ -221,9 +223,13 @@ interface AdvancedFeaturesProps {
   enableSupplierManagement: boolean;
   enableWarehouseManagement: boolean;
   enableProfitTracking: boolean;
+  enableCategoryManagement: boolean;
+  enableBrandManagement: boolean;
   setEnableSupplierManagement: (value: boolean) => void;
   setEnableWarehouseManagement: (value: boolean) => void;
   setEnableProfitTracking: (value: boolean) => void;
+  setEnableCategoryManagement: (value: boolean) => void;
+  setEnableBrandManagement: (value: boolean) => void;
   onSave: () => void;
 }
 
@@ -232,9 +238,13 @@ const AdvancedFeaturesTab: React.FC<AdvancedFeaturesProps> = ({
   enableSupplierManagement,
   enableWarehouseManagement,
   enableProfitTracking,
+  enableCategoryManagement,
+  enableBrandManagement,
   setEnableSupplierManagement,
   setEnableWarehouseManagement,
   setEnableProfitTracking,
+  setEnableCategoryManagement,
+  setEnableBrandManagement,
   onSave,
 }) => {
   return (
@@ -330,6 +340,60 @@ const AdvancedFeaturesTab: React.FC<AdvancedFeaturesProps> = ({
               <Alert
                 className="mt-3"
                 message="Enables cost fields & reports"
+                type="info"
+                showIcon
+              />
+            )}
+          </div>
+
+          {/* Category Management */}
+          <div className="bg-linear-to-br from-orange-50 to-orange-100/50 p-4 rounded-xl border border-orange-100 transition-all hover:shadow-md">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                <TagsOutlined className="text-white text-lg" />
+              </div>
+              <Switch
+                checked={enableCategoryManagement}
+                onChange={setEnableCategoryManagement}
+              />
+            </div>
+            <div className="font-semibold text-gray-800 mb-1">
+              Category Management
+            </div>
+            <Text type="secondary" className="text-xs">
+              Organize products by categories
+            </Text>
+            {enableCategoryManagement && (
+              <Alert
+                className="mt-3"
+                message="Available after saving"
+                type="info"
+                showIcon
+              />
+            )}
+          </div>
+
+          {/* Brand Management */}
+          <div className="bg-linear-to-br from-cyan-50 to-cyan-100/50 p-4 rounded-xl border border-cyan-100 transition-all hover:shadow-md">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 bg-cyan-500 rounded-lg flex items-center justify-center">
+                <TagOutlined className="text-white text-lg" />
+              </div>
+              <Switch
+                checked={enableBrandManagement}
+                onChange={setEnableBrandManagement}
+              />
+            </div>
+            <div className="font-semibold text-gray-800 mb-1">
+              Brand Management
+            </div>
+            <Text type="secondary" className="text-xs">
+              Track product brands and manufacturers
+            </Text>
+            {enableBrandManagement && (
+              <Alert
+                className="mt-3"
+                message="Available after saving"
                 type="info"
                 showIcon
               />
@@ -619,6 +683,9 @@ const Settings: React.FC = () => {
   const [enableWarehouseManagement, setEnableWarehouseManagement] =
     useState(false);
   const [enableProfitTracking, setEnableProfitTracking] = useState(false);
+  const [enableCategoryManagement, setEnableCategoryManagement] =
+    useState(false);
+  const [enableBrandManagement, setEnableBrandManagement] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
   const { canView } = usePermissions();
 
@@ -635,6 +702,8 @@ const Settings: React.FC = () => {
       setEnableSupplierManagement(data.enableSupplierManagement ?? false);
       setEnableWarehouseManagement(data.enableWarehouseManagement ?? false);
       setEnableProfitTracking(data.enableProfitTracking ?? false);
+      setEnableCategoryManagement(data.enableCategoryManagement ?? false);
+      setEnableBrandManagement(data.enableBrandManagement ?? false);
     } catch (error) {
       console.error("Error fetching settings:", error);
       message.error("Failed to load settings");
@@ -651,6 +720,8 @@ const Settings: React.FC = () => {
         enableSupplierManagement,
         enableWarehouseManagement,
         enableProfitTracking,
+        enableCategoryManagement,
+        enableBrandManagement,
       });
       message.success("Settings updated successfully");
       window.location.reload();
@@ -751,9 +822,13 @@ const Settings: React.FC = () => {
           enableSupplierManagement={enableSupplierManagement}
           enableWarehouseManagement={enableWarehouseManagement}
           enableProfitTracking={enableProfitTracking}
+          enableCategoryManagement={enableCategoryManagement}
+          enableBrandManagement={enableBrandManagement}
           setEnableSupplierManagement={setEnableSupplierManagement}
           setEnableWarehouseManagement={setEnableWarehouseManagement}
           setEnableProfitTracking={setEnableProfitTracking}
+          setEnableCategoryManagement={setEnableCategoryManagement}
+          setEnableBrandManagement={setEnableBrandManagement}
           onSave={() => form.submit()}
         />
       ),

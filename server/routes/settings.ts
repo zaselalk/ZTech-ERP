@@ -40,6 +40,8 @@ router.get("/", async (req: Request, res: Response) => {
         enableSupplierManagement: false,
         enableWarehouseManagement: false,
         enableProfitTracking: false,
+        enableCategoryManagement: false,
+        enableBrandManagement: false,
       });
     }
 
@@ -68,6 +70,8 @@ router.put(
         enableSupplierManagement,
         enableWarehouseManagement,
         enableProfitTracking,
+        enableCategoryManagement,
+        enableBrandManagement,
       } = req.body;
 
       let settings = await db.Settings.findOne();
@@ -84,6 +88,8 @@ router.put(
           enableSupplierManagement,
           enableWarehouseManagement,
           enableProfitTracking,
+          enableCategoryManagement,
+          enableBrandManagement,
         });
       } else {
         settings = await db.Settings.create({
@@ -97,6 +103,8 @@ router.put(
           enableSupplierManagement: enableSupplierManagement ?? false,
           enableWarehouseManagement: enableWarehouseManagement ?? false,
           enableProfitTracking: enableProfitTracking ?? false,
+          enableCategoryManagement: enableCategoryManagement ?? false,
+          enableBrandManagement: enableBrandManagement ?? false,
         });
       }
 
@@ -160,6 +168,8 @@ router.post(
           enableSupplierManagement: false,
           enableWarehouseManagement: false,
           enableProfitTracking: false,
+          enableCategoryManagement: false,
+          enableBrandManagement: false,
         });
       }
 

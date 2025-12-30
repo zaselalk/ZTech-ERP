@@ -15,6 +15,8 @@ interface ProductFormProps {
   suppliers?: Supplier[];
   enableSupplierManagement?: boolean;
   enableProfitTracking?: boolean;
+  enableCategoryManagement?: boolean;
+  enableBrandManagement?: boolean;
 }
 
 export const ProductForm = ({
@@ -26,6 +28,8 @@ export const ProductForm = ({
   suppliers = [],
   enableSupplierManagement = false,
   enableProfitTracking = false,
+  enableCategoryManagement = false,
+  enableBrandManagement = false,
 }: ProductFormProps) => {
   return (
     <Modal
@@ -121,12 +125,14 @@ export const ProductForm = ({
         </Row>
 
         <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item name="category" label="Category">
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
+          {enableCategoryManagement && (
+            <Col span={12}>
+              <Form.Item name="category" label="Category">
+                <Input />
+              </Form.Item>
+            </Col>
+          )}
+          <Col span={enableCategoryManagement ? 12 : 24}>
             <Form.Item name="barcode" label="Barcode">
               <Input />
             </Form.Item>
@@ -134,12 +140,14 @@ export const ProductForm = ({
         </Row>
 
         <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item name="brand" label="Brand">
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
+          {enableBrandManagement && (
+            <Col span={12}>
+              <Form.Item name="brand" label="Brand">
+                <Input />
+              </Form.Item>
+            </Col>
+          )}
+          <Col span={enableBrandManagement ? 12 : 24}>
             <Form.Item
               name="reorder_threshold"
               label="Reorder Threshold"
