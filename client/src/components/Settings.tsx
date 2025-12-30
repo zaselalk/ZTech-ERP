@@ -34,6 +34,7 @@ import {
   PhoneOutlined,
   MailOutlined,
   GlobalOutlined,
+  ControlOutlined,
 } from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload/interface";
 import { settingsService, backupService, issueService } from "../services";
@@ -54,15 +55,9 @@ interface GeneralSettingsProps {
   saving: boolean;
   logoUrl: string | null;
   uploadingLogo: boolean;
-  enableSupplierManagement: boolean;
-  enableWarehouseManagement: boolean;
-  enableProfitTracking: boolean;
   onFinish: (values: any) => void;
   onLogoUpload: (file: RcFile) => boolean;
   onDeleteLogo: () => void;
-  setEnableSupplierManagement: (value: boolean) => void;
-  setEnableWarehouseManagement: (value: boolean) => void;
-  setEnableProfitTracking: (value: boolean) => void;
 }
 
 const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
@@ -70,15 +65,9 @@ const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
   saving,
   logoUrl,
   uploadingLogo,
-  enableSupplierManagement,
-  enableWarehouseManagement,
-  enableProfitTracking,
   onFinish,
   onLogoUpload,
   onDeleteLogo,
-  setEnableSupplierManagement,
-  setEnableWarehouseManagement,
-  setEnableProfitTracking,
 }) => {
   return (
     <div className="space-y-6">
@@ -222,12 +211,38 @@ const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
           </div>
         </div>
       </Card>
+    </div>
+  );
+};
 
-      {/* Advanced Features Section */}
+// ============== Advanced Features Tab ==============
+interface AdvancedFeaturesProps {
+  saving: boolean;
+  enableSupplierManagement: boolean;
+  enableWarehouseManagement: boolean;
+  enableProfitTracking: boolean;
+  setEnableSupplierManagement: (value: boolean) => void;
+  setEnableWarehouseManagement: (value: boolean) => void;
+  setEnableProfitTracking: (value: boolean) => void;
+  onSave: () => void;
+}
+
+const AdvancedFeaturesTab: React.FC<AdvancedFeaturesProps> = ({
+  saving,
+  enableSupplierManagement,
+  enableWarehouseManagement,
+  enableProfitTracking,
+  setEnableSupplierManagement,
+  setEnableWarehouseManagement,
+  setEnableProfitTracking,
+  onSave,
+}) => {
+  return (
+    <div className="space-y-6">
       <Card
         title={
           <span className="flex items-center gap-2">
-            <SettingOutlined className="text-purple-500" />
+            <ControlOutlined className="text-purple-500" />
             Advanced Features
           </span>
         }
@@ -236,6 +251,7 @@ const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
       >
         <Text type="secondary" className="block mb-4">
           Enable additional features to extend your POS system capabilities.
+          Changes will take effect after saving and refreshing the page.
         </Text>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -262,7 +278,6 @@ const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
                 message="Available after saving"
                 type="info"
                 showIcon
-                size-small
               />
             )}
           </div>
@@ -322,14 +337,14 @@ const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="mt-6 pt-4 border-t border-gray-100">
           <Button
             type="primary"
-            onClick={() => form.submit()}
+            onClick={onSave}
             loading={saving}
             icon={<SettingOutlined />}
           >
-            Save All Changes
+            Save Changes
           </Button>
         </div>
       </Card>
@@ -716,15 +731,30 @@ const Settings: React.FC = () => {
           saving={saving}
           logoUrl={logoUrl}
           uploadingLogo={uploadingLogo}
-          enableSupplierManagement={enableSupplierManagement}
-          enableWarehouseManagement={enableWarehouseManagement}
-          enableProfitTracking={enableProfitTracking}
           onFinish={onFinish}
           onLogoUpload={handleLogoUpload}
           onDeleteLogo={handleDeleteLogo}
+        />
+      ),
+    },
+    {
+      key: "advanced",
+      label: (
+        <span className="flex items-center gap-2">
+          <ControlOutlined />
+          Advanced
+        </span>
+      ),
+      children: (
+        <AdvancedFeaturesTab
+          saving={saving}
+          enableSupplierManagement={enableSupplierManagement}
+          enableWarehouseManagement={enableWarehouseManagement}
+          enableProfitTracking={enableProfitTracking}
           setEnableSupplierManagement={setEnableSupplierManagement}
           setEnableWarehouseManagement={setEnableWarehouseManagement}
           setEnableProfitTracking={setEnableProfitTracking}
+          onSave={() => form.submit()}
         />
       ),
     },
