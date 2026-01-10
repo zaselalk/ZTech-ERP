@@ -59,7 +59,7 @@ export const SalesByCustomer = ({
     labels: customerSales.map((item) => item.customer?.name || "Unknown"),
     datasets: [
       {
-        label: "Sales by Customer (LKR)",
+        label: "Top Customers of the Month (LKR)",
         data: customerSales.map((item) => parseFloat(item.totalSales)),
         backgroundColor: [
           "rgba(102, 126, 234, 0.8)",
@@ -76,7 +76,7 @@ export const SalesByCustomer = ({
   return (
     <Col xs={24} lg={12}>
       <Card
-        title="Sales by Customer"
+        title="Top 10 Customers of the Period"
         className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] border-none"
       >
         <div className="h-[300px]">
