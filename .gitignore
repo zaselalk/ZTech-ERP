@@ -5,3 +5,14 @@ backups
 node_modules/
 client/node_modules/
 server/node_modules/
+
+# test coverage
+coverage/
+client/coverage/
+server/coverage/
+*.lcov
+
+# test environment
+.env.test
+server/.env.test
+client/.env.test
