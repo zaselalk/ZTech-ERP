@@ -1,4 +1,5 @@
 export { productService } from "./productService";
+export { productVariantService } from "./productVariantService";
 export { customerService } from "./customerService";
 export { salesService } from "./salesService";
 export { reportService } from "./reportService";
@@ -14,3 +15,4 @@ export { warehouseService } from "./warehouseService";
 export { purchaseService } from "./purchaseService";
 export { saleReturnService } from "./saleReturnService";
 export { purchaseReturnService } from "./purchaseReturnService";
+export { serviceService } from "./serviceService";

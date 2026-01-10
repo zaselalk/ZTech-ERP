@@ -43,6 +43,10 @@ const Products = () => {
   const [enableSupplierManagement, setEnableSupplierManagement] =
     useState(false);
   const [enableProfitTracking, setEnableProfitTracking] = useState(false);
+  const [enableCategoryManagement, setEnableCategoryManagement] =
+    useState(false);
+  const [enableBrandManagement, setEnableBrandManagement] = useState(false);
+  const [enableVariantManagement, setEnableVariantManagement] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -54,6 +58,9 @@ const Products = () => {
       const settings = await settingsService.getSettings();
       setEnableSupplierManagement(settings.enableSupplierManagement ?? false);
       setEnableProfitTracking(settings.enableProfitTracking ?? false);
+      setEnableCategoryManagement(settings.enableCategoryManagement ?? false);
+      setEnableBrandManagement(settings.enableBrandManagement ?? false);
+      setEnableVariantManagement(settings.enableVariantManagement ?? false);
 
       // Only fetch suppliers if the feature is enabled
       if (settings.enableSupplierManagement) {
@@ -136,8 +143,12 @@ const Products = () => {
         await productService.createProduct(sanitizedValues);
       }
 
+      const itemTypeLabel =
+        sanitizedValues.item_type === "Service" ? "Service" : "Product";
       message.success(
-        `Product ${editingProduct ? "updated" : "created"} successfully`
+        `${itemTypeLabel} ${
+          editingProduct ? "updated" : "created"
+        } successfully`
       );
       setRefreshTrigger((prev) => prev + 1);
       handleCancel();
@@ -175,7 +186,7 @@ const Products = () => {
 
       {/* Statistics Cards */}
       <Row gutter={[16, 16]}>
-        <Col xs={12} sm={6}>
+        <Col xs={12} sm={enableCategoryManagement ? 6 : 8}>
           <Card
             className="hover:shadow-md transition-shadow"
             styles={{ body: { padding: "20px" } }}
@@ -192,7 +203,7 @@ const Products = () => {
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={12} sm={enableCategoryManagement ? 6 : 8}>
           <Card
             className="hover:shadow-md transition-shadow"
             styles={{ body: { padding: "20px" } }}
@@ -210,7 +221,7 @@ const Products = () => {
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={12} sm={enableCategoryManagement ? 6 : 8}>
           <Card
             className="hover:shadow-md transition-shadow"
             styles={{ body: { padding: "20px" } }}
@@ -227,23 +238,25 @@ const Products = () => {
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6}>
-          <Card
-            className="hover:shadow-md transition-shadow"
-            styles={{ body: { padding: "20px" } }}
-          >
-            <Statistic
-              title={
-                <span className="text-gray-600 font-medium text-xs sm:text-sm">
-                  Categories
-                </span>
-              }
-              value={stats.totalCategories}
-              prefix={<TagsOutlined className="text-purple-500" />}
-              valueStyle={{ color: "#722ed1", fontWeight: 600 }}
-            />
-          </Card>
-        </Col>
+        {enableCategoryManagement && (
+          <Col xs={12} sm={6}>
+            <Card
+              className="hover:shadow-md transition-shadow"
+              styles={{ body: { padding: "20px" } }}
+            >
+              <Statistic
+                title={
+                  <span className="text-gray-600 font-medium text-xs sm:text-sm">
+                    Categories
+                  </span>
+                }
+                value={stats.totalCategories}
+                prefix={<TagsOutlined className="text-purple-500" />}
+                valueStyle={{ color: "#722ed1", fontWeight: 600 }}
+              />
+            </Card>
+          </Col>
+        )}
       </Row>
 
       {/* Product Table Card */}
@@ -276,6 +289,9 @@ const Products = () => {
           refreshTrigger={refreshTrigger}
           searchText={searchText}
           enableProfitTracking={enableProfitTracking}
+          enableCategoryManagement={enableCategoryManagement}
+          enableBrandManagement={enableBrandManagement}
+          enableVariantManagement={enableVariantManagement}
         />
       </Card>
 
@@ -288,6 +304,9 @@ const Products = () => {
         suppliers={suppliers}
         enableSupplierManagement={enableSupplierManagement}
         enableProfitTracking={enableProfitTracking}
+        enableCategoryManagement={enableCategoryManagement}
+        enableBrandManagement={enableBrandManagement}
+        enableVariantManagement={enableVariantManagement}
       />
     </div>
   );

@@ -14,6 +14,14 @@ export interface Settings {
   enableSupplierManagement: boolean;
   enableWarehouseManagement: boolean;
   enableProfitTracking: boolean;
+  enableCategoryManagement: boolean;
+  enableBrandManagement: boolean;
+  enableTaxManagement: boolean;
+  enableVariantManagement: boolean;
+  enableServiceManagement: boolean;
+  taxName: string | null;
+  taxRate: number | null;
+  taxIncludedInPrice: boolean;
 }
 
 export const settingsService = {

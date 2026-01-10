@@ -1,18 +1,18 @@
 import { Sequelize, DataTypes, ModelStatic } from "sequelize";
-import { Product } from "../../types/models";
+import { Service } from "../../types/models";
 
 export = (
   sequelize: Sequelize,
   dataTypes: typeof DataTypes
-): ModelStatic<Product> => {
-  Product.init(
+): ModelStatic<Service> => {
+  Service.init(
     {
       id: {
         type: dataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
       },
-      barcode: {
+      code: {
         type: dataTypes.STRING,
         allowNull: true,
         unique: true,
@@ -21,32 +21,23 @@ export = (
         type: dataTypes.STRING,
         allowNull: false,
       },
-      brand: {
-        type: dataTypes.STRING,
-        allowNull: true,
-      },
-      supplier: {
-        type: dataTypes.STRING,
+      description: {
+        type: dataTypes.TEXT,
         allowNull: true,
       },
       category: {
         type: dataTypes.STRING,
         allowNull: true,
       },
-      quantity: {
-        type: dataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 0,
-      },
       price: {
         type: dataTypes.DECIMAL(10, 2),
         allowNull: false,
         defaultValue: 0,
       },
-      reorder_threshold: {
-        type: dataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 1,
+      cost_price: {
+        type: dataTypes.DECIMAL(10, 2),
+        allowNull: true,
+        defaultValue: null,
       },
       discount: {
         type: dataTypes.DECIMAL(5, 2),
@@ -58,27 +49,24 @@ export = (
         allowNull: false,
         defaultValue: "Percentage",
       },
-      cost_price: {
-        type: dataTypes.DECIMAL(10, 2),
+      duration: {
+        type: dataTypes.INTEGER,
         allowNull: true,
-        defaultValue: null,
+        comment: "Duration in minutes",
+      },
+      isActive: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
     },
     {
       sequelize,
-      modelName: "Product",
-      tableName: "Products",
+      modelName: "Service",
+      tableName: "Services",
       timestamps: true,
     }
   );
 
-  // Define associations
-  (Product as any).associate = (models: any) => {
-    Product.hasMany(models.ProductVariant, {
-      foreignKey: "ProductId",
-      as: "variants",
-    });
-  };
-
-  return Product;
+  return Service;
 };

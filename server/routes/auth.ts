@@ -1,11 +1,48 @@
 import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { UserPermissions } from "../types/models";
+import {
+  UserPermissions,
+  ALL_MODULES,
+  ModulePermissions,
+} from "../types/models";
 const db = require("../db/models");
 const { User } = db;
 
 const router = express.Router();
+
+// Default permission for new modules (full access for admin, no access for others)
+const DEFAULT_MODULE_PERMISSION: ModulePermissions = {
+  view: false,
+  create: false,
+  edit: false,
+  delete: false,
+};
+
+// Ensure all modules are present in permissions (handles newly added modules)
+const ensureAllModulesPresent = (
+  permissions: Partial<UserPermissions>
+): UserPermissions => {
+  const completePermissions: Partial<UserPermissions> = { ...permissions };
+
+  for (const module of ALL_MODULES) {
+    if (!completePermissions[module]) {
+      // For new modules, check if user is an admin (has full settings access)
+      // If so, give them full access to new modules too
+      const isAdmin =
+        permissions.settings?.view &&
+        permissions.settings?.create &&
+        permissions.settings?.edit &&
+        permissions.settings?.delete;
+
+      completePermissions[module] = isAdmin
+        ? { view: true, create: true, edit: true, delete: true }
+        : { ...DEFAULT_MODULE_PERMISSION };
+    }
+  }
+
+  return completePermissions as UserPermissions;
+};
 
 interface LoginRequestBody {
   username: string;
@@ -48,10 +85,13 @@ router.post(
         expiresIn: "1h",
       });
 
+      // Ensure all modules are present in permissions (handles newly added modules)
+      const completePermissions = ensureAllModulesPresent(user.permissions);
+
       res.json({
         token,
         username: user.username,
-        permissions: user.permissions as UserPermissions,
+        permissions: completePermissions,
       });
     } catch (error) {
       console.error(error);

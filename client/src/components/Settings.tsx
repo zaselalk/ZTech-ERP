@@ -16,6 +16,7 @@ import {
   Space,
   Modal,
   Typography,
+  InputNumber,
 } from "antd";
 import {
   UploadOutlined,
@@ -34,6 +35,12 @@ import {
   PhoneOutlined,
   MailOutlined,
   GlobalOutlined,
+  ControlOutlined,
+  TagsOutlined,
+  TagOutlined,
+  PercentageOutlined,
+  AppstoreOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload/interface";
 import { settingsService, backupService, issueService } from "../services";
@@ -54,15 +61,9 @@ interface GeneralSettingsProps {
   saving: boolean;
   logoUrl: string | null;
   uploadingLogo: boolean;
-  enableSupplierManagement: boolean;
-  enableWarehouseManagement: boolean;
-  enableProfitTracking: boolean;
   onFinish: (values: any) => void;
   onLogoUpload: (file: RcFile) => boolean;
   onDeleteLogo: () => void;
-  setEnableSupplierManagement: (value: boolean) => void;
-  setEnableWarehouseManagement: (value: boolean) => void;
-  setEnableProfitTracking: (value: boolean) => void;
 }
 
 const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
@@ -70,15 +71,9 @@ const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
   saving,
   logoUrl,
   uploadingLogo,
-  enableSupplierManagement,
-  enableWarehouseManagement,
-  enableProfitTracking,
   onFinish,
   onLogoUpload,
   onDeleteLogo,
-  setEnableSupplierManagement,
-  setEnableWarehouseManagement,
-  setEnableProfitTracking,
 }) => {
   return (
     <div className="space-y-6">
@@ -222,12 +217,70 @@ const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
           </div>
         </div>
       </Card>
+    </div>
+  );
+};
 
-      {/* Advanced Features Section */}
+// ============== Advanced Features Tab ==============
+interface AdvancedFeaturesProps {
+  saving: boolean;
+  enableSupplierManagement: boolean;
+  enableWarehouseManagement: boolean;
+  enableProfitTracking: boolean;
+  enableCategoryManagement: boolean;
+  enableBrandManagement: boolean;
+  enableTaxManagement: boolean;
+  enableVariantManagement: boolean;
+  enableServiceManagement: boolean;
+  taxName: string;
+  taxRate: number | null;
+  taxIncludedInPrice: boolean;
+  setEnableSupplierManagement: (value: boolean) => void;
+  setEnableWarehouseManagement: (value: boolean) => void;
+  setEnableProfitTracking: (value: boolean) => void;
+  setEnableCategoryManagement: (value: boolean) => void;
+  setEnableBrandManagement: (value: boolean) => void;
+  setEnableTaxManagement: (value: boolean) => void;
+  setEnableVariantManagement: (value: boolean) => void;
+  setEnableServiceManagement: (value: boolean) => void;
+  setTaxName: (value: string) => void;
+  setTaxRate: (value: number | null) => void;
+  setTaxIncludedInPrice: (value: boolean) => void;
+  onSave: () => void;
+}
+
+const AdvancedFeaturesTab: React.FC<AdvancedFeaturesProps> = ({
+  saving,
+  enableSupplierManagement,
+  enableWarehouseManagement,
+  enableProfitTracking,
+  enableCategoryManagement,
+  enableBrandManagement,
+  enableTaxManagement,
+  enableVariantManagement,
+  enableServiceManagement,
+  taxName,
+  taxRate,
+  taxIncludedInPrice,
+  setEnableSupplierManagement,
+  setEnableWarehouseManagement,
+  setEnableProfitTracking,
+  setEnableCategoryManagement,
+  setEnableBrandManagement,
+  setEnableTaxManagement,
+  setEnableVariantManagement,
+  setEnableServiceManagement,
+  setTaxName,
+  setTaxRate,
+  setTaxIncludedInPrice,
+  onSave,
+}) => {
+  return (
+    <div className="space-y-6">
       <Card
         title={
           <span className="flex items-center gap-2">
-            <SettingOutlined className="text-purple-500" />
+            <ControlOutlined className="text-purple-500" />
             Advanced Features
           </span>
         }
@@ -236,6 +289,7 @@ const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
       >
         <Text type="secondary" className="block mb-4">
           Enable additional features to extend your POS system capabilities.
+          Changes will take effect after saving and refreshing the page.
         </Text>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -262,7 +316,6 @@ const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
                 message="Available after saving"
                 type="info"
                 showIcon
-                size-small
               />
             )}
           </div>
@@ -320,16 +373,208 @@ const GeneralSettingsTab: React.FC<GeneralSettingsProps> = ({
               />
             )}
           </div>
+
+          {/* Category Management */}
+          <div className="bg-linear-to-br from-orange-50 to-orange-100/50 p-4 rounded-xl border border-orange-100 transition-all hover:shadow-md">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                <TagsOutlined className="text-white text-lg" />
+              </div>
+              <Switch
+                checked={enableCategoryManagement}
+                onChange={setEnableCategoryManagement}
+              />
+            </div>
+            <div className="font-semibold text-gray-800 mb-1">
+              Category Management
+            </div>
+            <Text type="secondary" className="text-xs">
+              Organize products by categories
+            </Text>
+            {enableCategoryManagement && (
+              <Alert
+                className="mt-3"
+                message="Available after saving"
+                type="info"
+                showIcon
+              />
+            )}
+          </div>
+
+          {/* Brand Management */}
+          <div className="bg-linear-to-br from-cyan-50 to-cyan-100/50 p-4 rounded-xl border border-cyan-100 transition-all hover:shadow-md">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 bg-cyan-500 rounded-lg flex items-center justify-center">
+                <TagOutlined className="text-white text-lg" />
+              </div>
+              <Switch
+                checked={enableBrandManagement}
+                onChange={setEnableBrandManagement}
+              />
+            </div>
+            <div className="font-semibold text-gray-800 mb-1">
+              Brand Management
+            </div>
+            <Text type="secondary" className="text-xs">
+              Track product brands and manufacturers
+            </Text>
+            {enableBrandManagement && (
+              <Alert
+                className="mt-3"
+                message="Available after saving"
+                type="info"
+                showIcon
+              />
+            )}
+          </div>
+
+          {/* Tax Management */}
+          <div className="bg-linear-to-br from-rose-50 to-rose-100/50 p-4 rounded-xl border border-rose-100 transition-all hover:shadow-md">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 bg-rose-500 rounded-lg flex items-center justify-center">
+                <PercentageOutlined className="text-white text-lg" />
+              </div>
+              <Switch
+                checked={enableTaxManagement}
+                onChange={setEnableTaxManagement}
+              />
+            </div>
+            <div className="font-semibold text-gray-800 mb-1">
+              Tax Management
+            </div>
+            <Text type="secondary" className="text-xs">
+              Apply taxes to sales automatically
+            </Text>
+            {enableTaxManagement && (
+              <Alert
+                className="mt-3"
+                message="Configure tax below"
+                type="info"
+                showIcon
+              />
+            )}
+          </div>
+
+          {/* Product Variant Management */}
+          <div className="bg-linear-to-br from-indigo-50 to-indigo-100/50 p-4 rounded-xl border border-indigo-100 transition-all hover:shadow-md">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center">
+                <AppstoreOutlined className="text-white text-lg" />
+              </div>
+              <Switch
+                checked={enableVariantManagement}
+                onChange={setEnableVariantManagement}
+              />
+            </div>
+            <div className="font-semibold text-gray-800 mb-1">
+              Product Variants
+            </div>
+            <Text type="secondary" className="text-xs">
+              Create product variations (size, color, etc.)
+            </Text>
+            {enableVariantManagement && (
+              <Alert
+                className="mt-3"
+                message="Available after saving"
+                type="info"
+                showIcon
+              />
+            )}
+          </div>
+
+          {/* Service Management */}
+          <div className="bg-linear-to-br from-violet-50 to-violet-100/50 p-4 rounded-xl border border-violet-100 transition-all hover:shadow-md">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 bg-violet-500 rounded-lg flex items-center justify-center">
+                <ToolOutlined className="text-white text-lg" />
+              </div>
+              <Switch
+                checked={enableServiceManagement}
+                onChange={setEnableServiceManagement}
+              />
+            </div>
+            <div className="font-semibold text-gray-800 mb-1">
+              Service Management
+            </div>
+            <Text type="secondary" className="text-xs">
+              Offer services like labor, repairs, or consultations
+            </Text>
+            {enableServiceManagement && (
+              <Alert
+                className="mt-3"
+                message="Available after saving"
+                type="info"
+                showIcon
+              />
+            )}
+          </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        {/* Tax Configuration - Only shown when tax management is enabled */}
+        {enableTaxManagement && (
+          <Card
+            className="mt-6 border-rose-200 bg-rose-50/30"
+            title={
+              <span className="flex items-center gap-2">
+                <PercentageOutlined className="text-rose-500" />
+                Tax Configuration
+              </span>
+            }
+            size="small"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tax Name
+                </label>
+                <Input
+                  placeholder="e.g., VAT, GST, Sales Tax"
+                  value={taxName}
+                  onChange={(e) => setTaxName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tax Rate (%)
+                </label>
+                <InputNumber
+                  style={{ width: "100%" }}
+                  min={0}
+                  max={100}
+                  precision={2}
+                  placeholder="e.g., 10"
+                  value={taxRate}
+                  onChange={(value) => setTaxRate(value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tax Included in Price
+                </label>
+                <div className="flex items-center gap-2 mt-2">
+                  <Switch
+                    checked={taxIncludedInPrice}
+                    onChange={setTaxIncludedInPrice}
+                  />
+                  <Text type="secondary" className="text-xs">
+                    {taxIncludedInPrice
+                      ? "Prices already include tax"
+                      : "Tax will be added to prices"}
+                  </Text>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        <div className="mt-6 pt-4 border-t border-gray-100">
           <Button
             type="primary"
-            onClick={() => form.submit()}
+            onClick={onSave}
             loading={saving}
             icon={<SettingOutlined />}
           >
-            Save All Changes
+            Save Changes
           </Button>
         </div>
       </Card>
@@ -604,6 +849,15 @@ const Settings: React.FC = () => {
   const [enableWarehouseManagement, setEnableWarehouseManagement] =
     useState(false);
   const [enableProfitTracking, setEnableProfitTracking] = useState(false);
+  const [enableCategoryManagement, setEnableCategoryManagement] =
+    useState(false);
+  const [enableBrandManagement, setEnableBrandManagement] = useState(false);
+  const [enableTaxManagement, setEnableTaxManagement] = useState(false);
+  const [enableVariantManagement, setEnableVariantManagement] = useState(false);
+  const [enableServiceManagement, setEnableServiceManagement] = useState(false);
+  const [taxName, setTaxName] = useState<string>("");
+  const [taxRate, setTaxRate] = useState<number | null>(null);
+  const [taxIncludedInPrice, setTaxIncludedInPrice] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
   const { canView } = usePermissions();
 
@@ -620,6 +874,14 @@ const Settings: React.FC = () => {
       setEnableSupplierManagement(data.enableSupplierManagement ?? false);
       setEnableWarehouseManagement(data.enableWarehouseManagement ?? false);
       setEnableProfitTracking(data.enableProfitTracking ?? false);
+      setEnableCategoryManagement(data.enableCategoryManagement ?? false);
+      setEnableBrandManagement(data.enableBrandManagement ?? false);
+      setEnableTaxManagement(data.enableTaxManagement ?? false);
+      setEnableVariantManagement(data.enableVariantManagement ?? false);
+      setEnableServiceManagement(data.enableServiceManagement ?? false);
+      setTaxName(data.taxName ?? "");
+      setTaxRate(data.taxRate ?? null);
+      setTaxIncludedInPrice(data.taxIncludedInPrice ?? false);
     } catch (error) {
       console.error("Error fetching settings:", error);
       message.error("Failed to load settings");
@@ -636,6 +898,14 @@ const Settings: React.FC = () => {
         enableSupplierManagement,
         enableWarehouseManagement,
         enableProfitTracking,
+        enableCategoryManagement,
+        enableBrandManagement,
+        enableTaxManagement,
+        enableVariantManagement,
+        enableServiceManagement,
+        taxName: taxName || null,
+        taxRate,
+        taxIncludedInPrice,
       });
       message.success("Settings updated successfully");
       window.location.reload();
@@ -716,15 +986,46 @@ const Settings: React.FC = () => {
           saving={saving}
           logoUrl={logoUrl}
           uploadingLogo={uploadingLogo}
-          enableSupplierManagement={enableSupplierManagement}
-          enableWarehouseManagement={enableWarehouseManagement}
-          enableProfitTracking={enableProfitTracking}
           onFinish={onFinish}
           onLogoUpload={handleLogoUpload}
           onDeleteLogo={handleDeleteLogo}
+        />
+      ),
+    },
+    {
+      key: "advanced",
+      label: (
+        <span className="flex items-center gap-2">
+          <ControlOutlined />
+          Advanced
+        </span>
+      ),
+      children: (
+        <AdvancedFeaturesTab
+          saving={saving}
+          enableSupplierManagement={enableSupplierManagement}
+          enableWarehouseManagement={enableWarehouseManagement}
+          enableProfitTracking={enableProfitTracking}
+          enableCategoryManagement={enableCategoryManagement}
+          enableBrandManagement={enableBrandManagement}
+          enableTaxManagement={enableTaxManagement}
+          enableVariantManagement={enableVariantManagement}
+          enableServiceManagement={enableServiceManagement}
+          taxName={taxName}
+          taxRate={taxRate}
+          taxIncludedInPrice={taxIncludedInPrice}
           setEnableSupplierManagement={setEnableSupplierManagement}
           setEnableWarehouseManagement={setEnableWarehouseManagement}
           setEnableProfitTracking={setEnableProfitTracking}
+          setEnableCategoryManagement={setEnableCategoryManagement}
+          setEnableBrandManagement={setEnableBrandManagement}
+          setEnableTaxManagement={setEnableTaxManagement}
+          setEnableVariantManagement={setEnableVariantManagement}
+          setEnableServiceManagement={setEnableServiceManagement}
+          setTaxName={setTaxName}
+          setTaxRate={setTaxRate}
+          setTaxIncludedInPrice={setTaxIncludedInPrice}
+          onSave={() => form.submit()}
         />
       ),
     },

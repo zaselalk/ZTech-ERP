@@ -58,6 +58,46 @@ export = (
         allowNull: false,
         defaultValue: false,
       },
+      enableCategoryManagement: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      enableBrandManagement: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      enableTaxManagement: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      enableVariantManagement: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      enableServiceManagement: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      taxName: {
+        type: dataTypes.STRING,
+        allowNull: true,
+        defaultValue: null,
+      },
+      taxRate: {
+        type: dataTypes.DECIMAL(5, 2),
+        allowNull: true,
+        defaultValue: null,
+      },
+      taxIncludedInPrice: {
+        type: dataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       sequelize,

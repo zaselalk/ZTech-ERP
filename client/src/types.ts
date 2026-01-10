@@ -22,6 +22,7 @@ export interface UserPermissions {
   pos: ModulePermissions;
   suppliers: ModulePermissions;
   warehouses: ModulePermissions;
+  services: ModulePermissions;
 }
 
 // All available modules
@@ -39,6 +40,7 @@ export const ALL_MODULES = [
   "pos",
   "suppliers",
   "warehouses",
+  "services",
 ] as const;
 
 export type ModuleName = (typeof ALL_MODULES)[number];
@@ -58,6 +60,7 @@ export const MODULE_LABELS: Record<ModuleName, string> = {
   pos: "POS (Point of Sale)",
   suppliers: "Suppliers",
   warehouses: "Warehouses",
+  services: "Services",
 };
 
 // Full access permissions (for initial admin setup)
@@ -75,6 +78,7 @@ export const FULL_PERMISSIONS: UserPermissions = {
   pos: { view: true, create: true, edit: true, delete: true },
   suppliers: { view: true, create: true, edit: true, delete: true },
   warehouses: { view: true, create: true, edit: true, delete: true },
+  services: { view: true, create: true, edit: true, delete: true },
 };
 
 // Default permissions for new users (POS only)
@@ -92,6 +96,7 @@ export const DEFAULT_PERMISSIONS: UserPermissions = {
   pos: { view: true, create: true, edit: false, delete: false },
   suppliers: { view: false, create: false, edit: false, delete: false },
   warehouses: { view: false, create: false, edit: false, delete: false },
+  services: { view: false, create: false, edit: false, delete: false },
 };
 
 export interface User {
@@ -171,6 +176,38 @@ export interface Product {
   discount?: number;
   discount_type?: "Fixed" | "Percentage";
   SaleItem?: SaleItem; // present in sale responses
+  variants?: ProductVariant[]; // product variants
+}
+
+export interface Service {
+  id: number;
+  code?: string | null;
+  name: string;
+  description?: string | null;
+  category?: string | null;
+  price: number;
+  cost_price?: number | null;
+  discount?: number;
+  discount_type?: "Fixed" | "Percentage";
+  duration?: number | null;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ProductVariant {
+  id: number;
+  ProductId: number;
+  name: string;
+  sku: string | null;
+  barcode: string | null;
+  price: number | null;
+  cost_price: number | null;
+  quantity: number;
+  attributes: Record<string, string> | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Sale {

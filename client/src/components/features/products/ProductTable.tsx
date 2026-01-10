@@ -17,11 +17,13 @@ import {
   PlusOutlined,
   EyeOutlined,
   BarcodeOutlined,
+  AppstoreOutlined,
 } from "@ant-design/icons";
 import { Product } from "../../../types";
 import { formatCurrency } from "../../../utils";
 import { productService } from "../../../services";
-import type { ColumnsType } from "antd/es/table";
+import { ProductVariantManager } from "./ProductVariantManager";
+import type { ColumnsType, ColumnType } from "antd/es/table";
 
 const { useBreakpoint } = Grid;
 
@@ -30,6 +32,9 @@ interface ProductTableProps {
   refreshTrigger?: number;
   searchText?: string;
   enableProfitTracking?: boolean;
+  enableCategoryManagement?: boolean;
+  enableBrandManagement?: boolean;
+  enableVariantManagement?: boolean;
 }
 
 export const ProductTable = ({
@@ -37,12 +42,16 @@ export const ProductTable = ({
   refreshTrigger,
   searchText = "",
   enableProfitTracking = false,
+  enableCategoryManagement = false,
+  enableBrandManagement = false,
+  enableVariantManagement = false,
 }: ProductTableProps) => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [stockModalVisible, setStockModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [variantProduct, setVariantProduct] = useState<Product | null>(null);
   const [stockForm] = Form.useForm();
   const screens = useBreakpoint();
 
@@ -112,42 +121,51 @@ export const ProductTable = ({
       ),
       sorter: (a, b) => a.name.localeCompare(b.name),
     },
-    {
-      title: "Brand",
-      dataIndex: "brand",
-      key: "brand",
-      responsive: ["md"],
-      render: (brand: string) =>
-        brand ? (
-          <span className="text-gray-600">{brand}</span>
-        ) : (
-          <span className="text-gray-400">—</span>
-        ),
-      sorter: (a, b) => (a.brand || "").localeCompare(b.brand || ""),
-    },
-    {
-      title: "Category",
-      dataIndex: "category",
-      key: "category",
-      responsive: ["lg"],
-      render: (category: string) =>
-        category ? (
-          <Tag color="blue">{category}</Tag>
-        ) : (
-          <span className="text-gray-400">—</span>
-        ),
-      filters: [
-        ...new Set(products.map((p) => p.category).filter(Boolean)),
-      ].map((cat) => ({ text: cat!, value: cat! })),
-      onFilter: (value, record) => record.category === value,
-    },
+    ...(enableBrandManagement
+      ? ([
+          {
+            title: "Brand",
+            dataIndex: "brand",
+            key: "brand",
+            responsive: ["md"],
+            render: (brand: string) =>
+              brand ? (
+                <span className="text-gray-600">{brand}</span>
+              ) : (
+                <span className="text-gray-400">—</span>
+              ),
+            sorter: (a: Product, b: Product) =>
+              (a.brand || "").localeCompare(b.brand || ""),
+          },
+        ] as ColumnType<Product>[])
+      : []),
+    ...(enableCategoryManagement
+      ? ([
+          {
+            title: "Category",
+            dataIndex: "category",
+            key: "category",
+            responsive: ["lg"],
+            render: (category: string) =>
+              category ? (
+                <Tag color="blue">{category}</Tag>
+              ) : (
+                <span className="text-gray-400">—</span>
+              ),
+            filters: [
+              ...new Set(products.map((p) => p.category).filter(Boolean)),
+            ].map((cat) => ({ text: cat!, value: cat! })),
+            onFilter: (value, record) => record.category === value,
+          },
+        ] as ColumnType<Product>[])
+      : []),
     ...(enableProfitTracking
-      ? [
+      ? ([
           {
             title: "Cost",
             dataIndex: "cost_price",
             key: "cost_price",
-            responsive: ["xl"] as const,
+            responsive: ["xl"],
             render: (cost_price: number | string) => (
               <span className="text-gray-700">
                 {formatCurrency(
@@ -160,7 +178,7 @@ export const ProductTable = ({
             sorter: (a: Product, b: Product) =>
               Number(a.cost_price || 0) - Number(b.cost_price || 0),
           },
-        ]
+        ] as ColumnType<Product>[])
       : []),
     {
       title: enableProfitTracking ? "Selling Price" : "Price",
@@ -195,33 +213,50 @@ export const ProductTable = ({
       title: "Actions",
       key: "actions",
       width: screens.md ? 200 : 140,
-      render: (_: unknown, record: Product) => (
-        <Space size="small">
-          <Tooltip title="Add Stock">
-            <Button
-              type="text"
-              icon={<PlusOutlined />}
-              onClick={() => handleAddStock(record)}
-              className="text-green-500 hover:text-green-600"
-            />
-          </Tooltip>
-          <Tooltip title="Edit">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => onEdit(record)}
-              className="text-blue-500 hover:text-blue-600"
-            />
-          </Tooltip>
-          <Link to={`/products/${record.id}`}>
-            <Tooltip title="View Details">
-              <Button type="primary" ghost size="small" icon={<EyeOutlined />}>
-                {screens.md && "Details"}
-              </Button>
+      render: (_: unknown, record: Product) => {
+        return (
+          <Space size="small">
+            <Tooltip title="Add Stock">
+              <Button
+                type="text"
+                icon={<PlusOutlined />}
+                onClick={() => handleAddStock(record)}
+                className="text-green-500 hover:text-green-600"
+              />
             </Tooltip>
-          </Link>
-        </Space>
-      ),
+            {enableVariantManagement && (
+              <Tooltip title="Manage Variants">
+                <Button
+                  type="text"
+                  icon={<AppstoreOutlined />}
+                  onClick={() => setVariantProduct(record)}
+                  className="text-purple-500 hover:text-purple-600"
+                />
+              </Tooltip>
+            )}
+            <Tooltip title="Edit">
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={() => onEdit(record)}
+                className="text-blue-500 hover:text-blue-600"
+              />
+            </Tooltip>
+            <Link to={`/products/${record.id}`}>
+              <Tooltip title="View Details">
+                <Button
+                  type="primary"
+                  ghost
+                  size="small"
+                  icon={<EyeOutlined />}
+                >
+                  {screens.md && "Details"}
+                </Button>
+              </Tooltip>
+            </Link>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -320,6 +355,23 @@ export const ProductTable = ({
           </div>
         )}
       </Modal>
+
+      {/* Product Variant Manager */}
+      {enableVariantManagement && variantProduct && (
+        <ProductVariantManager
+          visible={!!variantProduct}
+          productId={variantProduct.id}
+          productName={variantProduct.name}
+          productPrice={Number(variantProduct.price) || 0}
+          productCostPrice={
+            variantProduct.cost_price
+              ? Number(variantProduct.cost_price)
+              : undefined
+          }
+          onClose={() => setVariantProduct(null)}
+          enableProfitTracking={enableProfitTracking}
+        />
+      )}
     </>
   );
 };

@@ -40,6 +40,14 @@ router.get("/", async (req: Request, res: Response) => {
         enableSupplierManagement: false,
         enableWarehouseManagement: false,
         enableProfitTracking: false,
+        enableCategoryManagement: false,
+        enableBrandManagement: false,
+        enableTaxManagement: false,
+        enableVariantManagement: false,
+        enableServiceManagement: false,
+        taxName: null,
+        taxRate: null,
+        taxIncludedInPrice: false,
       });
     }
 
@@ -68,6 +76,14 @@ router.put(
         enableSupplierManagement,
         enableWarehouseManagement,
         enableProfitTracking,
+        enableCategoryManagement,
+        enableBrandManagement,
+        enableTaxManagement,
+        enableVariantManagement,
+        enableServiceManagement,
+        taxName,
+        taxRate,
+        taxIncludedInPrice,
       } = req.body;
 
       let settings = await db.Settings.findOne();
@@ -84,6 +100,14 @@ router.put(
           enableSupplierManagement,
           enableWarehouseManagement,
           enableProfitTracking,
+          enableCategoryManagement,
+          enableBrandManagement,
+          enableTaxManagement,
+          enableVariantManagement,
+          enableServiceManagement,
+          taxName,
+          taxRate,
+          taxIncludedInPrice,
         });
       } else {
         settings = await db.Settings.create({
@@ -97,6 +121,14 @@ router.put(
           enableSupplierManagement: enableSupplierManagement ?? false,
           enableWarehouseManagement: enableWarehouseManagement ?? false,
           enableProfitTracking: enableProfitTracking ?? false,
+          enableCategoryManagement: enableCategoryManagement ?? false,
+          enableBrandManagement: enableBrandManagement ?? false,
+          enableTaxManagement: enableTaxManagement ?? false,
+          enableVariantManagement: enableVariantManagement ?? false,
+          enableServiceManagement: enableServiceManagement ?? false,
+          taxName: taxName ?? null,
+          taxRate: taxRate ?? null,
+          taxIncludedInPrice: taxIncludedInPrice ?? false,
         });
       }
 
@@ -160,6 +192,14 @@ router.post(
           enableSupplierManagement: false,
           enableWarehouseManagement: false,
           enableProfitTracking: false,
+          enableCategoryManagement: false,
+          enableBrandManagement: false,
+          enableTaxManagement: false,
+          enableVariantManagement: false,
+          enableServiceManagement: false,
+          taxName: null,
+          taxRate: null,
+          taxIncludedInPrice: false,
         });
       }
 
