@@ -191,6 +191,9 @@ router.get(
         ],
       };
 
+      // remove unknown customers
+      whereClause.CustomerId = { [Op.ne]: null };
+
       const sales = await Sale.findAll({
         where: whereClause,
         include: [
@@ -205,6 +208,8 @@ router.get(
           [fn("SUM", col("total_amount")), "totalSales"],
           "CustomerId",
         ],
+        order: [[literal("totalSales"), "DESC"]],
+        limit: 10,
       });
 
       res.send(sales);
