@@ -1,7 +1,7 @@
 # Test Plan Implementation Summary
 
 ## Overview
-A comprehensive testing infrastructure has been created for the ZTech-ERP (Bookshop Management System) application to address the lack of proper testing mechanisms.
+A comprehensive testing infrastructure has been created for the ZTech-ERP application to address the lack of proper testing mechanisms.
 
 ## Deliverables
 
