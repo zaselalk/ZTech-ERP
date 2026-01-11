@@ -93,3 +93,37 @@ docker run -d \
   -v /home/asela/yatadola-storyflix-api/backups:/app/backups \
   ghcr.io/zaselalk/storyflix-yatadola:latest
 ```
+
+## Testing
+
+This project has a comprehensive testing infrastructure. See [TEST_PLAN.md](TEST_PLAN.md) for the complete testing strategy.
+
+### Running Tests
+
+**Frontend Tests:**
+```bash
+cd client
+npm run test              # Run all tests
+npm run test:watch        # Run in watch mode
+npm run test:coverage     # Run with coverage report
+```
+
+**Backend Tests:**
+```bash
+cd server
+npm run test              # Run all tests
+npm run test:watch        # Run in watch mode
+npm run test:coverage     # Run with coverage report
+npm run test:unit         # Run unit tests only
+npm run test:integration  # Run integration tests only
+```
+
+### Test Coverage
+
+- Frontend: Unit tests for components, services, and utilities
+- Backend: Unit tests for routes, middleware, and models
+- Integration: End-to-end workflow tests
+
+For detailed information about testing strategy, test execution, and writing tests, see:
+- [TEST_PLAN.md](TEST_PLAN.md) - Comprehensive test plan and strategy
+- [server/test/README.md](server/test/README.md) - Backend testing guide
