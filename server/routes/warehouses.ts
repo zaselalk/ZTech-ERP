@@ -151,7 +151,7 @@ router.put(
         });
         if (
           existingWarehouse &&
-          existingWarehouse.id !== parseInt(req.params.id)
+          existingWarehouse.id !== parseInt(req.params.id as string, 10)
         ) {
           res.status(400).json({ message: "Warehouse code already exists" });
           return;

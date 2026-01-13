@@ -33,8 +33,10 @@ router.get(
 
 // Get single service
 router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
+  const service_id = req.params.id as string;
+
   try {
-    const service = await db.Service.findByPk(req.params.id);
+    const service = await db.Service.findByPk(service_id);
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
@@ -94,8 +96,10 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
 
 // Update service
 router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
+  const service_id = req.params.id as string;
+
   try {
-    const service = await db.Service.findByPk(req.params.id);
+    const service = await db.Service.findByPk(service_id);
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
@@ -146,8 +150,10 @@ router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
 router.delete(
   "/:id",
   async (req: Request, res: Response, next: NextFunction) => {
+    const service_id = req.params.id as string;
+
     try {
-      const service = await db.Service.findByPk(req.params.id);
+      const service = await db.Service.findByPk(service_id);
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
       }
@@ -164,8 +170,10 @@ router.delete(
 router.patch(
   "/:id/toggle",
   async (req: Request, res: Response, next: NextFunction) => {
+    const service_id = req.params.id as string;
+
     try {
-      const service = await db.Service.findByPk(req.params.id);
+      const service = await db.Service.findByPk(service_id);
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
       }

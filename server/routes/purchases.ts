@@ -605,7 +605,8 @@ router.post(
           const purchase = await Purchase.findByPk(purchaseId);
           if (
             purchase &&
-            purchase.SupplierId === parseInt(req.params.supplierId)
+            purchase.SupplierId ===
+              parseInt(req.params.supplierId as string, 10)
           ) {
             const remaining =
               parseFloat(purchase.total_amount) -
@@ -639,7 +640,7 @@ router.post(
         // Apply to oldest unpaid purchases first (FIFO)
         const unpaidPurchases = await Purchase.findAll({
           where: {
-            SupplierId: req.params.supplierId,
+            SupplierId: parseInt(req.params.supplierId as string, 10),
             payment_status: { [Op.in]: ["Unpaid", "Partial"] },
           },
           order: [["purchaseDate", "ASC"]],
@@ -680,7 +681,7 @@ router.post(
       // Create payment record
       const payment = await SupplierPayment.create(
         {
-          SupplierId: parseInt(req.params.supplierId),
+          SupplierId: parseInt(req.params.supplierId as string, 10),
           PurchaseId: null, // General payment
           amount,
           payment_method: paymentMethod || "Cash",
