@@ -118,7 +118,7 @@ router.post(
   requireCreatePermission("credit"),
   async (req: Request, res: Response): Promise<void> => {
     const { amount, paymentDate, note } = req.body;
-    const customerId = req.params.id;
+    const customerId = req.params.id as string;
 
     // Validate customer ID is a valid number
     const parsedCustomerId = parseInt(customerId, 10);

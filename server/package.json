@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "jest",
-    "test:watch": "jest --watch",
+    "test:watch": "jest --watchAll",
     "test:coverage": "jest --coverage",
     "test:unit": "jest --testPathPattern='.*\\.test\\.ts$' --testPathIgnorePatterns='/integration/'",
     "test:integration": "jest --testPathPattern='/integration/.*\\.test\\.ts$'",
@@ -43,6 +43,11 @@
     "pdfkit": "^0.17.2",
     "pdfkit-table": "^0.1.99",
     "sequelize": "^6.37.7"
+  },
+  "overrides": {
+    "mysqldump": {
+      "mysql2": "^3.10.0"
+    }
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

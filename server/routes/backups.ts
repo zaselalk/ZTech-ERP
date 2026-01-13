@@ -26,7 +26,7 @@ router.post(
   "/:filename/restore",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { filename } = req.params;
+      const { filename } = req.params as { filename: string };
       await backupService.restoreBackup(filename);
       res.json({ message: "Database restored successfully" });
     } catch (error) {
@@ -39,7 +39,7 @@ router.delete(
   "/:filename",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { filename } = req.params;
+      const { filename } = req.params as { filename: string };
       const deleted = await backupService.deleteBackup(filename);
       if (deleted) {
         res.json({ message: "Backup deleted successfully" });

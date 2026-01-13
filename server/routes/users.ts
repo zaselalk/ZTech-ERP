@@ -119,7 +119,7 @@ router.delete(
   "/:id",
   requireDeletePermission("users"),
   async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
 
     try {
       const user = await User.findByPk(id);
