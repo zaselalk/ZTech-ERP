@@ -1,4 +1,4 @@
-# Bookshop Management System
+# Scalable ERP built with Typescript
 
 This is a simple bookshop management system with a React frontend and a Node.js backend.
 
